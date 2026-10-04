@@ -31,6 +31,5 @@ Result:
 ## Review
 
 - [ ] Đã tự review diff.
-- [ ] Đã request review từ người còn lại trong nhóm.
+- [ ] PR của thành viên Tự động hoá đã request review từ chủ repo; hoặc đây là PR của chủ repo và toàn bộ CI đã xanh, branch up-to-date, không conflict.
 - [ ] Mọi conversation đã được resolve trước khi merge.
-

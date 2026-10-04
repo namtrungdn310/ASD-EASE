@@ -13,8 +13,8 @@
 |---|---|---|
 | Required three source modules and documentation | PASS | `backend`, `frontend`, `AI`, `docs`; 25 phase files with complete template headings. |
 | Git repository | PASS | Connected to `namtrungdn310/ASD-EASE`; `dev` is the default branch and generated/private artifacts are ignored. |
-| Protected branches | PASS | `dev` and `main` require PR, one external approval, fresh review after changes, six CI checks, resolved conversations and linear history; admin enforcement is enabled. |
-| Pull request workflow | PASS | PR #1 follows `fix/* → dev`; all six checks pass and GitHub blocks merge pending review. |
+| Protected branches | PASS | `dev` and `main` require PR, six CI checks, an up-to-date conflict-free head, resolved conversations and linear history; admin enforcement blocks direct pushes. Collaborator PRs require owner approval; `namtrungdn310` has a PR-only bypass intended only for owner-authored PRs. |
+| Pull request workflow | PASS | PR #1 follows `fix/* → dev`; all six checks pass. As an owner-authored PR, it may use **Bypass rules and merge** without external approval after the final diff and conflict status are verified. |
 | Docker Compose configuration | PASS | `docker compose config` exit 0. |
 | Backend tests | PASS | 13 pytest tests passed. |
 | Synthetic/AI tests | PASS | 15 pytest tests passed. |

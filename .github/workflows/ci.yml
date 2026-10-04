@@ -104,4 +104,3 @@ jobs:
       - name: Validate phase documentation count
         shell: bash
         run: test "$(find docs/phases -maxdepth 1 -type f -name 'PHASE_*.md' | wc -l)" -eq 25
-
