@@ -21,7 +21,7 @@
 
 ### Fixed
 
-- None.
+- Corrected the Arduino `Esp.h` include casing so firmware builds on case-sensitive Linux CI runners.
 
 ### Removed
 
