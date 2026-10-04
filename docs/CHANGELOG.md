@@ -18,10 +18,11 @@
 ### Changed
 
 - Upgraded frontend Tailwind integration to the current Vite plugin path; production dependency audit now reports zero known vulnerabilities.
+- Refined protected-branch review policy: collaborator PRs require owner approval, while the named owner may use a PR-only bypass on owner-authored PRs after all required checks pass and the branch is conflict-free.
 
 ### Fixed
 
-- None.
+- Corrected the Arduino `Esp.h` include casing so firmware builds on case-sensitive Linux CI runners.
 
 ### Removed
 

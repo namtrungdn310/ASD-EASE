@@ -31,7 +31,7 @@ Python 3.12, FastAPI, Pydantic, SQLAlchemy/SQLite, React, TypeScript, Vite, Tail
 
 ## Git workflow
 
-Daily work uses short-lived `feature/*`, `fix/*`, `docs/*` or `chore/*` branches and reviewed pull requests into protected `dev`. Stable promotions use a reviewed pull request from `dev` into protected `main`. Direct pushes and self-merges are prohibited. See [Git/GitHub Workflow](docs/GIT_WORKFLOW.md).
+Daily work uses short-lived `feature/*`, `fix/*`, `docs/*` or `chore/*` branches and pull requests into protected `dev`. Stable promotions use a pull request from `dev` into protected `main`. Direct pushes are prohibited. Collaborator PRs require the owner's approval; owner-authored PRs may merge without another approval only after all required CI checks pass and the PR is up to date and conflict-free. See [Git/GitHub Workflow](docs/GIT_WORKFLOW.md).
 
 ## Prerequisites
 

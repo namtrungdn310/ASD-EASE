@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <ESP.h>
+#include <Esp.h>
 #include <WiFi.h>
 #include "HardwareProfiler.h"
 #include "board_config.h"
@@ -16,4 +16,3 @@ void HardwareProfiler::printToSerial() {
   Serial.printf("mac=%s\n", WiFi.macAddress().c_str());
   Serial.printf("firmware_version=%s\n", ASD_FIRMWARE_VERSION);
 }
-

@@ -16,16 +16,16 @@ Do not share one feature branch between both contributors. Keep each branch focu
 ```text
 feature/*, fix/*, docs/*, chore/*
                  |
-                 | Pull Request + CI + other-person review
+                 | Pull Request + CI + review policy
                  v
                 dev
                  |
-                 | Pull Request from dev + CI + review
+                 | Pull Request from dev + CI + review policy
                  v
                 main
 ```
 
-The IT owner reviews the Automation student's PRs. GitHub does not allow a PR author to approve their own PR, so PRs authored by the owner must be reviewed by the Automation student. Neither contributor may directly push to or self-merge into protected branches.
+The IT owner reviews the Automation student's PRs. For an owner-authored PR, the owner may select **Bypass rules and merge** without another approval, but only after every required CI check passes, the branch is up to date and conflict-free, and all review conversations are resolved. Neither contributor may directly push to protected branches. The owner must use this bypass only for their own PRs.
 
 ## First-time collaborator setup
 
@@ -75,9 +75,9 @@ On GitHub choose:
 
 - Base: `dev`
 - Compare: the work branch
-- Reviewer: the other contributor
+- Reviewer: the repository owner when the Automation student opens the PR
 
-Complete the PR template, wait for every required CI check, address review comments and obtain one approval. New commits after approval invalidate stale approval. All conversations must be resolved. Use **Squash and merge**, then delete the work branch.
+Complete the PR template, wait for every required CI check, and address all review comments. An Automation-student PR requires the owner's approval; new commits invalidate stale approval. For an owner-authored PR, the owner may select **Bypass rules and merge** after verifying the final diff, all required checks, update status and conflict status. All conversations must be resolved. Use **Squash and merge**, then delete the work branch.
 
 After merge, both contributors synchronize:
 
@@ -93,7 +93,7 @@ Only promote a reviewed, integrated milestone:
 
 1. Confirm relevant acceptance criteria and documentation are updated.
 2. Open a PR with base `main` and compare `dev`.
-3. Wait for all CI checks and the other contributor's approval.
+3. Wait for all CI checks. An Automation-student PR also requires the owner's approval; for an owner-authored PR, the owner may select **Bypass rules and merge** after verifying the final diff is conflict-free.
 4. Resolve every conversation.
 5. Use **Squash and merge** only when the PR represents one release unit; otherwise use **Rebase and merge** to retain reviewed commits.
 6. Never force-push or delete `main`/`dev`.
@@ -107,13 +107,12 @@ Even urgent fixes use `fix/* → dev → main`. If `main` needs an exceptional e
 Both `main` and `dev` require:
 
 - Pull request before merge.
-- One approval from someone other than the last pusher.
-- Stale approvals dismissed after new commits.
+- One owner approval for collaborator-authored PRs.
+- Stale collaborator-PR approvals are dismissed after new commits; owner-authored PRs may use the named owner's PR-only bypass.
 - All required CI checks passing on an up-to-date branch.
 - All review conversations resolved.
 - Linear history.
-- Admin enforcement/no ordinary bypass.
+- Admin enforcement for branch protection; the named owner's ruleset bypass is available only while merging a PR and must be used only on owner-authored PRs.
 - Force pushes and branch deletion disabled.
 
 The default branch is `dev`, so new clones and GitHub's default PR target naturally point to daily integration rather than stable `main`.
-

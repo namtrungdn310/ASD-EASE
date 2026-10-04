@@ -1,4 +1,4 @@
 # Automatically request the repository owner's review on every pull request.
-# Branch protection still requires one approval from someone other than the PR author.
+# Collaborator PRs require this owner's approval. The named owner has a
+# pull-request-only bypass intended only for owner-authored PRs.
 * @namtrungdn310
-
