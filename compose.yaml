@@ -1,0 +1,39 @@
+services:
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: sqlite:////app/storage/asd_edge_ai.db
+      RAW_STORAGE_DIR: /app/storage/raw
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend-storage:/app/storage
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8000
+        VITE_WS_URL: ws://localhost:8000/api/v1/ws/live
+    ports:
+      - "5173:5173"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  ai:
+    build: ./AI
+    profiles: ["ai"]
+    environment:
+      BACKEND_URL: http://backend:8000
+    volumes:
+      - ./AI/data:/app/data
+
+volumes:
+  backend-storage:
+

@@ -1,0 +1,10 @@
+__pycache__
+.pytest_cache
+data/raw
+data/interim
+data/processed
+data/synthetic/raw/*
+data/synthetic/processed/*
+data/synthetic/manifests/*
+edge_firmware/.pio
+
