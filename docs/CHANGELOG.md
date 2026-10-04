@@ -23,6 +23,7 @@
 ### Fixed
 
 - Corrected the Arduino `Esp.h` include casing so firmware builds on case-sensitive Linux CI runners.
+- Replaced the missing favicon declaration with a cache-busted ASD-EASE wearable signal icon so browsers no longer reuse an icon from an older localhost project.
 
 ### Removed
 
