@@ -12,7 +12,9 @@
 | Item | Status | Evidence |
 |---|---|---|
 | Required three source modules and documentation | PASS | `backend`, `frontend`, `AI`, `docs`; 25 phase files with complete template headings. |
-| Git repository | PASS | Initialized on branch `main`; generated environments, builds, credentials and test artifacts are ignored. |
+| Git repository | PASS | Connected to `namtrungdn310/ASD-EASE`; `dev` is the default branch and generated/private artifacts are ignored. |
+| Protected branches | PASS | `dev` and `main` require PR, one external approval, fresh review after changes, six CI checks, resolved conversations and linear history; admin enforcement is enabled. |
+| Pull request workflow | PASS | PR #1 follows `fix/* → dev`; all six checks pass and GitHub blocks merge pending review. |
 | Docker Compose configuration | PASS | `docker compose config` exit 0. |
 | Backend tests | PASS | 13 pytest tests passed. |
 | Synthetic/AI tests | PASS | 15 pytest tests passed. |
@@ -104,6 +106,11 @@ Generated dependency/build/cache directories (`.venv`, `node_modules`, `dist`, `
 ```text
 ASD-EDGE-AI/
     ├── .env.example
+    ├── .github
+    │   ├── CODEOWNERS
+    │   ├── pull_request_template.md
+    │   └── workflows
+    │       └── ci.yml
     ├── .gitignore
     ├── AI
     │   ├── .dockerignore
@@ -261,6 +268,7 @@ ASD-EDGE-AI/
     │   ├── DECISIONS.md
     │   ├── DEVELOPMENT_WORKFLOW.md
     │   ├── FINAL_VERIFICATION.md
+    │   ├── GIT_WORKFLOW.md
     │   ├── HARDWARE_PROFILE.md
     │   ├── phases
     │   │   ├── PHASE_00_HARDWARE_VERIFICATION.md
