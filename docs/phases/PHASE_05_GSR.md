@@ -32,7 +32,7 @@ Verified ADC1-capable pin, module voltage and wiring.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/sensors/GSRSensor.cpp
+ai/edge_firmware/src/sensors/GSRSensor.cpp
 
 ## Implementation Notes
 

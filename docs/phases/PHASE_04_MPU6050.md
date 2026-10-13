@@ -32,7 +32,7 @@ Verified I2C bus and MPU6050 hardware.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/sensors/MPU6050Sensor.cpp
+ai/edge_firmware/src/sensors/MPU6050Sensor.cpp
 
 ## Implementation Notes
 

@@ -14,10 +14,10 @@ Sensors -> ESP32 Edge pipeline -> NORMAL/ATTENTION/UNCERTAIN -> local Wi-Fi -> F
 
 - `backend/`: FastAPI, SQLite metadata, raw-file receiver và WebSocket.
 - `frontend/`: React/TypeScript/Vite/Tailwind/Recharts dashboard.
-- `AI/`: synthetic data, simulator, future research interfaces và firmware tại `AI/edge_firmware/`.
+- `ai/`: synthetic data, simulator, future research interfaces và firmware tại `ai/edge_firmware/`.
 - `docs/`: kiến trúc, hợp đồng, protocol và phase tracking; không phải source module.
 
-Ba source module duy nhất là `backend`, `frontend`, `AI`.
+Ba source module duy nhất là `backend`, `frontend`, `ai`.
 
 ## Technology stack
 
@@ -65,8 +65,8 @@ Mọi output simulator là **SYNTHETIC TEST DATA**, không phải dữ liệu AS
 ```bash
 python -m pip install -r backend/requirements.txt
 python -m pytest backend/tests
-python -m pip install -r AI/requirements.txt
-$env:PYTHONPATH="AI"; python -m pytest AI/tests
+python -m pip install -r ai/requirements.txt
+$env:PYTHONPATH="ai"; python -m pytest ai/tests
 npm --prefix frontend install
 npm --prefix frontend run build
 docker compose config
@@ -75,7 +75,7 @@ docker compose build
 
 ## PlatformIO
 
-Firmware dùng profile build ESP32-S3 bảo thủ tạm thời; profile này không xác nhận board vật lý. Từ `AI/edge_firmware`:
+Firmware dùng profile build ESP32-S3 bảo thủ tạm thời; profile này không xác nhận board vật lý. Từ `ai/edge_firmware`:
 
 ```bash
 pio run

@@ -32,7 +32,7 @@ Selected model and frozen feature order.
 
 ## Files Expected To Change
 
-AI/src/export/...; AI/edge_firmware/include/model_generated.h
+ai/src/export/...; ai/edge_firmware/include/model_generated.h
 
 ## Implementation Notes
 

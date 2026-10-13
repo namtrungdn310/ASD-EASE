@@ -32,7 +32,7 @@ Working Edge pipeline and competition LAN.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/communication/...
+ai/edge_firmware/src/communication/...
 
 ## Implementation Notes
 

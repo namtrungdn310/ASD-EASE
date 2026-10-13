@@ -32,7 +32,7 @@ Feature tables with split/provenance metadata.
 
 ## Files Expected To Change
 
-AI/src/training/...; AI/src/evaluation/...
+ai/src/training/...; ai/src/evaluation/...
 
 ## Implementation Notes
 

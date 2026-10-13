@@ -32,7 +32,7 @@ Verified ESP32 networking and laptop LAN address.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/communication/...; backend/...
+ai/edge_firmware/src/communication/...; backend/...
 
 ## Implementation Notes
 

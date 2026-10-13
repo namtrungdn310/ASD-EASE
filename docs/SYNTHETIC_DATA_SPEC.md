@@ -37,7 +37,7 @@ Scenario ground truth is distinct from deployment engineering state. The explici
 
 ## Dataset schema and provenance
 
-Saved JSON contains `metadata`, `streams` and compact `telemetry`. Manifest records `data_origin=SYNTHETIC`, generator version/config, seed, schema version, participant/session, scenario, rates, duration, UTC creation time and limitation notice. Generated files remain below `AI/data/synthetic` and are gitignored; real data remains elsewhere.
+Saved JSON contains `metadata`, `streams` and compact `telemetry`. Manifest records `data_origin=SYNTHETIC`, generator version/config, seed, schema version, participant/session, scenario, rates, duration, UTC creation time and limitation notice. Generated files remain below `ai/data/synthetic` and are gitignored; real data remains elsewhere.
 
 ## Reproducibility and validation
 
@@ -46,11 +46,11 @@ Identical configuration, profile and seed reproduce signal arrays. Timestamps, s
 ## Usage
 
 ```bash
-$env:PYTHONPATH="AI"
+$env:PYTHONPATH="ai"
 python -m simulator.mock_device --scenario repetitive_movement --duration 30 --save
 python -m simulator.mock_device --generate-dataset --duration 30
-python -m simulator.mock_device --replay AI/data/synthetic/raw/SYN-SESSION001.json --send-raw --speed 5
-python -m pytest AI/tests
+python -m simulator.mock_device --replay ai/data/synthetic/raw/SYN-SESSION001.json --send-raw --speed 5
+python -m pytest ai/tests
 ```
 
 Inside Docker, prefix with `docker compose --profile ai run --rm ai`. A synthetic-only training smoke test belongs to a later ML phase and any resulting model must carry `SYNTHETIC_ONLY` provenance; it cannot be auto-selected for deployment.

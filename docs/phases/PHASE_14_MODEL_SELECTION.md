@@ -32,7 +32,7 @@ Rule/ML results, size, latency and interpretability evidence.
 
 ## Files Expected To Change
 
-AI/src/evaluation/...; docs/PROGRESS.md
+ai/src/evaluation/...; docs/PROGRESS.md
 
 ## Implementation Notes
 
