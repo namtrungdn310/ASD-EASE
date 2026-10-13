@@ -11,7 +11,7 @@
 
 | Item | Status | Evidence |
 |---|---|---|
-| Required three source modules and documentation | PASS | `backend`, `frontend`, `AI`, `docs`; 25 phase files with complete template headings. |
+| Required three source modules and documentation | PASS | `backend`, `frontend`, `ai`, `docs`; 25 phase files with complete template headings. |
 | Git repository | PASS | Connected to `namtrungdn310/ASD-EASE`; `dev` is the default branch and generated/private artifacts are ignored. |
 | Protected branches | PASS | `dev` and `main` require PR, six CI checks, an up-to-date conflict-free head, resolved conversations and linear history; admin enforcement blocks direct pushes. Collaborator PRs require owner approval; `namtrungdn310` has a PR-only bypass intended only for owner-authored PRs. |
 | Pull request workflow | PASS | PR #1 follows `fix/* → dev`; all six checks pass. As an owner-authored PR, it may use **Bypass rules and merge** without external approval after the final diff and conflict status are verified. |
@@ -59,11 +59,11 @@ npm --prefix frontend install
 npm --prefix frontend run build
 ```
 
-### AI/synthetic tests and mock device
+### ai/synthetic tests and mock device
 
 ```powershell
-.\.venv\Scripts\python -m pip install -r AI\requirements.txt
-Push-Location AI
+.\.venv\Scripts\python -m pip install -r ai\requirements.txt
+Push-Location ai
 ..\.venv\Scripts\python -m pytest -q
 Pop-Location
 docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario attention_mock --duration 30 --send-raw
@@ -73,7 +73,7 @@ docker compose --profile ai run --rm ai python -m simulator.mock_device --scenar
 
 ```powershell
 .\.venv\Scripts\python -m pip install platformio
-.\.venv\Scripts\pio run -d AI\edge_firmware
+.\.venv\Scripts\pio run -d ai\edge_firmware
 ```
 
 ## What works now
@@ -112,7 +112,7 @@ ASD-EDGE-AI/
     │   └── workflows
     │       └── ci.yml
     ├── .gitignore
-    ├── AI
+    ├── ai
     │   ├── .dockerignore
     │   ├── data
     │   │   ├── interim

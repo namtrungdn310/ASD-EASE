@@ -32,7 +32,7 @@ Safe verified battery/regulator/charger and integrated firmware.
 
 ## Files Expected To Change
 
-AI/edge_firmware/...; docs/HARDWARE_PROFILE.md
+ai/edge_firmware/...; docs/HARDWARE_PROFILE.md
 
 ## Implementation Notes
 

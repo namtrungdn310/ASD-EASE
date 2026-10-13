@@ -32,7 +32,7 @@ Leakage-safe splits and feature definitions.
 
 ## Files Expected To Change
 
-AI/src/training/...; AI/models/experiments/...
+ai/src/training/...; ai/models/experiments/...
 
 ## Implementation Notes
 

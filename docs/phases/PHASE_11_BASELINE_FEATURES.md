@@ -32,7 +32,7 @@ Quality-gated processed streams.
 
 ## Files Expected To Change
 
-AI/src/baseline/...; AI/src/feature_extraction/...
+ai/src/baseline/...; ai/src/feature_extraction/...
 
 ## Implementation Notes
 

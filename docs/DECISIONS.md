@@ -7,7 +7,7 @@ Status: ACCEPTED
 
 Context: The student team needs clear ownership.
 
-Decision: Source modules are exactly `backend`, `frontend`, and `AI`; `docs` is documentation.
+Decision: Source modules are exactly `backend`, `frontend`, and `ai`; `docs` is documentation.
 
 Reason: Minimize maintenance overhead.
 
@@ -20,7 +20,7 @@ Status: ACCEPTED
 
 Context: Firmware is part of Edge AI delivery.
 
-Decision: Firmware lives at `AI/edge_firmware`.
+Decision: Firmware lives at `ai/edge_firmware`.
 
 Reason: Avoid a fourth source module.
 

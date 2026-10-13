@@ -27,12 +27,12 @@ services:
         condition: service_healthy
 
   ai:
-    build: ./AI
+    build: ./ai
     profiles: ["ai"]
     environment:
       BACKEND_URL: http://backend:8000
     volumes:
-      - ./AI/data:/app/data
+      - ./ai/data:/app/data
 
 volumes:
   backend-storage:

@@ -32,7 +32,7 @@ Verified I2C pins, board and MAX30102 wiring.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/sensors/MAX30102Sensor.cpp
+ai/edge_firmware/src/sensors/MAX30102Sensor.cpp
 
 ## Implementation Notes
 

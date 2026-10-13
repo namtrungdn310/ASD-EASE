@@ -32,7 +32,7 @@ Parity-verified scores and quality flags.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/state/...
+ai/edge_firmware/src/state/...
 
 ## Implementation Notes
 

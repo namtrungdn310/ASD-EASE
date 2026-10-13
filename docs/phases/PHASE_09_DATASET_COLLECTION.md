@@ -32,7 +32,7 @@ Approved protocol, pseudonymous IDs, working logger.
 
 ## Files Expected To Change
 
-AI/data/raw/...; docs/DATASET_PROTOCOL.md
+ai/data/raw/...; docs/DATASET_PROTOCOL.md
 
 ## Implementation Notes
 

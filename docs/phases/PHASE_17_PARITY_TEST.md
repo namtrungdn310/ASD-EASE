@@ -32,7 +32,7 @@ Golden raw/features and both implementations.
 
 ## Files Expected To Change
 
-AI/tests/...; AI/edge_firmware/test/...
+ai/tests/...; ai/edge_firmware/test/...
 
 ## Implementation Notes
 
