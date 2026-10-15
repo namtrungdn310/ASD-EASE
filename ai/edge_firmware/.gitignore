@@ -2,3 +2,11 @@ include/network_config.h
 .pio/
 .cache/
 compile_commands.json
+/build/
+*.bin
+*.elf
+*.hex
+*.map
+*.o
+*.a
+*.d
