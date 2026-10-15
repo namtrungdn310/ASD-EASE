@@ -1,3 +1,4 @@
 include/network_config.h
 .pio/
-
+.cache/
+compile_commands.json
