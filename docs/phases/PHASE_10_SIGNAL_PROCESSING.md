@@ -32,7 +32,7 @@ Versioned raw data and documented sampling/timing.
 
 ## Files Expected To Change
 
-AI/src/preprocessing/...; AI/src/signal_quality/...
+ai/src/preprocessing/...; ai/src/signal_quality/...
 
 ## Implementation Notes
 

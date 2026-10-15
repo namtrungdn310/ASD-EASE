@@ -32,7 +32,7 @@ Verified board limits, export and C++ features.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/inference/...
+ai/edge_firmware/src/inference/...
 
 ## Implementation Notes
 

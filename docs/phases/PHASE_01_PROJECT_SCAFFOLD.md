@@ -27,12 +27,12 @@ Docker, Python, Node; physical hardware is not required.
 ## Tasks
 
 - [x] Create required repository and documentation structure
-- [x] Implement buildable backend/frontend/AI/firmware scaffolds
+- [x] Implement buildable backend/frontend/ai/firmware scaffolds
 - [x] Validate Docker, contracts and tests
 
 ## Files Expected To Change
 
-backend/...; frontend/...; AI/...; docs/...; root configuration
+backend/...; frontend/...; ai/...; docs/...; root configuration
 
 ## Implementation Notes
 
@@ -68,7 +68,7 @@ Completed within the scaffold scope. Firmware compilation passed under the tempo
 
 - docker compose config: PASS.
 - Backend: 13 pytest tests passed.
-- AI/synthetic: 15 pytest tests passed.
+- ai/synthetic: 15 pytest tests passed.
 - Frontend: TypeScript and Vite production build passed; npm production audit found 0 vulnerabilities.
 - Backend, frontend and optional AI Docker images built.
 - docker compose up -d --build --wait: backend healthy and frontend running.

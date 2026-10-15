@@ -32,7 +32,7 @@ Running Docker stack or local backend/frontend; synthetic session.
 
 ## Files Expected To Change
 
-AI/synthetic/...; AI/simulator/mock_device.py; backend/...; frontend/...; docs/SYNTHETIC_DATA_SPEC.md
+ai/synthetic/...; ai/simulator/mock_device.py; backend/...; frontend/...; docs/SYNTHETIC_DATA_SPEC.md
 
 ## Implementation Notes
 
@@ -66,7 +66,7 @@ Generator, raw-batch replay, compact telemetry, network-pause recovery and live 
 
 ## Completion Evidence
 
-- AI/synthetic suite: 15 tests passed, including scenarios, contract, shared preprocessing, reproducibility, profiles, counts/ranges and transitions.
+- ai/synthetic suite: 15 tests passed, including scenarios, contract, shared preprocessing, reproducibility, profiles, counts/ranges and transitions.
 - Docker mock replay sent ATTENTION telemetry and raw batches accepted by the backend.
 - Live WebSocket test received device SIM-E2E with origin SYNTHETIC after HTTP 202 ingestion.
 - Raw JSONL exists in the backend storage volume.

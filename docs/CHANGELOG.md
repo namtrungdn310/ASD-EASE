@@ -17,6 +17,7 @@
 
 ### Changed
 
+- Renamed the source directory `AI` to `ai` and updated CI, Compose, ignore rules and documentation paths.
 - Upgraded frontend Tailwind integration to the current Vite plugin path; production dependency audit now reports zero known vulnerabilities.
 - Refined protected-branch review policy: collaborator PRs require owner approval, while the named owner may use a PR-only bypass on owner-authored PRs after all required checks pass and the branch is conflict-free.
 

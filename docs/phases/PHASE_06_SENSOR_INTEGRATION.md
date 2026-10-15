@@ -32,7 +32,7 @@ Verified sensor drivers and timing targets.
 
 ## Files Expected To Change
 
-AI/edge_firmware/src/sensors/...; AI/edge_firmware/src/processing/...
+ai/edge_firmware/src/sensors/...; ai/edge_firmware/src/processing/...
 
 ## Implementation Notes
 

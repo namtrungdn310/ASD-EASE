@@ -32,7 +32,7 @@ Physical board, cable, multimeter, PlatformIO host tools.
 
 ## Files Expected To Change
 
-AI/edge_firmware/include/pins.h; docs/HARDWARE_PROFILE.md
+ai/edge_firmware/include/pins.h; docs/HARDWARE_PROFILE.md
 
 ## Implementation Notes
 

@@ -2,7 +2,7 @@
 
 ## Separation and identifiers
 
-Real raw/interim/processed data lives under the corresponding `AI/data` directories; generated data lives only in `AI/data/synthetic/{raw,processed,manifests}`. Never merge them into an unlabeled pool. Real IDs use approved pseudonyms such as `P001`/`SESSION-001`; synthetic IDs use an unmistakable `SYN-P001`/`SYN-SESSION001` namespace. No names or direct identifiers are allowed.
+Real raw/interim/processed data lives under the corresponding `ai/data` directories; generated data lives only in `ai/data/synthetic/{raw,processed,manifests}`. Never merge them into an unlabeled pool. Real IDs use approved pseudonyms such as `P001`/`SESSION-001`; synthetic IDs use an unmistakable `SYN-P001`/`SYN-SESSION001` namespace. No names or direct identifiers are allowed.
 
 ## Provenance
 
