@@ -72,7 +72,7 @@ Lệnh tham khảo: `git ls-files`, `git check-ignore -v <path>`, `git diff --ch
 - [x] Không còn đường dẫn cá nhân trong cấu hình tracked dùng chung.
 - [x] CI marker check đã kiểm tra được cả tình huống có/không có marker.
 - [ ] Required checks xanh; docs ghi đúng phần chưa kiểm chứng.
-- [ ] PR vào `dev`, commit gợi ý: `chore: clean up firmware integration configuration`.
+- [x] Đã mở [draft PR #9 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/9). Chờ PR #8 merge trước, sau đó cập nhật nhánh cleanup để loại commit kế hoạch khỏi ancestry nếu squash merge; không merge cleanup trước phụ thuộc.
 
 ## Rollback
 
