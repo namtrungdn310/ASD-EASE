@@ -20,14 +20,14 @@ File dự kiến: `frontend/src/hooks/useLiveTelemetry.ts`, `components/DeviceSt
 
 ## Học code từng file
 
-Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; Trung đã hoàn tất `types/connection.ts` và `utils/validation.ts`, TypeScript typecheck PASS; 29 runtime cases cho validation helpers PASS. Chưa thay hook/giao diện hiện tại.
+Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; connection.ts, validation.ts và parseTelemetry.ts đã đạt TypeScript typecheck. Validation helpers có 29 runtime cases PASS; telemetry parser/guard có 137 assertions PASS. Chưa thay hook/giao diện hiện tại.
 
 Thứ tự dự kiến:
 
 1. Đã xong `frontend/src/types/connection.ts`: kiểu ConnectionStatus có đúng bốn trạng thái UI; typecheck PASS, không đổi wire contract.
 2. Đã xong `frontend/src/utils/validation.ts`: isRecord, isFiniteNumber, isNumberInRange; TypeScript và 29 runtime cases PASS (null/array/chuỗi/NaN/Infinity/giá trị biên).
-3. `frontend/src/utils/parseTelemetry.ts`: dùng helpers bước 2, kiểm tra cấu trúc/giá trị telemetry qua isTelemetry và parse JSON an toàn; trả Telemetry hoặc null. Trung viết tiếp file này. TypeScript cast không thay validation.
-4. Helper quản lý stream/chart theo device/session, thời điểm nhận và timestamp reset; ưu tiên logic thuần có thể test.
+3. Đã xong `frontend/src/utils/parseTelemetry.ts`: isTelemetry và parseTelemetry dùng helpers, trả payload hợp lệ hoặc null. Typecheck và 137 assertions PASS (payload hợp lệ, null, biên, thiếu field, sai nested object, enum, số không hữu hạn, JSON lỗi và không mutate input).
+4. `frontend/src/utils/telemetryStream.ts`: TelemetryStream, updateTelemetryStream và getConnectionStatus; tách stream theo device/session/origin, reset chart khi đổi stream/timestamp lùi, giữ tối đa 60 điểm, duplicate timestamp không refresh tuổi dữ liệu; status dùng clock nhận trên browser và stale timeout cấu hình được. Trung viết tiếp file này.
 5. `useLiveTelemetry.ts`: áp dụng helpers, selection/freshness, reconnect và cleanup socket/timer.
 6. `DeviceStatus.tsx`: hiển thị rõ bốn trạng thái kết nối/dữ liệu.
 7. `Dashboard.tsx`: lựa chọn thiết bị/phiên, cảnh báo dữ liệu cũ và giữ synthetic provenance.
@@ -92,3 +92,4 @@ Thay đổi chỉ ở UI/hook; không đổi payload backend để chữa trạn
 | 2026-10-18 / branch setup | Tạo fix/frontend-live-connection-status từ dev 86cd09f sau PR #9 | Working tree sạch khi tạo nhánh; 4 IDE-generated files local giữ nguyên | Bắt đầu types/connection.ts, chưa có source/test mới |
 | 2026-10-18 / local connection.ts | Trung viết union type bốn trạng thái UI | `tsc -p frontend/tsconfig.app.json --noEmit`: PASS; chưa nối hook | File đạt; tiếp utils/validation.ts. Chưa xác nhận runtime/reconnect/UI |
 | 2026-10-18 / local validation.ts | Trung viết ba runtime guard helpers | TypeScript --noEmit PASS; Node --experimental-strip-types chạy 29 assertions về object/null/array, số hữu hạn, invalid types và range boundaries: PASS | File đạt; tiếp parseTelemetry.ts. Chưa validate toàn payload hoặc nối hook |
+| 2026-10-18 / local parseTelemetry.ts | Trung viết telemetry guard và JSON parser | TypeScript --noEmit PASS; 137 runtime assertions qua Node stripTypeScriptTypes PASS, bao gồm full payload/nested fields/nulls/ranges/JSON lỗi | File đạt; tiếp telemetryStream.ts, chưa nối hook/UI |

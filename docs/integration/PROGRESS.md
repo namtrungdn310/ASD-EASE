@@ -8,7 +8,7 @@ Ngày cập nhật: 2026-10-18 (Asia/Saigon).
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
 - **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
-- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. connection.ts và validation.ts đã đạt typecheck, 29 runtime cases cho helpers PASS; tiếp theo `utils/parseTelemetry.ts`. Hook và giao diện chưa thay đổi.
+- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. connection/validation/parseTelemetry đạt typecheck; helpers 29 cases và parser 137 assertions PASS. Tiếp theo `utils/telemetryStream.ts`; hook và giao diện chưa thay đổi.
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -30,7 +30,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | connection/validation typecheck + 29 helper cases PASS; tiếp parseTelemetry.ts. Full payload/UI checks chưa thực hiện |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | parser typecheck + 137 assertions PASS; tiếp telemetryStream.ts. Hook/UI checks chưa thực hiện |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
@@ -74,6 +74,8 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-18 | fix/frontend-live-connection-status / connection.ts | Trung hoàn tất kiểu ConnectionStatus cho UI | TypeScript `--noEmit` PASS; chưa thay wire contract hoặc hook | Viết utils/validation.ts từng file, rồi module parse telemetry |
 
 | 2026-10-18 | fix/frontend-live-connection-status / validation.ts | Trung hoàn tất ba helper kiểm tra dữ liệu runtime | TypeScript PASS; 29 runtime assertions PASS | Viết parseTelemetry.ts, sau đó kiểm tra payload hợp lệ/lỗi trước khi nối hook |
+
+| 2026-10-18 | fix/frontend-live-connection-status / parseTelemetry.ts | Trung hoàn tất guard full telemetry và parser JSON | TypeScript PASS; 137 runtime assertions PASS | Viết telemetryStream.ts để quản lý lịch sử, freshness và status |
 
 ## Điều kiện mở PR dev -> main
 
