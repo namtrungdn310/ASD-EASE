@@ -20,15 +20,15 @@ File dự kiến: `frontend/src/hooks/useLiveTelemetry.ts`, `components/DeviceSt
 
 ## Học code từng file
 
-Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; connection.ts, validation.ts và parseTelemetry.ts đã đạt TypeScript typecheck. Validation helpers có 29 runtime cases PASS; telemetry parser/guard có 137 assertions PASS. Chưa thay hook/giao diện hiện tại.
+Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; connection.ts, validation.ts, parseTelemetry.ts và telemetryStream.ts đã đạt TypeScript typecheck. Validation helpers có 29 runtime cases PASS; telemetry parser/guard có 137 assertions PASS; stream helpers có 563 runtime assertions PASS. Chưa thay hook/giao diện hiện tại.
 
 Thứ tự dự kiến:
 
 1. Đã xong `frontend/src/types/connection.ts`: kiểu ConnectionStatus có đúng bốn trạng thái UI; typecheck PASS, không đổi wire contract.
 2. Đã xong `frontend/src/utils/validation.ts`: isRecord, isFiniteNumber, isNumberInRange; TypeScript và 29 runtime cases PASS (null/array/chuỗi/NaN/Infinity/giá trị biên).
 3. Đã xong `frontend/src/utils/parseTelemetry.ts`: isTelemetry và parseTelemetry dùng helpers, trả payload hợp lệ hoặc null. Typecheck và 137 assertions PASS (payload hợp lệ, null, biên, thiếu field, sai nested object, enum, số không hữu hạn, JSON lỗi và không mutate input).
-4. `frontend/src/utils/telemetryStream.ts`: TelemetryStream, updateTelemetryStream và getConnectionStatus; tách stream theo device/session/origin, reset chart khi đổi stream/timestamp lùi, giữ tối đa 60 điểm, duplicate timestamp không refresh tuổi dữ liệu; status dùng clock nhận trên browser và stale timeout cấu hình được. Trung viết tiếp file này.
-5. `useLiveTelemetry.ts`: áp dụng helpers, selection/freshness, reconnect và cleanup socket/timer.
+4. Đã xong `frontend/src/utils/telemetryStream.ts`: TelemetryStream, updateTelemetryStream và getConnectionStatus; tách stream theo device/session/origin, reset chart khi đổi stream/timestamp lùi, giữ tối đa 60 điểm, duplicate timestamp không refresh tuổi dữ liệu. TypeScript và 563 runtime assertions PASS: mapping/null/zero, không mutate input, duplicate giữ object và thời điểm nhận, reset từng khóa/timestamp, rolling buffer và bốn trạng thái với default/custom timeout.
+5. `useLiveTelemetry.ts`: áp dụng parser/stream helpers; Map theo device, lựa chọn thiết bị ổn định, chỉ xem dữ liệu nhận trong kết nối hiện tại là fresh; dùng performance.now cho freshness, interval cập nhật status, reconnect và cleanup socket/timer. Trung viết tiếp file này; chưa xác nhận lifecycle runtime.
 6. `DeviceStatus.tsx`: hiển thị rõ bốn trạng thái kết nối/dữ liệu.
 7. `Dashboard.tsx`: lựa chọn thiết bị/phiên, cảnh báo dữ liệu cũ và giữ synthetic provenance.
 
@@ -93,3 +93,4 @@ Thay đổi chỉ ở UI/hook; không đổi payload backend để chữa trạn
 | 2026-10-18 / local connection.ts | Trung viết union type bốn trạng thái UI | `tsc -p frontend/tsconfig.app.json --noEmit`: PASS; chưa nối hook | File đạt; tiếp utils/validation.ts. Chưa xác nhận runtime/reconnect/UI |
 | 2026-10-18 / local validation.ts | Trung viết ba runtime guard helpers | TypeScript --noEmit PASS; Node --experimental-strip-types chạy 29 assertions về object/null/array, số hữu hạn, invalid types và range boundaries: PASS | File đạt; tiếp parseTelemetry.ts. Chưa validate toàn payload hoặc nối hook |
 | 2026-10-18 / local parseTelemetry.ts | Trung viết telemetry guard và JSON parser | TypeScript --noEmit PASS; 137 runtime assertions qua Node stripTypeScriptTypes PASS, bao gồm full payload/nested fields/nulls/ranges/JSON lỗi | File đạt; tiếp telemetryStream.ts, chưa nối hook/UI |
+| 2026-10-18 / local telemetryStream.ts | Trung viết stream/chart reducer và connection status helper | TypeScript --noEmit PASS; 563 runtime assertions qua Node stripTypeScriptTypes PASS; git diff --check PASS | File đạt; tiếp useLiveTelemetry.ts. Chưa kiểm thử WebSocket/reconnect hoặc UI; 563 là số assertions, gồm vòng lặp kiểm tra rolling buffer |
