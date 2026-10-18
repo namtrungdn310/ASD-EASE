@@ -7,8 +7,9 @@ Ngày cập nhật: 2026-10-18 (Asia/Saigon).
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** đã viết; việc merge PR tài liệu theo trạng thái GitHub.
-- **Implementation:** chưa bắt đầu trong đợt kế hoạch này.
-- **Nhánh nên bắt đầu sau khi kế hoạch merge:** `chore/repository-integration-cleanup`.
+- **Implementation:** đang làm nhánh 01; phần hỗ trợ tài liệu/env/IDE/CI đã sửa, chưa sửa source cốt lõi.
+- **Nhánh đang làm:** `chore/repository-integration-cleanup`.
+- **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
 ## Quy ước trạng thái
@@ -28,7 +29,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | Kế hoạch merge | TODO | — | — | — | Chưa triển khai |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | Bộ kế hoạch có trên nhánh local; PR #8 chưa merge | IN_PROGRESS | 2026-10-18 | — | — | Tài liệu/env/IDE/CI đã xử lý; đang chờ source headers do Trung tự viết, wiring cần Tân xác nhận |
 | 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
@@ -65,6 +66,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | Ngày | Nhánh / commit | Đã làm | Kiểm tra / bằng chứng | Bước tiếp theo |
 |---|---|---|---|---|
 | 2026-10-18 | docs/it-device-integration-plan | Lập 10 kế hoạch nhánh và tracker; chuyển networking/serializer/raw batching sang IT | Kiểm tra 10 tên nhánh hợp CI, 230 checklist mở, 62 liên kết local tồn tại; giữ 25 phase files và chỉ thay Markdown. Chưa triển khai tính năng | Merge kế hoạch, bắt đầu 01 |
+| 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
 
 ## Điều kiện mở PR dev -> main
 

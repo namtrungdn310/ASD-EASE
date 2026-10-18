@@ -2,7 +2,7 @@
 
 ## Status
 
-NOT_STARTED
+IN_PROGRESS
 
 ## Owner
 
@@ -38,6 +38,8 @@ ai/edge_firmware/src/sensors/GSRSensor.cpp
 
 Measure raw ADC only; document attenuation/range and never invent conductance units.
 
+PR #7 (`332f249`) implements ADC averaging, voltage conversion, EMA, a five-second baseline and a conductance formula based on an assumed module circuit. These derived values are provisional until module identification and reference measurements validate the conversion. `board_config.h` executes GPIO4 while its comment says GPIO1; confirm wiring before changing a source constant.
+
 ## Tests
 
 Build/flash; open/short/reference checks; range/noise capture.
@@ -62,11 +64,11 @@ Disconnect module; validate voltage and ADC pin with references.
 
 ## Results
 
-Not executed yet.
+Implementation reviewed from PR #7; physical open/short/reference, input range/noise and conductance-calibration checks are not recorded. Host compilation passed.
 
 ## Completion Evidence
 
-Not available.
+No physical acceptance log available. Preserve raw ADC/reference voltages, actual GPIO/module configuration and calibration limitations before marking DONE.
 
 ## Next Phase
 

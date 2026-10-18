@@ -2,7 +2,7 @@
 
 ## Status
 
-NOT_STARTED
+IN_PROGRESS
 
 ## Owner
 
@@ -38,6 +38,8 @@ ai/edge_firmware/src/sensors/MPU6050Sensor.cpp
 
 Configure ranges/rates explicitly and retain raw engineering units.
 
+PR #7 (`332f249`) implements register reads on `Wire1`, address probing, conversion to engineering units, EMA and reconnect logic. Raw acceleration is currently exposed in m/s² and raw gyroscope values include degrees/s; raw API v1.0 expects g and degrees/s. Driver presence is not proof of offset calibration or correct axis orientation.
+
 ## Tests
 
 Build/flash; inspect stationary gravity; move/rotate axes; check timing.
@@ -62,11 +64,11 @@ Test sensor alone; verify address/range and wiring.
 
 ## Results
 
-Not executed yet.
+Implementation reviewed from PR #7; stationary/axis/range/timing and physical calibration checks have not been recorded in this phase. Host compilation passed.
 
 ## Completion Evidence
 
-Not available.
+No physical acceptance log available. Supply ordered samples, orientation/range settings, measured timing and disconnect behavior before marking DONE.
 
 ## Next Phase
 
