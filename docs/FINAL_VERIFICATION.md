@@ -73,7 +73,11 @@ docker compose --profile ai run --rm ai python -m simulator.mock_device --scenar
 
 ```powershell
 .\.venv\Scripts\python -m pip install platformio
+<<<<<<< HEAD
+.\.venv\Scripts\pio run
+=======
 .\.venv\Scripts\pio run -d ai\edge_firmware
+>>>>>>> 82a90de6f808c51b5a9b459532b6a767ee89c2b7
 ```
 
 ## What works now
