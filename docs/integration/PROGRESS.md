@@ -7,8 +7,8 @@ Ngày cập nhật: 2026-10-18 (Asia/Saigon).
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
-- **Implementation:** năm file source của nhánh 01 đã hoàn tất. Sáu CI checks đã PASS ở commit `7ff1851`; nhánh cleanup đã rebase lên dev sau khi #8 merge, nội dung giữ nguyên. [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) được chuẩn bị để review; kết quả CI trên commit mới xem trực tiếp tại PR. Wiring vật lý vẫn chưa xác nhận.
-- **Nhánh đang làm:** `chore/repository-integration-cleanup`.
+- **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
+- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Chưa thay source frontend; Trung bắt đầu với kiểu trạng thái kết nối riêng cho UI.
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -29,8 +29,8 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge, cleanup dựa trên dev mới | IN_REVIEW | 2026-10-18 | — | [#9](https://github.com/namtrungdn310/ASD-EASE/pull/9) | 5 core headers xong; CI cũ 6/6 PASS, CI commit mới theo GitHub. Wiring cần Tân xác nhận, giá trị cấu hình không đổi |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | Branch từ 86cd09f; bước đầu Trung viết types/connection.ts. Chưa có source/test mới |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
@@ -69,6 +69,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
 | 2026-10-18 | chore/repository-integration-cleanup / PR #9 | Trung hoàn tất 5 core headers; Codex kiểm tra và mở draft PR | Firmware build, 4 tổ hợp header, frontend build, Compose và conflict scan PASS; CI theo trạng thái GitHub | Merge PR #8 trước; cập nhật ancestry của cleanup sau squash merge, chờ CI/review rồi mới tạo nhánh 02 |
 | 2026-10-18 | chore/repository-integration-cleanup / sau PR #8 | Rebase ba commit cleanup lên dev `0bcd833`, không đưa lại commit kế hoạch vào PR #9 | So sánh tree trước/sau rebase: giống nhau; bốn file IDE local giữ nguyên hash; CI 6/6 đã pass tại `7ff1851` trước rebase | Review/merge PR #9 sau khi CI commit mới pass; nhánh 02 chỉ bắt đầu sau khi #9 merge |
+| 2026-10-18 | fix/frontend-live-connection-status | Xác nhận PR #9 merge tại 86cd09f, cập nhật dev và tạo nhánh 02 | Tree dev sau squash merge giống cleanup đã review; 4 local generated files giữ nguyên; CI PR cuối c764210 đã 6/6 PASS | Trung tự tạo frontend/src/types/connection.ts; kiểm tra xong file mới sang bước tiếp |
 
 ## Điều kiện mở PR dev -> main
 

@@ -71,8 +71,12 @@ Lệnh tham khảo: `git ls-files`, `git check-ignore -v <path>`, `git diff --ch
 - [x] Config source thống nhất hoặc phần còn thiếu được ghi blocker cụ thể.
 - [x] Không còn đường dẫn cá nhân trong cấu hình tracked dùng chung.
 - [x] CI marker check đã kiểm tra được cả tình huống có/không có marker.
-- [ ] Required checks xanh; docs ghi đúng phần chưa kiểm chứng.
+- [x] Required checks xanh; docs ghi đúng phần chưa kiểm chứng. CI cuối ở commit c764210 PASS 6/6.
 - [x] Đã mở [PR #9 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/9). PR #8 đã merge; cleanup đã rebase lên dev mới, không còn đưa lại commit kế hoạch vào ancestry. Chuẩn bị review sau khi required checks trên commit mới pass.
+
+### Kết quả bàn giao
+
+PR #9 đã merge vào dev tại `86cd09f` ngày 2026-10-18. Nhánh 01 hoàn tất trong phạm vi software cleanup; GPIO/rates/flash/driver logic không đổi. Các task xác nhận wiring/đo phần cứng chưa được tick vì chưa có bằng chứng từ Tân; phần còn thiếu đã được ghi rõ và tiếp tục theo dõi trong hardware profile/tracker, không chặn việc sửa trạng thái UI ở nhánh 02.
 
 ## Rollback
 

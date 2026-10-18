@@ -66,7 +66,7 @@ Phase 01 — Project Scaffold completed and verified within its non-hardware sco
 
 ## Next Action
 
-Follow the [IT device-integration plan](integration/README.md) and update its [branch tracker](integration/PROGRESS.md). Start with repository cleanup, then verify live synthetic telemetry visually to complete the remaining Phase 02 criterion. IT now owns firmware serialization, session control, Wi-Fi/HTTP and raw batching as well as backend/frontend integration; Automation retains driver and hardware verification work.
+Follow the [IT device-integration plan](integration/README.md) and update its [branch tracker](integration/PROGRESS.md). Repository cleanup is merged in PR #9 (`86cd09f`). The active branch is now `fix/frontend-live-connection-status`: distinguish browser/backend connectivity from device-data freshness, then verify live synthetic telemetry visually to complete the remaining Phase 02 criterion. IT owns firmware serialization, session control, Wi-Fi/HTTP and raw batching as well as backend/frontend integration; Automation retains driver and hardware verification work.
 
 The new plan describes future implementation and does not itself complete any phase. Real-device acceptance for Phase 07/08 remains dependent on the corresponding hardware evidence. Existing phase statuses and historical results above must be reconciled with measured evidence during the cleanup and verification branches.
 

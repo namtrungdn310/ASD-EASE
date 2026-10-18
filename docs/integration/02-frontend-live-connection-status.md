@@ -4,7 +4,7 @@
 |---|---|
 | Nhánh | `fix/frontend-live-connection-status` |
 | Chủ trì | Trung — IT |
-| Phụ thuộc | 01 |
+| Phụ thuộc | Đã đáp ứng: PR #9 merge tại dev 86cd09f |
 | Ước lượng | 0,5–1 ngày |
 | Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 02 |
 
@@ -17,6 +17,21 @@ Browser thể hiện đúng kết nối tới backend và độ mới của dữ
 `useLiveTelemetry` hiện dùng WebSocket open/close cho `connected`; nó không chứng minh ESP32 còn gửi. Hook nhận tất cả payload vào một biểu đồ và chưa xử lý JSON lỗi. Trang điều khiển recording dành cho nhánh 09, không làm trong PR này.
 
 File dự kiến: `frontend/src/hooks/useLiveTelemetry.ts`, `components/DeviceStatus.tsx`, `pages/Dashboard.tsx`, `types/telemetry.ts` khi cần tách kiểu UI, test frontend, `docs/phases/PHASE_02_MOCK_END_TO_END.md`, `docs/PROGRESS.md`, changelog.
+
+## Học code từng file
+
+Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh đã tạo từ dev `86cd09f`, chưa thay core source frontend.
+
+Thứ tự dự kiến:
+
+1. `frontend/src/types/connection.ts`: kiểu `ConnectionStatus` cho UI, gồm `backend_disconnected`, `waiting`, `live`, `stale`. Không thêm các trạng thái này vào EngineeringState hoặc payload backend.
+2. Module helper kiểm tra payload runtime: không coi TypeScript cast là validation; nhận unknown và kiểm tra cấu trúc trước khi dùng.
+3. Helper quản lý stream/chart theo device/session, thời điểm nhận và timestamp reset; ưu tiên logic thuần có thể test.
+4. `useLiveTelemetry.ts`: áp dụng helpers, selection/freshness, reconnect và cleanup socket/timer.
+5. `DeviceStatus.tsx`: hiển thị rõ bốn trạng thái kết nối/dữ liệu.
+6. `Dashboard.tsx`: lựa chọn thiết bị/phiên, cảnh báo dữ liệu cũ và giữ synthetic provenance.
+
+Tên/ranh giới helpers được chốt trước lúc hướng dẫn file đó dựa trên code đã có. Không viết trước các file kế tiếp thay Trung. Unit tests và visual test theo checklist dưới; chưa ghi PASS trước khi chạy.
 
 ## Checklist triển khai
 
@@ -73,3 +88,4 @@ Thay đổi chỉ ở UI/hook; không đổi payload backend để chữa trạn
 | Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
 |---|---|---|---|
 | — | — | — | Chưa thực hiện |
+| 2026-10-18 / branch setup | Tạo fix/frontend-live-connection-status từ dev 86cd09f sau PR #9 | Working tree sạch khi tạo nhánh; 4 IDE-generated files local giữ nguyên | Bắt đầu types/connection.ts, chưa có source/test mới |
