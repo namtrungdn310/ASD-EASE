@@ -20,16 +20,17 @@ File dự kiến: `frontend/src/hooks/useLiveTelemetry.ts`, `components/DeviceSt
 
 ## Học code từng file
 
-Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh đã tạo từ dev `86cd09f`, chưa thay core source frontend.
+Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; Trung đã hoàn tất `types/connection.ts`, TypeScript typecheck PASS. Chưa thay hook/giao diện hiện tại.
 
 Thứ tự dự kiến:
 
-1. `frontend/src/types/connection.ts`: kiểu `ConnectionStatus` cho UI, gồm `backend_disconnected`, `waiting`, `live`, `stale`. Không thêm các trạng thái này vào EngineeringState hoặc payload backend.
-2. Module helper kiểm tra payload runtime: không coi TypeScript cast là validation; nhận unknown và kiểm tra cấu trúc trước khi dùng.
-3. Helper quản lý stream/chart theo device/session, thời điểm nhận và timestamp reset; ưu tiên logic thuần có thể test.
-4. `useLiveTelemetry.ts`: áp dụng helpers, selection/freshness, reconnect và cleanup socket/timer.
-5. `DeviceStatus.tsx`: hiển thị rõ bốn trạng thái kết nối/dữ liệu.
-6. `Dashboard.tsx`: lựa chọn thiết bị/phiên, cảnh báo dữ liệu cũ và giữ synthetic provenance.
+1. Đã xong `frontend/src/types/connection.ts`: kiểu ConnectionStatus có đúng bốn trạng thái UI; typecheck PASS, không đổi wire contract.
+2. `frontend/src/utils/validation.ts`: các hàm nhỏ isRecord, isFiniteNumber, isNumberInRange cho runtime validation; Trung viết tiếp file này.
+3. Module parse/validate telemetry: dùng helper bước 2 để nhận unknown, kiểm tra các trường UI cần và JSON lỗi. TypeScript cast không thay validation.
+4. Helper quản lý stream/chart theo device/session, thời điểm nhận và timestamp reset; ưu tiên logic thuần có thể test.
+5. `useLiveTelemetry.ts`: áp dụng helpers, selection/freshness, reconnect và cleanup socket/timer.
+6. `DeviceStatus.tsx`: hiển thị rõ bốn trạng thái kết nối/dữ liệu.
+7. `Dashboard.tsx`: lựa chọn thiết bị/phiên, cảnh báo dữ liệu cũ và giữ synthetic provenance.
 
 Tên/ranh giới helpers được chốt trước lúc hướng dẫn file đó dựa trên code đã có. Không viết trước các file kế tiếp thay Trung. Unit tests và visual test theo checklist dưới; chưa ghi PASS trước khi chạy.
 
@@ -89,3 +90,4 @@ Thay đổi chỉ ở UI/hook; không đổi payload backend để chữa trạn
 |---|---|---|---|
 | — | — | — | Chưa thực hiện |
 | 2026-10-18 / branch setup | Tạo fix/frontend-live-connection-status từ dev 86cd09f sau PR #9 | Working tree sạch khi tạo nhánh; 4 IDE-generated files local giữ nguyên | Bắt đầu types/connection.ts, chưa có source/test mới |
+| 2026-10-18 / local connection.ts | Trung viết union type bốn trạng thái UI | `tsc -p frontend/tsconfig.app.json --noEmit`: PASS; chưa nối hook | File đạt; tiếp utils/validation.ts. Chưa xác nhận runtime/reconnect/UI |
