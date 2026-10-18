@@ -1,0 +1,78 @@
+# Tiến độ IT — Device ingestion và recording
+
+Kế hoạch: [README.md](README.md). Baseline: `332f249`. Chủ phần triển khai: Trung (IT).
+
+Ngày cập nhật: 2026-10-18 (Asia/Saigon).
+
+## Công việc hiện tại
+
+- **Lập kế hoạch:** đã viết; việc merge PR tài liệu theo trạng thái GitHub.
+- **Implementation:** chưa bắt đầu trong đợt kế hoạch này.
+- **Nhánh nên bắt đầu sau khi kế hoạch merge:** `chore/repository-integration-cleanup`.
+- **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
+
+## Quy ước trạng thái
+
+| Trạng thái | Ý nghĩa |
+|---|---|
+| `TODO` | Chưa bắt đầu; xem phụ thuộc trước khi tạo nhánh |
+| `IN_PROGRESS` | Đang triển khai và cập nhật checklist |
+| `WAITING_HARDWARE` | Phần mềm đã có thể kiểm thử, thiếu bằng chứng thiết bị thật |
+| `BLOCKED` | Có blocker cụ thể, ghi đầu vào/người phụ trách/hành động tiếp |
+| `IN_REVIEW` | Có PR, đang chờ checks hoặc review |
+| `DONE` | Đã merge, đủ tiêu chí nghiệm thu của nhánh, có bằng chứng |
+
+Một PR phần mềm có thể merge trước test board nếu ghi rõ giới hạn. Khi đó ghi trạng thái `WAITING_HARDWARE` thay vì mặc định `DONE` cho toàn nhánh. Không đồng nhất trạng thái merge với hoàn thành phase.
+
+## Bảng theo dõi duy nhất theo nhánh
+
+| ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
+|---|---|---|---|---|---|---|---|
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | Kế hoạch merge | TODO | — | — | — | Chưa triển khai |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
+| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
+| 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
+| 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
+| 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03,04 | TODO | — | — | — | Chưa triển khai |
+| 07 | [feature/firmware-raw-batching](07-firmware-raw-batching.md) | 05,06 + sampling | TODO | — | — | — | Cần log tốc độ mẫu thực tế |
+| 08 | [feature/backend-recording-export](08-backend-recording-export.md) | 06;07 cho board | TODO | — | — | — | Chưa triển khai |
+| 09 | [feature/frontend-recording-control](09-frontend-recording-control.md) | 02,04,08 | TODO | — | — | — | Chưa triển khai |
+| 10 | [chore/e2e-device-ingestion](10-e2e-device-ingestion.md) | 01–09 + board | TODO | — | — | — | Không đóng bằng simulator-only |
+
+## Blocker và quyết định cần theo dõi
+
+Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa có nghĩa mọi nhánh đều bị chặn.
+
+| ID | Đầu vào / quyết định | Người phối hợp | Chặn nhánh nào | Kết quả / hành động tiếp |
+|---|---|---|---|---|
+| B01 | GPIO GSR thực tế: code=4, comment=1; board/flash chưa có log trong docs | Tân | 01 phần GPIO, 05 nghiệm thu | Lấy wiring + log board trước khi đổi giá trị |
+| B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
+| B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
+| B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
+| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | Ghi thiết bị và môi trường test khi có |
+
+## Checklist cập nhật sau mỗi buổi
+
+- [ ] Tick các task đã làm trong đúng file kế hoạch nhánh.
+- [ ] Ghi command, kết quả thật, link log/ảnh/test report và commit tương ứng.
+- [ ] Cập nhật trạng thái, PR và blocker trong bảng trên.
+- [ ] Ghi quyết định mới ảnh hưởng contract/phân công vào tài liệu nguồn.
+- [ ] Cập nhật `docs/PROGRESS.md` khi tiến độ phase thực sự thay đổi.
+- [ ] Nếu PR đã merge, chuẩn bị nhánh tiếp từ `dev` mới nhất.
+
+## Nhật ký công việc
+
+| Ngày | Nhánh / commit | Đã làm | Kiểm tra / bằng chứng | Bước tiếp theo |
+|---|---|---|---|---|
+| 2026-10-18 | docs/it-device-integration-plan | Lập 10 kế hoạch nhánh và tracker; chuyển networking/serializer/raw batching sang IT | Kiểm tra 10 tên nhánh hợp CI, 230 checklist mở, 62 liên kết local tồn tại; giữ 25 phase files và chỉ thay Markdown. Chưa triển khai tính năng | Merge kế hoạch, bắt đầu 01 |
+
+## Điều kiện mở PR dev -> main
+
+- [ ] Mốc M1–M4 trong README có bằng chứng và blocker còn lại được xử lý.
+- [ ] Telemetry/raw thật qua LAN; provenance và timestamp đúng.
+- [ ] Retry, reconnect, stop/drain và restart không tạo bản ghi trùng hoặc báo sai dữ liệu đầy đủ.
+- [ ] Export tải lại được, gaps/loss được khai báo; raw không bị thay bằng EMA.
+- [ ] Required CI pass, không conflict, docs khớp implementation.
+- [ ] Chủ repo thực hiện review cuối và mở PR `dev -> main`.
+
+Hoàn thành ingestion không tự động có nghĩa toàn dự án đã sẵn sàng thi đấu hoặc đã có model được kiểm chứng.

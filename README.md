@@ -33,6 +33,8 @@ Python 3.12, FastAPI, Pydantic, SQLAlchemy/SQLite, React, TypeScript, Vite, Tail
 
 Daily work uses short-lived `feature/*`, `fix/*`, `docs/*` or `chore/*` branches and pull requests into protected `dev`. Stable promotions use a pull request from `dev` into protected `main`. Direct pushes are prohibited. Collaborator PRs require the owner's approval; owner-authored PRs may merge without another approval only after all required CI checks pass and the PR is up to date and conflict-free. See [Git/GitHub Workflow](docs/GIT_WORKFLOW.md).
 
+Kế hoạch công việc IT tiếp theo, bao gồm chuẩn hoá dữ liệu và firmware kết nối backend: [kế hoạch chi tiết theo 10 nhánh](docs/integration/README.md) và [bảng theo dõi tiến độ](docs/integration/PROGRESS.md).
+
 ## Prerequisites
 
 Docker Desktop với Compose là đường chạy nhanh nhất. Phát triển trực tiếp cần Python 3.12+, Node 22+ và PlatformIO CLI cho firmware skeleton.

@@ -19,7 +19,7 @@ IN_PROGRESS
 | 04 | MPU6050 | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
 | 05 | GSR | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
 | 06 | Sensor Integration | AUTOMATION | NOT_STARTED | - | - | Future phase. |
-| 07 | Wi-Fi Backend | SHARED | NOT_STARTED | - | - | Real ESP32 network not implemented. |
+| 07 | Wi-Fi Backend | IT | NOT_STARTED | - | - | Real ESP32 network not implemented; Automation supports hardware/driver verification. |
 | 08 | Data Logger | IT | NOT_STARTED | - | - | Raw receiver scaffold does not complete phase. |
 | 09 | Dataset Collection | SHARED | NOT_STARTED | - | - | Synthetic sessions do not count as real collection. |
 | 10 | Signal Processing | IT | NOT_STARTED | - | - | Only shared input interface exists. |
@@ -66,7 +66,9 @@ Phase 01 — Project Scaffold completed and verified within its non-hardware sco
 
 ## Next Action
 
-Visually inspect live synthetic telemetry in an available browser, complete the last Phase 02 acceptance criterion, then stop before Phase 03.
+Follow the [IT device-integration plan](integration/README.md) and update its [branch tracker](integration/PROGRESS.md). Start with repository cleanup, then verify live synthetic telemetry visually to complete the remaining Phase 02 criterion. IT now owns firmware serialization, session control, Wi-Fi/HTTP and raw batching as well as backend/frontend integration; Automation retains driver and hardware verification work.
+
+The new plan describes future implementation and does not itself complete any phase. Real-device acceptance for Phase 07/08 remains dependent on the corresponding hardware evidence. Existing phase statuses and historical results above must be reconciled with measured evidence during the cleanup and verification branches.
 
 ## Metrics Available
 
