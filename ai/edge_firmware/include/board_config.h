@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include "common_types.h"
 
 // =============================================================================
 // board_config.h — Unified Hardware & Sensor Configuration
@@ -18,7 +19,6 @@
 #define ASD_FIRMWARE_VERSION FIRMWARE_VERSION
 
 // ── Shared Enums ──────────────────────────────────────────────────────────────
-enum class Availability { NOT_IMPLEMENTED, UNAVAILABLE, READY, ERROR };
 
 enum class GSRStatus {
   DISCONNECTED,   // Điện áp < 0.15V: hở mạch, chưa đeo điện cực (LM324 lower rail)
@@ -46,7 +46,7 @@ enum class IMUStatus {
 // ── GPIO Pin Assignments (ESP32-S3 Super Mini) ───────────────────────────────
 //   Bus 0 (Wire)  — MAX30102: SDA = GPIO8,  SCL = GPIO9
 //   Bus 1 (Wire1) — MPU6050:  SDA = GPIO10, SCL = GPIO11 (Khởi tạo riêng biệt chống nghẽn)
-//   ADC1_CH0      — GSR:      ADC = GPIO1
+//   GSR ADC: GPIO4 theo cấu hình hiện tại; wiring chưa được xác minh.
 constexpr int PIN_MAX30102_SDA = 8;
 constexpr int PIN_MAX30102_SCL = 9;
 

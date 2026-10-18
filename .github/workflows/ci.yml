@@ -93,6 +93,8 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install platformio==6.2.0
       - run: pio run -d ai/edge_firmware
+      - name: Validate shared and compatibility headers
+        run: python .github/scripts/check-firmware-headers.py
 
   repository-checks:
     name: Repository checks

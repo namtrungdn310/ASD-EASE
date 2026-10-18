@@ -21,12 +21,12 @@ The current `esp32s3_supermini` build environment uses `board = esp32-s3-devkitc
 |---|---|---|
 | MAX30102 bus | `Wire`, SDA=8, SCL=9 | Wiring/rate evidence required |
 | MPU6050 bus | `Wire1`, SDA=10, SCL=11 | Wiring/rate evidence required |
-| GSR ADC | `PIN_GSR_ADC=4` in `board_config.h` | Comment in that header says GPIO1; Tân must confirm actual wiring before the constant is changed |
+| GSR ADC | `PIN_GSR_ADC=4` in `board_config.h` | Comment now matches configured GPIO4; Tân must confirm actual wiring before the constant is changed |
 | Sampling schedules | PPG=100 Hz, IMU=50 Hz, GSR=20 Hz | Configured call rates; effective sample rates, FIFO averaging and losses must be measured |
-| Legacy pin/sampling headers | `pins.h` still has unset pins; `sensor_config.h` duplicates sample-rate constants | Pending manual source cleanup; drivers currently include `board_config.h` |
+| Compatibility pin/sampling headers | Both `pins.h` and `sensor_config.h` forward to `board_config.h` | Independent/repeated/mixed header compilation passes; configured GPIO and rates are unchanged |
 | Hardware profiler | Implementation exists in `src/hardware/HardwareProfiler.cpp` | Current `setup()` does not call it; a profiler measurement requires explicitly invoking the diagnostic path |
 
-The source cleanup will consolidate the shared types and configuration headers. It must not silently replace a GPIO or declare hardware verified from these configured values.
+Shared `Availability` and `EngineeringState` enums now live in `common_types.h`; sensor status enums and hardware constants remain in `board_config.h`. The cleanup consolidates definitions without changing GPIO/rate/flash values or declaring physical hardware verified.
 
 ## Sensors
 

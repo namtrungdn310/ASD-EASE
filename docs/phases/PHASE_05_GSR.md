@@ -38,7 +38,7 @@ ai/edge_firmware/src/sensors/GSRSensor.cpp
 
 Measure raw ADC only; document attenuation/range and never invent conductance units.
 
-PR #7 (`332f249`) implements ADC averaging, voltage conversion, EMA, a five-second baseline and a conductance formula based on an assumed module circuit. These derived values are provisional until module identification and reference measurements validate the conversion. `board_config.h` executes GPIO4 while its comment says GPIO1; confirm wiring before changing a source constant.
+PR #7 (`332f249`) implements ADC averaging, voltage conversion, EMA, a five-second baseline and a conductance formula based on an assumed module circuit. These derived values are provisional until module identification and reference measurements validate the conversion. `board_config.h` configures GPIO4; its comment has been corrected to match that configuration. Physical wiring still needs confirmation before changing a source constant.
 
 ## Tests
 

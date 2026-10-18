@@ -7,7 +7,7 @@ Ngày cập nhật: 2026-10-18 (Asia/Saigon).
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** đã viết; việc merge PR tài liệu theo trạng thái GitHub.
-- **Implementation:** đang làm nhánh 01; phần hỗ trợ tài liệu/env/IDE/CI đã sửa, chưa sửa source cốt lõi.
+- **Implementation:** năm file source của nhánh 01 đã hoàn tất. Firmware build, bốn tổ hợp header, frontend build, Compose config và conflict scan PASS; đang chuẩn bị draft PR và CI. Wiring vật lý vẫn chưa xác nhận.
 - **Nhánh đang làm:** `chore/repository-integration-cleanup`.
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
@@ -29,7 +29,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | Bộ kế hoạch có trên nhánh local; PR #8 chưa merge | IN_PROGRESS | 2026-10-18 | — | — | Tài liệu/env/IDE/CI đã xử lý; đang chờ source headers do Trung tự viết, wiring cần Tân xác nhận |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 cần merge trước PR cleanup | IN_REVIEW | 2026-10-18 | — | Draft PR đang chuẩn bị | 5 core headers xong; firmware/header/frontend/Compose checks PASS. Wiring cần Tân xác nhận, giá trị cấu hình không đổi |
 | 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
@@ -46,7 +46,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 
 | ID | Đầu vào / quyết định | Người phối hợp | Chặn nhánh nào | Kết quả / hành động tiếp |
 |---|---|---|---|---|
-| B01 | GPIO GSR thực tế: code=4, comment=1; board/flash chưa có log trong docs | Tân | 01 phần GPIO, 05 nghiệm thu | Lấy wiring + log board trước khi đổi giá trị |
+| B01 | GPIO GSR cấu hình=4, comment đã sửa khớp; board/flash chưa có log trong docs | Tân | Thay giá trị GPIO, 05 nghiệm thu | Cleanup giữ nguyên giá trị; lấy wiring + log board trước khi đổi hoặc xác nhận vật lý |
 | B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
 | B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
 | B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
@@ -67,6 +67,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 |---|---|---|---|---|
 | 2026-10-18 | docs/it-device-integration-plan | Lập 10 kế hoạch nhánh và tracker; chuyển networking/serializer/raw batching sang IT | Kiểm tra 10 tên nhánh hợp CI, 230 checklist mở, 62 liên kết local tồn tại; giữ 25 phase files và chỉ thay Markdown. Chưa triển khai tính năng | Merge kế hoạch, bắt đầu 01 |
 | 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
+| 2026-10-18 | chore/repository-integration-cleanup | Trung hoàn tất 5 core headers; Codex kiểm tra và chuẩn bị PR | Firmware build, 4 tổ hợp header, frontend build, Compose và conflict scan PASS | Merge PR #8 trước; chờ CI/review cleanup, sau đó mới tạo nhánh 02 |
 
 ## Điều kiện mở PR dev -> main
 

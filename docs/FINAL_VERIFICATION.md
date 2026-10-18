@@ -6,6 +6,7 @@
 - Active phase: Phase 02 — Mock End-to-End (`IN_PROGRESS`).
 - Phase 02 remains open only because no controllable browser was available for visual confirmation of live dashboard values and the `SYNTHETIC DATA` badge.
 - Sensor-driver and combined-loop implementations were added in PR #7 (`332f249`). Phase 03–06 physical acceptance is not documented; code availability does not mark those phases complete.
+- Cleanup branch 01 consolidates shared enums in `common_types.h` and forwards legacy pin/sampling includes to `board_config.h`. Firmware build and standalone header-combination checks pass locally; physical configuration values are unchanged. Current PR/CI status is tracked in `docs/integration/PROGRESS.md`.
 
 ## Verification
 

@@ -1,8 +1,6 @@
 #pragma once
 #include <Arduino.h>
-
-enum class Availability { NOT_IMPLEMENTED, UNAVAILABLE, READY, ERROR };
-enum class EngineeringState { NORMAL, ATTENTION, UNCERTAIN, CALIBRATING };
+#include "common_types.h"
 
 struct TelemetryFrame {
   const char* schemaVersion;
