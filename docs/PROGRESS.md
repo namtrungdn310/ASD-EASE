@@ -13,12 +13,12 @@ IN_PROGRESS
 | Phase | Name | Owner | Status | Started | Completed | Notes |
 |---|---|---|---|---|---|---|
 | 00 | Hardware Verification | AUTOMATION | NOT_STARTED | - | - | Physical verification required. |
-| 01 | Project Scaffold | IT | DONE | - | - | Structure, tests, builds and containers verified; firmware compilation separately unverified because PlatformIO is unavailable. |
+| 01 | Project Scaffold | IT | DONE | - | - | Structure, tests, builds and containers verified; PlatformIO compilation passed. This does not verify physical hardware. |
 | 02 | Mock End-to-End | IT | IN_PROGRESS | - | - | Generator, HTTP/raw ingest, live WebSocket and reconnect verified; visual browser inspection remains. |
-| 03 | MAX30102 | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 04 | MPU6050 | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 05 | GSR | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 06 | Sensor Integration | AUTOMATION | NOT_STARTED | - | - | Future phase. |
+| 03 | MAX30102 | AUTOMATION | IN_PROGRESS | - | - | Driver/FIFO/HR implementation in PR #7; physical acceptance evidence pending. |
+| 04 | MPU6050 | AUTOMATION | IN_PROGRESS | - | - | Register-read/EMA implementation in PR #7; physical calibration/timing evidence pending. |
+| 05 | GSR | AUTOMATION | IN_PROGRESS | - | - | ADC/baseline/EMA implementation in PR #7; GPIO and conductance conversion evidence pending. |
+| 06 | Sensor Integration | AUTOMATION | IN_PROGRESS | - | - | Combined dual-I2C/ADC Serial loop in PR #7; actual alignment/rates/loss evidence pending. |
 | 07 | Wi-Fi Backend | IT | NOT_STARTED | - | - | Real ESP32 network not implemented; Automation supports hardware/driver verification. |
 | 08 | Data Logger | IT | NOT_STARTED | - | - | Raw receiver scaffold does not complete phase. |
 | 09 | Dataset Collection | SHARED | NOT_STARTED | - | - | Synthetic sessions do not count as real collection. |
@@ -55,7 +55,7 @@ IN_PROGRESS
 - Backend: 13 tests passed; container healthy; HTTP/OpenAPI/WebSocket and raw storage verified.
 - Frontend: TypeScript/Vite build passed; container serves HTTP 200; live visual inspection not verified.
 - AI: Synthetic generator and shared preprocessing input implemented; future science pipeline is scaffold only.
-- Firmware: Skeleton and HardwareProfiler implemented; PlatformIO host build passed under the temporary profile; hardware behavior remains unverified.
+- Firmware: Three sensor drivers, EMA and combined Serial reporting are implemented in PR #7. The `esp32s3_supermini` environment builds; hardware acceptance remains unverified. Shared types and legacy config-header consolidation are pending manual source work in cleanup branch 01.
 - Docker: Compose config, all three images and backend/frontend startup verified.
 - Network: Mock HTTP/WebSocket and disconnect/reconnect replay verified; real ESP32 LAN path not implemented.
 - Competition mode: Not implemented or verified.

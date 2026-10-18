@@ -2,7 +2,7 @@
 
 ## Status
 
-NOT_STARTED
+IN_PROGRESS
 
 ## Owner
 
@@ -36,7 +36,7 @@ ai/edge_firmware/src/sensors/MAX30102Sensor.cpp
 
 ## Implementation Notes
 
-Implement real driver only after hardware verification; log raw counts and failures.
+The driver implementation is present in PR #7 (`332f249`): SparkFun FIFO reads, contact detection, HR estimation/median/EMA and an optical SpO2 estimate. Raw red/IR capture, sensor-loss behavior, effective rate after averaging and measured accuracy still require physical verification. Source comments/status flags are not measurement evidence.
 
 ## Tests
 
@@ -62,11 +62,11 @@ Return to minimal I2C scan and validate power/pull-ups.
 
 ## Results
 
-Not executed yet.
+Implementation reviewed from PR #7; physical tests listed above have no recorded acceptance evidence. Host compilation passed, which does not complete this phase.
 
 ## Completion Evidence
 
-Not available.
+No physical acceptance log available. Preserve board/commit/config, ordered samples, contact/disconnect tests and timing results before marking DONE.
 
 ## Next Phase
 

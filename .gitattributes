@@ -1,0 +1,2 @@
+# Keep CI shell scripts executable by Bash on Windows and Linux checkouts.
+.github/scripts/*.sh text eol=lf

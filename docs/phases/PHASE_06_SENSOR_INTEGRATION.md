@@ -2,7 +2,7 @@
 
 ## Status
 
-NOT_STARTED
+IN_PROGRESS
 
 ## Owner
 
@@ -38,6 +38,8 @@ ai/edge_firmware/src/sensors/...; ai/edge_firmware/src/processing/...
 
 Use non-blocking schedules and timestamps; quantify missed samples.
 
+PR #7 (`332f249`) adds the combined sensor loop, two I2C buses, ADC sampling and one-second Serial reports. Configured loop/read frequencies do not establish measured synchronization or loss-free sampling. Firmware networking/raw batch buffering are subsequent IT work and require their own timing measurements.
+
 ## Tests
 
 Combined build/flash; rate/count/timestamp tests; bus and ADC stress run.
@@ -62,11 +64,11 @@ Disable one sensor at a time; inspect timing counters.
 
 ## Results
 
-Not executed yet.
+Combined-loop implementation reviewed from PR #7; host compilation passed. Actual rates, alignment, missing-sample counts and combined hardware stress results are not recorded.
 
 ## Completion Evidence
 
-Not available.
+No physical acceptance log available. Supply board/config/commit, per-stream counts/timestamps and stress/disconnect results before marking DONE.
 
 ## Next Phase
 

@@ -9,11 +9,24 @@ Physical hardware is **not verified**. Main MCU is specified as ESP32-S3 Super M
 - Board markings, supplier listing and schematic if available.
 - Chip model/revision, CPU frequency, flash size, detected/free PSRAM and heap.
 - MAC address and firmware version from `HardwareProfiler`.
-- I2C SDA/SCL pins shared by MAX30102 and MPU6050.
+- I2C SDA/SCL pins and bus assignment for MAX30102 and MPU6050; current code uses separate buses.
 - ADC1-capable GSR GPIO and actual ADC behavior.
 - USB behavior, battery architecture, regulator/charger and safe voltage/current limits.
 
-`board = esp32-s3-devkitc-1` is a temporary conservative compile profile only; it does not identify the purchased board. The initial firmware does not require PSRAM. GPIO values remain `PIN_UNVERIFIED` until bench evidence exists.
+The current `esp32s3_supermini` build environment uses `board = esp32-s3-devkitc-1`, firmware `0.2.0` and a configured 4 MB flash size. These settings do not identify the purchased board or prove its flash/PSRAM capacity. No physical evidence is added by this documentation cleanup.
+
+## Configured values versus physical evidence
+
+| Setting | Current executable source | Verification state |
+|---|---|---|
+| MAX30102 bus | `Wire`, SDA=8, SCL=9 | Wiring/rate evidence required |
+| MPU6050 bus | `Wire1`, SDA=10, SCL=11 | Wiring/rate evidence required |
+| GSR ADC | `PIN_GSR_ADC=4` in `board_config.h` | Comment now matches configured GPIO4; Tân must confirm actual wiring before the constant is changed |
+| Sampling schedules | PPG=100 Hz, IMU=50 Hz, GSR=20 Hz | Configured call rates; effective sample rates, FIFO averaging and losses must be measured |
+| Compatibility pin/sampling headers | Both `pins.h` and `sensor_config.h` forward to `board_config.h` | Independent/repeated/mixed header compilation passes; configured GPIO and rates are unchanged |
+| Hardware profiler | Implementation exists in `src/hardware/HardwareProfiler.cpp` | Current `setup()` does not call it; a profiler measurement requires explicitly invoking the diagnostic path |
+
+Shared `Availability` and `EngineeringState` enums now live in `common_types.h`; sensor status enums and hardware constants remain in `board_config.h`. The cleanup consolidates definitions without changing GPIO/rate/flash values or declaring physical hardware verified.
 
 ## Sensors
 

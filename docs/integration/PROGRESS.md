@@ -6,9 +6,10 @@ Ngày cập nhật: 2026-10-18 (Asia/Saigon).
 
 ## Công việc hiện tại
 
-- **Lập kế hoạch:** đã viết; việc merge PR tài liệu theo trạng thái GitHub.
-- **Implementation:** chưa bắt đầu trong đợt kế hoạch này.
-- **Nhánh nên bắt đầu sau khi kế hoạch merge:** `chore/repository-integration-cleanup`.
+- **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
+- **Implementation:** năm file source của nhánh 01 đã hoàn tất. Sáu CI checks đã PASS ở commit `7ff1851`; nhánh cleanup đã rebase lên dev sau khi #8 merge, nội dung giữ nguyên. [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) được chuẩn bị để review; kết quả CI trên commit mới xem trực tiếp tại PR. Wiring vật lý vẫn chưa xác nhận.
+- **Nhánh đang làm:** `chore/repository-integration-cleanup`.
+- **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
 ## Quy ước trạng thái
@@ -28,7 +29,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | Kế hoạch merge | TODO | — | — | — | Chưa triển khai |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge, cleanup dựa trên dev mới | IN_REVIEW | 2026-10-18 | — | [#9](https://github.com/namtrungdn310/ASD-EASE/pull/9) | 5 core headers xong; CI cũ 6/6 PASS, CI commit mới theo GitHub. Wiring cần Tân xác nhận, giá trị cấu hình không đổi |
 | 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
@@ -45,7 +46,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 
 | ID | Đầu vào / quyết định | Người phối hợp | Chặn nhánh nào | Kết quả / hành động tiếp |
 |---|---|---|---|---|
-| B01 | GPIO GSR thực tế: code=4, comment=1; board/flash chưa có log trong docs | Tân | 01 phần GPIO, 05 nghiệm thu | Lấy wiring + log board trước khi đổi giá trị |
+| B01 | GPIO GSR cấu hình=4, comment đã sửa khớp; board/flash chưa có log trong docs | Tân | Thay giá trị GPIO, 05 nghiệm thu | Cleanup giữ nguyên giá trị; lấy wiring + log board trước khi đổi hoặc xác nhận vật lý |
 | B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
 | B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
 | B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
@@ -65,6 +66,9 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | Ngày | Nhánh / commit | Đã làm | Kiểm tra / bằng chứng | Bước tiếp theo |
 |---|---|---|---|---|
 | 2026-10-18 | docs/it-device-integration-plan | Lập 10 kế hoạch nhánh và tracker; chuyển networking/serializer/raw batching sang IT | Kiểm tra 10 tên nhánh hợp CI, 230 checklist mở, 62 liên kết local tồn tại; giữ 25 phase files và chỉ thay Markdown. Chưa triển khai tính năng | Merge kế hoạch, bắt đầu 01 |
+| 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
+| 2026-10-18 | chore/repository-integration-cleanup / PR #9 | Trung hoàn tất 5 core headers; Codex kiểm tra và mở draft PR | Firmware build, 4 tổ hợp header, frontend build, Compose và conflict scan PASS; CI theo trạng thái GitHub | Merge PR #8 trước; cập nhật ancestry của cleanup sau squash merge, chờ CI/review rồi mới tạo nhánh 02 |
+| 2026-10-18 | chore/repository-integration-cleanup / sau PR #8 | Rebase ba commit cleanup lên dev `0bcd833`, không đưa lại commit kế hoạch vào PR #9 | So sánh tree trước/sau rebase: giống nhau; bốn file IDE local giữ nguyên hash; CI 6/6 đã pass tại `7ff1851` trước rebase | Review/merge PR #9 sau khi CI commit mới pass; nhánh 02 chỉ bắt đầu sau khi #9 merge |
 
 ## Điều kiện mở PR dev -> main
 

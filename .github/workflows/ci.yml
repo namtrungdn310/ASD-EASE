@@ -93,12 +93,17 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install platformio==6.2.0
       - run: pio run -d ai/edge_firmware
+      - name: Validate shared and compatibility headers
+        run: python .github/scripts/check-firmware-headers.py
 
   repository-checks:
     name: Repository checks
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Reject unresolved merge conflict markers
+        shell: bash
+        run: bash .github/scripts/check-conflict-markers.sh
       - name: Validate Compose configuration
         run: docker compose config --quiet
       - name: Validate phase documentation count

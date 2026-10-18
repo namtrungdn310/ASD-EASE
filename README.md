@@ -37,6 +37,8 @@ Kế hoạch công việc IT tiếp theo, bao gồm chuẩn hoá dữ liệu và
 
 ## Prerequisites
 
+For environment-file locations, native/Docker differences and local IDE configuration, see [Local setup](docs/LOCAL_SETUP.md).
+
 Docker Desktop với Compose là đường chạy nhanh nhất. Phát triển trực tiếp cần Python 3.12+, Node 22+ và PlatformIO CLI cho firmware skeleton.
 
 ## Start backend and frontend
