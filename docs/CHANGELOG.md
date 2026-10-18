@@ -4,6 +4,7 @@
 
 ### Added
 
+- Detailed IT device-integration roadmap with ten branch plans, acceptance checklists and a progress tracker; firmware serialization, networking and raw batching are assigned to IT for this milestone. This addition documents planned work, not completed implementation.
 - Initial three-module repository scaffold, documentation system and 25 phase plans.
 - Git repository initialized with `main` as the integration branch and generated/private artifacts ignored.
 - Two-person GitHub workflow, PR template, CODEOWNERS review request and CI checks for protected `dev`/`main` branches.

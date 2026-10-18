@@ -6,7 +6,11 @@ NOT_STARTED
 
 ## Owner
 
-SHARED
+IT (firmware networking/serialization and backend); AUTOMATION supports hardware, drivers and measured sampling.
+
+## Detailed Implementation Plan
+
+Use the [IT integration overview](../integration/README.md), [contract plan](../integration/03-device-ingestion-contract.md), [session-lifecycle plan](../integration/04-backend-session-lifecycle.md) and [firmware telemetry plan](../integration/05-firmware-telemetry-client.md). Track branch work in [integration progress](../integration/PROGRESS.md). This planning update does not change the phase status or replace real-device acceptance evidence.
 
 ## Objective
 
