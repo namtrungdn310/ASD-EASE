@@ -4,7 +4,7 @@
 |---|---|
 | Nhánh | `chore/repository-integration-cleanup` |
 | Chủ trì | Trung — IT; GPIO/board phối hợp Tân |
-| Phụ thuộc | PR kế hoạch đã merge vào dev |
+| Phụ thuộc | Đã đáp ứng: PR kế hoạch #8 merge vào dev tại 0bcd833 |
 | Ước lượng | 0,5–1 ngày |
 | Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 01 |
 
@@ -72,7 +72,7 @@ Lệnh tham khảo: `git ls-files`, `git check-ignore -v <path>`, `git diff --ch
 - [x] Không còn đường dẫn cá nhân trong cấu hình tracked dùng chung.
 - [x] CI marker check đã kiểm tra được cả tình huống có/không có marker.
 - [ ] Required checks xanh; docs ghi đúng phần chưa kiểm chứng.
-- [x] Đã mở [draft PR #9 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/9). Chờ PR #8 merge trước, sau đó cập nhật nhánh cleanup để loại commit kế hoạch khỏi ancestry nếu squash merge; không merge cleanup trước phụ thuộc.
+- [x] Đã mở [PR #9 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/9). PR #8 đã merge; cleanup đã rebase lên dev mới, không còn đưa lại commit kế hoạch vào ancestry. Chuẩn bị review sau khi required checks trên commit mới pass.
 
 ## Rollback
 
@@ -89,5 +89,6 @@ Giữ bản local config trước khi untrack nếu đang dùng. Nếu cấu hì
 | 2026-10-18 / local interfaces.h | Trung include common_types và bỏ enum trùng | Firmware build SUCCESS; compiler dùng metadata PlatformIO hiện tại kiểm tra board_config/interfaces theo cả hai thứ tự, include lặp và sử dụng enum/struct/class: PASS | interfaces.h đạt; tiếp pins.h. Header legacy pins/sensor_config chưa hợp nhất |
 | 2026-10-18 / local pins.h | Trung chuyển pins thành wrapper board_config | Compiler ESP32-S3 syntax-check pins độc lập và hai tổ hợp với board_config/interfaces/include lặp; static_assert kiểm tra aliases và GSR giữ cấu hình GPIO4: PASS | pins.h đạt; tiếp sensor_config.h. Đây là kiểm tra cấu hình source, không xác minh wiring vật lý |
 | 2026-10-18 / local sensor_config.h và final source review | Trung chuyển sample config thành wrapper; Codex dọn khoảng trắng và thêm script CI kiểm tra headers | Firmware build SUCCESS; `.github/scripts/check-firmware-headers.py`: 4 tổ hợp PASS; frontend build, Compose config, conflict scan và diff check PASS; backend/AI vẫn giữ kết quả 13/15 tests đã chạy trên phần hỗ trợ | Năm file core của cleanup đã hoàn tất; chờ PR/CI. GPIO/rate/flash/driver algorithms không đổi; wiring vẫn chưa xác nhận |
+| 2026-10-18 / rebase sau PR #8 | Đưa ba commit cleanup lên dev 0bcd833 sau squash merge kế hoạch | Nội dung tree trước/sau rebase giống nhau, 4 local generated files giữ nguyên SHA256; CI trước rebase đã PASS 6/6 ở 7ff1851 | Phụ thuộc #8 đã xử lý; chạy lại CI trên commit mới và review PR #9. Chưa merge cleanup hoặc bắt đầu nhánh 02 |
 
 Nhánh tiếp: [02](02-frontend-live-connection-status.md) hoặc [03](03-device-ingestion-contract.md) sau khi 01 merge.
