@@ -30,7 +30,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | — | Automated frontend 26/26, backend 13, AI 15, transport 18/18 PASS; BLOCKED_BROWSER (`[]`), chỉ thiếu visual acceptance; draft PR/remote checks theo GitHub |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | [#10 draft](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Automated frontend 26/26, backend 13, AI 15, transport 18/18 PASS; BLOCKED_BROWSER (`[]`), còn visual acceptance; remote checks theo GitHub, không tự merge |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |

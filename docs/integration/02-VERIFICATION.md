@@ -1,6 +1,9 @@
 # Branch 02 — Verification evidence
 
 Date: 2026-10-20 (Asia/Saigon). Branch: `fix/frontend-live-connection-status`.
+Draft PR: [#10](https://github.com/namtrungdn310/ASD-EASE/pull/10), head `feb8ba3`
+at creation. CI results must be checked on GitHub for the latest head, not inferred
+from the local commands below.
 Core source was typed by Trung; this verification step changes tests, dependency
 metadata and documentation only. No merge into dev/main is authorized here.
 
