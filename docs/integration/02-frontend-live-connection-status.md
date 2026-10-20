@@ -20,7 +20,7 @@ File dự kiến: `frontend/src/hooks/useLiveTelemetry.ts`, `components/DeviceSt
 
 ## Học code từng file
 
-Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; cả bảy core files đã viết và đạt TypeScript/build. Validation helpers có 29 runtime cases PASS; telemetry parser/guard có 137 assertions PASS; stream helpers có 563 runtime assertions PASS. Hook qua 89 assertions trong harness mô phỏng state/effect, WebSocket và timer (chưa phải React lifecycle/browser test). DeviceStatus qua 74 assertions React server rendering. Ngày 2026-10-20 thêm suite lưu trong frontend/tests: 16 tests PASS, dùng helpers/component thật nhưng mock network hook cho Dashboard; npm test đã được nối vào CI (chưa xác nhận remote CI). Chưa đóng Phase 02.
+Codex xử lý Git, comment, tài liệu, cấu hình test/CI; Trung tự viết source cốt lõi. Chỉ sang file kế tiếp sau khi kiểm tra file hiện tại. Nhánh tạo từ dev `86cd09f`; cả bảy core files đã viết và đạt TypeScript/build. Các kiểm tra trước: validation 29 cases, parser 137 assertions, stream 563 assertions, hook harness 89 assertions và DeviceStatus React server rendering 74 assertions PASS. Suite lưu trong frontend/tests nay có 26/26 tests PASS: 16 tests SSR/helpers và 10 tests dùng React DOM/hooks thật trong jsdom với fake WebSocket/timers, gồm StrictMode và DOM selection. Script transport riêng cũng PASS 18/18 exact payloads; xem [02-VERIFICATION.md](02-VERIFICATION.md). BLOCKED_BROWSER: runtime không có browser (`[]`), chưa đóng Phase 02.
 
 Thứ tự dự kiến:
 
@@ -32,7 +32,7 @@ Thứ tự dự kiến:
 6. Đã xong `DeviceStatus.tsx`: bảng cấu hình bốn trạng thái với text/icon/màu, role=status và aria-live=polite; status ưu tiên hơn connected cũ. TypeScript/build và 74 assertions React server rendering PASS. Dashboard đã nối status, chưa coi UI end-to-end đạt trước browser test.
 7. Đã xong `Dashboard.tsx`: nối connectionStatus, selector thiết bị và hiển thị phiên mới nhất (không có lịch sử chọn phiên trong hook hiện tại). Giữ biểu đồ/chỉ số gần nhất có nhãn khi không live; không render StateCard/SignalQuality như hiện tại khi chưa live; giữ badge synthetic và null/unavailable. Build PASS; regression suite 16 tests PASS, gồm Dashboard render/selector callback/chart props và helper logic. Codex chỉ thêm tests/package script/CI/docs, không sửa core source thay Trung.
 
-Bước hỗ trợ tiếp theo: kiểm thử hook với React lifecycle thật và fake WebSocket/timers, rồi browser + simulator theo ma trận. Chưa cần Trung viết thêm core file nếu các kiểm thử không phát hiện lỗi.
+Bước hỗ trợ React lifecycle và transport đã PASS, không phát hiện lỗi cần sửa core. Còn browser + simulator theo ma trận: BLOCKED_BROWSER; runtime chọn localhost trả `No browser is available`, discovery `[]` sau troubleshooting của browser skill. Docker stack hiện chạy cho kiểm tra tay; không dùng jsdom hoặc HTTP 200 thay bằng chứng trực quan.
 
 Tên/ranh giới helpers được chốt trước lúc hướng dẫn file đó dựa trên code đã có. Không viết trước các file kế tiếp thay Trung. Unit tests và visual test theo checklist dưới; chưa ghi PASS trước khi chạy.
 
@@ -46,9 +46,9 @@ Tên/ranh giới helpers được chốt trước lúc hướng dẫn file đó 
 - [x] Gắn dữ liệu theo `device_id` + `session_id`; thêm selector tối thiểu hoặc quy tắc chọn rõ ràng, không trộn nhiều thiết bị. Hook giữ phiên mới nhất; selector callback/props và dữ liệu truyền chart đã test, chưa test DOM event/browser.
 - [x] Reset/tách buffer biểu đồ khi đổi thiết bị/phiên hoặc timestamp trở về đầu phiên mới. Helper và hook harness PASS; UI selection chưa nghiệm thu.
 - [x] Bảo vệ parse/shape payload, không để một JSON lỗi làm chết handler; không ghi secret hoặc toàn payload nhạy cảm vào log.
-- [x] Reconnect không tạo nhiều timer/socket; cleanup đúng khi unmount. Harness mô phỏng PASS; chưa thay thế kiểm thử React renderer/browser thực tế.
+- [x] Reconnect không tạo nhiều timer/socket; cleanup đúng khi unmount. React DOM lifecycle/StrictMode trong jsdom với fake socket/timers PASS; kiểm thử browser thật vẫn chờ.
 - [x] Giữ badge `SYNTHETIC DATA`; `null` hiển thị unavailable, không chuyển thành 0. Regression tests PASS, gồm synthetic khi stale/disconnected và giá trị zero thật.
-- [ ] Thêm test hành vi bằng hạ tầng frontend nhẹ phù hợp repo: fake timers/WebSocket cho timeout và reconnect; tránh chỉ test snapshot markup.
+- [x] Thêm test hành vi bằng hạ tầng frontend nhẹ phù hợp repo: fake timers/WebSocket cho timeout và reconnect; tránh chỉ test snapshot markup. 26 tests trong repo/CI, jsdom là dev dependency, React hook thật không bị mock trong lifecycle suite.
 - [ ] Chạy simulator, quan sát browser thực tế và lưu bằng chứng các trường/badge/biểu đồ.
 - [ ] Cập nhật Phase 02 chỉ khi quan sát thật thành công; nếu chưa có browser thì ghi `BLOCKED` với blocker công cụ cụ thể trong tracker, không khai PASS. `WAITING_HARDWARE` chỉ dùng cho thiếu board/bằng chứng phần cứng.
 
@@ -77,7 +77,7 @@ Mở `http://localhost:5173`, rồi kiểm tra scenario `poor_signal` và `disco
 
 ## Điều kiện merge
 
-- [ ] Kiểm thử timeout/reconnect/không trộn thiết bị pass.
+- [x] Kiểm thử timeout/reconnect/không trộn thiết bị pass. Automated React DOM/jsdom và transport PASS; không đồng nghĩa visual PASS.
 - [ ] Có ghi nhận visual test hoặc ghi rõ phần đang chờ; không đánh dấu Phase 02 DONE trước visual test.
 - [ ] Frontend build và required checks pass.
 - [ ] Commit gợi ý: `fix(frontend): distinguish backend connection from live device data`.
@@ -99,3 +99,4 @@ Thay đổi chỉ ở UI/hook; không đổi payload backend để chữa trạn
 | 2026-10-18 / local useLiveTelemetry.ts | Trung nối helpers vào WebSocket hook, per-device selection/freshness/reconnect/cleanup | TypeScript --noEmit và npm run build PASS; 89 assertions qua source TS thực trong harness Node mô phỏng hooks/WebSocket/timer PASS: invalid/binary/duplicate/null, buffer 60, device/session/origin, stale/custom timeout, reconnect waiting, stale callbacks, constructor/error retry, effect setup-cleanup-setup và unmount | Chưa phải React renderer/browser test; harness chạy inline, chưa có test suite tái chạy trong repo/CI. Build còn cảnh báo bundle >500 kB (không fail). Tiếp DeviceStatus; selector/cảnh báo stale/visual nghiệm thu chưa thực hiện |
 | 2026-10-20 / local DeviceStatus.tsx | Trung hoàn tất component bốn trạng thái, Codex kiểm tra source không sửa thay | npm run build (bao gồm tsc -b) PASS; 74 assertions dùng React renderToStaticMarkup qua Vite SSR PASS: text/icon/màu, aria attributes, status priority, legacy fallback, missing/long/unicode/escaped ID; git diff --check PASS | Không phải browser layout hoặc screen-reader test; assertions chạy inline, chưa lưu test suite/CI. Skill ui-ux-pro-max định hướng text+icon không chỉ màu, wrapping và thông báo polite. Tiếp Dashboard; chưa tick nghiệm thu UI bốn trạng thái |
 | 2026-10-20 / local Dashboard.tsx | Trung hoàn tất Dashboard; Codex thêm regression suite Node test runner + Vite SSR, npm test và CI step | npm run build PASS; npm test: 16/16 PASS. Helpers/components thật, network hook được mock cho kiểm thử Dashboard; selector callback gọi trực tiếp và charts kiểm tra props, không phải DOM/browser | Không thêm dependency hoặc sửa core source. Chưa test React hook lifecycle/real socket/browser/simulator; cảnh báo bundle >500 kB còn. Skill UI/UX dùng để rà nhãn selector, cảnh báo bằng chữ và dữ liệu thiếu; không thiết kế lại UI |
+| 2026-10-20 / lifecycle + transport | Codex thêm jsdom dev dependency, 10 lifecycle/DOM tests và script isolated transport | npm test 26/26 PASS; build/audit PASS; backend 13, AI 15, shared header combinations 4/4 PASS; transport 18 exact messages + invalid reject + subscriber reconnect PASS. Docker backend healthy/frontend started, HTTP 200 cả hai | Không sửa core source; Browser runtime không có browser sau supported troubleshooting (`[]`). BLOCKED_BROWSER chỉ cho visual acceptance; xem 02-VERIFICATION.md và hướng dẫn kiểm tra tay. Phase 02 chưa DONE, không tự merge |

@@ -8,7 +8,7 @@ Ngày cập nhật: 2026-10-20 (Asia/Saigon).
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
 - **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
-- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Bảy core files (đến Dashboard) đã viết và đạt build; regression suite lưu tại frontend/tests có 16/16 tests PASS và npm test đã nối vào CI. Suite dùng React server rendering với network hook giả lập; React hook lifecycle thật, browser/simulator và remote CI vẫn chưa xác nhận.
+- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Bảy core files đạt build; suite frontend 26/26 PASS, gồm React DOM lifecycle/StrictMode/DOM selection trong jsdom với fake socket/timers. Transport simulator -> HTTP -> WebSocket thật PASS 18/18 gói. Docker stack hiện chạy. **BLOCKED_BROWSER:** không có browser điều khiển (`[]`) để nghiệm thu trực quan; không đồng nhất jsdom/HTTP 200 với visual PASS. Bằng chứng và bước kiểm tra tay: [02-VERIFICATION.md](02-VERIFICATION.md).
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -30,7 +30,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | Dashboard build + regression suite 16/16 PASS, npm test đã nối CI; còn React hook lifecycle thật, browser/simulator, remote checks và PR |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | — | Automated frontend 26/26, backend 13, AI 15, transport 18/18 PASS; BLOCKED_BROWSER (`[]`), chỉ thiếu visual acceptance; draft PR/remote checks theo GitHub |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
@@ -50,7 +50,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
 | B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
 | B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
-| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | Ghi thiết bị và môi trường test khi có |
+| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | 2026-10-20: browser runtime chọn localhost lỗi No browser is available, discovery [] sau troubleshooting. Stack localhost đang chạy, cần Trung kiểm tra tay/cung cấp ảnh hoặc kết nối browser. Board acceptance vẫn riêng |
 
 ## Checklist cập nhật sau mỗi buổi
 
@@ -84,6 +84,8 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-20 | fix/frontend-live-connection-status / DeviceStatus.tsx | Trung hoàn tất component bốn trạng thái; Codex kiểm tra text/icon/accessibility theo ui-ux-pro-max | TypeScript/build PASS; 74 assertions bằng React server rendering PASS; chưa kiểm thử browser/layout/screen reader; bundle >500 kB là warning | Trung viết Dashboard.tsx: nối status, chọn thiết bị, phiên mới nhất, nhãn dữ liệu cũ và không hiển thị dự đoán cũ như hiện tại |
 
 | 2026-10-20 | fix/frontend-live-connection-status / Dashboard.tsx | Trung hoàn tất core Dashboard; Codex thêm test suite lưu trong repo, npm script và CI step | npm run build PASS; npm test 16/16 PASS: render bốn trạng thái/null/synthetic, selector callback/chart props, parser/stream helpers; hook UI được mock, chưa phải browser/lifecycle test | Codex tiếp phần kiểm thử hỗ trợ hook và browser/simulator; chưa cần core file mới nếu không có lỗi; không đánh dấu Phase 02 DONE |
+
+| 2026-10-20 | fix/frontend-live-connection-status / lifecycle + transport | Codex thêm tests hỗ trợ, không sửa core source; build và bật Docker stack | Frontend 26/26, backend 13, AI 15, audit0, headers4/4, transport18/18 PASS. React DOM/jsdom dùng fake socket/timers; backend transport thật dùng DB tạm. Browser discovery[] | BLOCKED_BROWSER cho visual; theo 02-VERIFICATION.md để Trung quan sát hoặc kết nối browser, không tự merge/đóng Phase 02 |
 
 ## Điều kiện mở PR dev -> main
 

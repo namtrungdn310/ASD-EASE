@@ -14,7 +14,7 @@ IN_PROGRESS
 |---|---|---|---|---|---|---|
 | 00 | Hardware Verification | AUTOMATION | NOT_STARTED | - | - | Physical verification required. |
 | 01 | Project Scaffold | IT | DONE | - | - | Structure, tests, builds and containers verified; PlatformIO compilation passed. This does not verify physical hardware. |
-| 02 | Mock End-to-End | IT | IN_PROGRESS | - | - | Generator, HTTP/raw ingest, live WebSocket and reconnect verified; visual browser inspection remains. |
+| 02 | Mock End-to-End | IT | IN_PROGRESS | - | - | 2026-10-20: frontend 26 tests incl. real React/jsdom lifecycle PASS; transport18/18 messages PASS. BLOCKED_BROWSER: discovery []; visual inspection remains. |
 | 03 | MAX30102 | AUTOMATION | IN_PROGRESS | - | - | Driver/FIFO/HR implementation in PR #7; physical acceptance evidence pending. |
 | 04 | MPU6050 | AUTOMATION | IN_PROGRESS | - | - | Register-read/EMA implementation in PR #7; physical calibration/timing evidence pending. |
 | 05 | GSR | AUTOMATION | IN_PROGRESS | - | - | ADC/baseline/EMA implementation in PR #7; GPIO and conductance conversion evidence pending. |
@@ -40,7 +40,7 @@ IN_PROGRESS
 
 ## Current Blockers
 
-- No controllable browser is available in the current environment, so visual confirmation of live dashboard values and the `SYNTHETIC DATA` marker is not verified.
+- 2026-10-20: no controllable browser is available (supported runtime discovery returned `[]`), so visual confirmation of live dashboard values and the `SYNTHETIC DATA` marker remains BLOCKED_BROWSER. See [verification and manual steps](integration/02-VERIFICATION.md).
 
 ## Current Risks
 
@@ -53,9 +53,9 @@ IN_PROGRESS
 
 - Hardware: Not physically verified.
 - Backend: 13 tests passed; container healthy; HTTP/OpenAPI/WebSocket and raw storage verified.
-- Frontend: TypeScript/Vite build passed; container serves HTTP 200; live visual inspection not verified.
+- Frontend: TypeScript/Vite build and 26 automated tests passed, including real React DOM/jsdom hook lifecycle with fake socket/timers; current container serves HTTP 200. Browser visuals not verified.
 - AI: Synthetic generator and shared preprocessing input implemented; future science pipeline is scaffold only.
-- Firmware: Three sensor drivers, EMA and combined Serial reporting are implemented in PR #7. The `esp32s3_supermini` environment builds; hardware acceptance remains unverified. Shared types and legacy config-header consolidation are pending manual source work in cleanup branch 01.
+- Firmware: Three sensor drivers, EMA and combined Serial reporting are implemented in PR #7. The `esp32s3_supermini` environment builds; hardware acceptance remains unverified. Shared types/config compatibility cleanup merged via PR #9; four header include combinations passed again on 2026-10-20. No GPIO/hardware acceptance is implied.
 - Docker: Compose config, all three images and backend/frontend startup verified.
 - Network: Mock HTTP/WebSocket and disconnect/reconnect replay verified; real ESP32 LAN path not implemented.
 - Competition mode: Not implemented or verified.
