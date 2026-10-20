@@ -2,13 +2,13 @@
 
 Kế hoạch: [README.md](README.md). Baseline: `332f249`. Chủ phần triển khai: Trung (IT).
 
-Ngày cập nhật: 2026-10-18 (Asia/Saigon).
+Ngày cập nhật: 2026-10-20 (Asia/Saigon).
 
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
 - **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
-- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Types/helpers và useLiveTelemetry đạt typecheck; validation 29 cases, parser 137 assertions, stream helpers 563 assertions và hook harness 89 assertions PASS; production build PASS. Hook đã nối helpers, tiếp theo `components/DeviceStatus.tsx`; UI/React renderer/browser test chưa hoàn tất.
+- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Types/helpers/hook và DeviceStatus đạt typecheck/build; validation 29 cases, parser 137 assertions, stream 563 assertions, hook harness 89 assertions và DeviceStatus React server rendering 74 assertions PASS. Tiếp `pages/Dashboard.tsx`; nối status/selector/cảnh báo và browser test chưa hoàn tất.
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -30,7 +30,7 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | Hook typecheck/build + 89 assertions mô phỏng PASS; tiếp DeviceStatus.tsx. Chưa có React renderer/browser test hoặc automated test suite trong repo |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | IN_PROGRESS | 2026-10-18 | — | — | DeviceStatus typecheck/build + 74 assertions React server rendering PASS; tiếp Dashboard. Chưa kiểm thử React hook lifecycle bằng renderer, browser hoặc lưu automated test suite trong repo |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
@@ -80,6 +80,8 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-18 | fix/frontend-live-connection-status / telemetryStream.ts | Trung hoàn tất stream/chart helper và connection status | TypeScript PASS; 563 runtime assertions PASS, gồm kiểm tra từng bước rolling buffer, reset và stale boundary | Viết useLiveTelemetry.ts để nối helpers, chọn thiết bị và xử lý WebSocket lifecycle |
 
 | 2026-10-18 | fix/frontend-live-connection-status / useLiveTelemetry.ts | Trung hoàn tất hook nhận telemetry qua WebSocket; Codex kiểm tra và giải thích luồng | TypeScript/build PASS; 89 assertions trong harness Node mô phỏng state/effect, WebSocket, timer PASS (không phải React/browser). Bundle >500 kB là warning; test suite repo/CI còn TODO | Tiếp DeviceStatus.tsx, rồi Dashboard; cần nhãn stale cho dữ liệu giữ lại, selector và visual test trước khi đóng nhánh |
+
+| 2026-10-20 | fix/frontend-live-connection-status / DeviceStatus.tsx | Trung hoàn tất component bốn trạng thái; Codex kiểm tra text/icon/accessibility theo ui-ux-pro-max | TypeScript/build PASS; 74 assertions bằng React server rendering PASS; chưa kiểm thử browser/layout/screen reader; bundle >500 kB là warning | Trung viết Dashboard.tsx: nối status, chọn thiết bị, phiên mới nhất, nhãn dữ liệu cũ và không hiển thị dự đoán cũ như hiện tại |
 
 ## Điều kiện mở PR dev -> main
 
