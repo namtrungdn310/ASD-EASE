@@ -5,7 +5,8 @@
 - Current completed phase: Phase 01 — Project Scaffold (`DONE`).
 - Active phase: Phase 02 — Mock End-to-End (`IN_PROGRESS`).
 - Phase 02 remains open only because no controllable browser was available for visual confirmation of live dashboard values and the `SYNTHETIC DATA` badge.
-- Phase 03 was not started.
+- Sensor-driver and combined-loop implementations were added in PR #7 (`332f249`). Phase 03–06 physical acceptance is not documented; code availability does not mark those phases complete.
+- Cleanup branch 01 consolidates shared enums in `common_types.h` and forwards legacy pin/sampling includes to `board_config.h`. Firmware build and standalone header-combination checks pass locally; physical configuration values are unchanged. Current PR/CI status is tracked in `docs/integration/PROGRESS.md`.
 
 ## Verification
 
@@ -71,13 +72,11 @@ docker compose --profile ai run --rm ai python -m simulator.mock_device --scenar
 
 ### PlatformIO build
 
+Run from the repository root:
+
 ```powershell
-.\.venv\Scripts\python -m pip install platformio
-<<<<<<< HEAD
-.\.venv\Scripts\pio run
-=======
-.\.venv\Scripts\pio run -d ai\edge_firmware
->>>>>>> 82a90de6f808c51b5a9b459532b6a767ee89c2b7
+.\.venv\Scripts\python.exe -m pip install platformio
+.\.venv\Scripts\pio.exe run -d ai\edge_firmware
 ```
 
 ## What works now
@@ -86,12 +85,12 @@ docker compose --profile ai run --rm ai python -m simulator.mock_device --scenar
 - Responsive React dashboard source with device/state/HR/GSR/movement/quality/probability charts and a visible synthetic-data marker.
 - Reproducible multimodal generator, profiles, required scenarios, manifests, diagnostic plotting, shared preprocessing input, save/replay and disconnect/reconnect simulation.
 - Docker backend/frontend runtime and optional AI runner.
-- Firmware skeleton and HardwareProfiler compile under the temporary profile.
+- The PR #7 firmware contains MAX30102/MPU6050/GSR drivers, EMA and a combined Serial reporting loop. Its `esp32s3_supermini` environment compiles; physical measurements and calibrated sensor accuracy remain unverified in the repository. `HardwareProfiler` still exists but the current `setup()` does not call it.
 
 ## Scaffold only
 
 - Production signal processing, signal quality, personal baselines, feature extraction, rule/ML models, model export, Edge inference and temporal state logic.
-- Real ESP32 Wi-Fi client, bounded firmware telemetry queue, physical sensor drivers and competition behavior.
+- Real ESP32 Wi-Fi client, bounded firmware telemetry/raw queues and competition behavior remain unimplemented. Physical driver implementations exist but their hardware acceptance evidence is still missing.
 - Sessions/annotations/events endpoints are structurally functional but are not a completed research workflow.
 
 ## Requires physical hardware

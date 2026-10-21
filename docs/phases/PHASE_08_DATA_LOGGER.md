@@ -8,6 +8,10 @@ NOT_STARTED
 
 IT
 
+## Detailed Implementation Plan
+
+Use the [raw-ingestion plan](../integration/06-backend-raw-ingestion.md), [firmware raw-batching plan](../integration/07-firmware-raw-batching.md), [recording/export plan](../integration/08-backend-recording-export.md), [session UI plan](../integration/09-frontend-recording-control.md) and [E2E acceptance plan](../integration/10-e2e-device-ingestion.md). Track branches in [integration progress](../integration/PROGRESS.md). The detailed plan does not itself complete this phase.
+
 ## Objective
 
 Persist synchronized real raw batches and session metadata.

@@ -13,13 +13,13 @@ IN_PROGRESS
 | Phase | Name | Owner | Status | Started | Completed | Notes |
 |---|---|---|---|---|---|---|
 | 00 | Hardware Verification | AUTOMATION | NOT_STARTED | - | - | Physical verification required. |
-| 01 | Project Scaffold | IT | DONE | - | - | Structure, tests, builds and containers verified; firmware compilation separately unverified because PlatformIO is unavailable. |
-| 02 | Mock End-to-End | IT | IN_PROGRESS | - | - | Generator, HTTP/raw ingest, live WebSocket and reconnect verified; visual browser inspection remains. |
-| 03 | MAX30102 | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 04 | MPU6050 | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 05 | GSR | AUTOMATION | NOT_STARTED | - | - | Physical hardware phase. |
-| 06 | Sensor Integration | AUTOMATION | NOT_STARTED | - | - | Future phase. |
-| 07 | Wi-Fi Backend | SHARED | NOT_STARTED | - | - | Real ESP32 network not implemented. |
+| 01 | Project Scaffold | IT | DONE | - | - | Structure, tests, builds and containers verified; PlatformIO compilation passed. This does not verify physical hardware. |
+| 02 | Mock End-to-End | IT | IN_PROGRESS | - | - | 2026-10-20: frontend 26 tests incl. real React/jsdom lifecycle PASS; transport18/18 messages PASS. BLOCKED_BROWSER: discovery []; visual inspection remains. |
+| 03 | MAX30102 | AUTOMATION | IN_PROGRESS | - | - | Driver/FIFO/HR implementation in PR #7; physical acceptance evidence pending. |
+| 04 | MPU6050 | AUTOMATION | IN_PROGRESS | - | - | Register-read/EMA implementation in PR #7; physical calibration/timing evidence pending. |
+| 05 | GSR | AUTOMATION | IN_PROGRESS | - | - | ADC/baseline/EMA implementation in PR #7; GPIO and conductance conversion evidence pending. |
+| 06 | Sensor Integration | AUTOMATION | IN_PROGRESS | - | - | Combined dual-I2C/ADC Serial loop in PR #7; actual alignment/rates/loss evidence pending. |
+| 07 | Wi-Fi Backend | IT | NOT_STARTED | - | - | Real ESP32 network not implemented; Automation supports hardware/driver verification. |
 | 08 | Data Logger | IT | NOT_STARTED | - | - | Raw receiver scaffold does not complete phase. |
 | 09 | Dataset Collection | SHARED | NOT_STARTED | - | - | Synthetic sessions do not count as real collection. |
 | 10 | Signal Processing | IT | NOT_STARTED | - | - | Only shared input interface exists. |
@@ -40,7 +40,7 @@ IN_PROGRESS
 
 ## Current Blockers
 
-- No controllable browser is available in the current environment, so visual confirmation of live dashboard values and the `SYNTHETIC DATA` marker is not verified.
+- 2026-10-20: no controllable browser is available (supported runtime discovery returned `[]`), so visual confirmation of live dashboard values and the `SYNTHETIC DATA` marker remains BLOCKED_BROWSER. See [verification and manual steps](integration/02-VERIFICATION.md).
 
 ## Current Risks
 
@@ -53,9 +53,9 @@ IN_PROGRESS
 
 - Hardware: Not physically verified.
 - Backend: 13 tests passed; container healthy; HTTP/OpenAPI/WebSocket and raw storage verified.
-- Frontend: TypeScript/Vite build passed; container serves HTTP 200; live visual inspection not verified.
+- Frontend: TypeScript/Vite build and 26 automated tests passed, including real React DOM/jsdom hook lifecycle with fake socket/timers; current container serves HTTP 200. Browser visuals not verified.
 - AI: Synthetic generator and shared preprocessing input implemented; future science pipeline is scaffold only.
-- Firmware: Skeleton and HardwareProfiler implemented; PlatformIO host build passed under the temporary profile; hardware behavior remains unverified.
+- Firmware: Three sensor drivers, EMA and combined Serial reporting are implemented in PR #7. The `esp32s3_supermini` environment builds; hardware acceptance remains unverified. Shared types/config compatibility cleanup merged via PR #9; four header include combinations passed again on 2026-10-20. No GPIO/hardware acceptance is implied.
 - Docker: Compose config, all three images and backend/frontend startup verified.
 - Network: Mock HTTP/WebSocket and disconnect/reconnect replay verified; real ESP32 LAN path not implemented.
 - Competition mode: Not implemented or verified.
@@ -66,7 +66,9 @@ Phase 01 — Project Scaffold completed and verified within its non-hardware sco
 
 ## Next Action
 
-Visually inspect live synthetic telemetry in an available browser, complete the last Phase 02 acceptance criterion, then stop before Phase 03.
+Follow the [IT device-integration plan](integration/README.md) and update its [branch tracker](integration/PROGRESS.md). Repository cleanup is merged in PR #9 (`86cd09f`). The active branch is now `fix/frontend-live-connection-status`: distinguish browser/backend connectivity from device-data freshness, then verify live synthetic telemetry visually to complete the remaining Phase 02 criterion. IT owns firmware serialization, session control, Wi-Fi/HTTP and raw batching as well as backend/frontend integration; Automation retains driver and hardware verification work.
+
+The new plan describes future implementation and does not itself complete any phase. Real-device acceptance for Phase 07/08 remains dependent on the corresponding hardware evidence. Existing phase statuses and historical results above must be reconciled with measured evidence during the cleanup and verification branches.
 
 ## Metrics Available
 

@@ -4,6 +4,7 @@
 
 ### Added
 
+- Detailed IT device-integration roadmap with ten branch plans, acceptance checklists and a progress tracker; firmware serialization, networking and raw batching are assigned to IT for this milestone. This addition documents planned work, not completed implementation.
 - Initial three-module repository scaffold, documentation system and 25 phase plans.
 - Git repository initialized with `main` as the integration branch and generated/private artifacts ignored.
 - Two-person GitHub workflow, PR template, CODEOWNERS review request and CI checks for protected `dev`/`main` branches.
@@ -17,6 +18,8 @@
 
 ### Changed
 
+- Repository cleanup separates local environment/IDE configuration from shared files, adds a conflict-marker CI check, and reconciles firmware implementation progress with outstanding physical acceptance.
+- Consolidated manually written firmware enums into `common_types.h`; compatibility pin/sampling headers forward to `board_config.h`. Added CI compilation of header combinations to catch duplicate definitions without changing configured GPIO, sample rates or sensor algorithms.
 - Renamed the source directory `AI` to `ai` and updated CI, Compose, ignore rules and documentation paths.
 - Upgraded frontend Tailwind integration to the current Vite plugin path; production dependency audit now reports zero known vulnerabilities.
 - Refined protected-branch review policy: collaborator PRs require owner approval, while the named owner may use a PR-only bypass on owner-authored PRs after all required checks pass and the branch is conflict-free.
