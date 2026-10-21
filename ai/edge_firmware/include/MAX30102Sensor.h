@@ -32,7 +32,7 @@ class MAX30102Sensor {
   void resetCalculations();
 
  private:
-  bool  detectBeat(uint32_t irValue, unsigned long now);
+  bool  detectBeat(uint32_t irValue, uint32_t redValue, unsigned long now);
   float computeMedianBpm();   // Tính trung vị khoảng RR từ mảng rates_[]
 
   bool          ready_        = false;
@@ -42,23 +42,43 @@ class MAX30102Sensor {
   uint32_t      latestIr_     = 0;
   uint32_t      latestRed_    = 0;
 
-  static constexpr size_t kRateBufferSize   = 4;
+  static constexpr size_t kRateBufferSize   = 8;
   static constexpr size_t kSampleBufferSize = 50;
   static constexpr size_t kFifoBufferSize   = 32;
 
-  // Thuật toán đo nhịp tim thích ứng 32-bit (chống tràn số 18-bit PPG)
+  // Tách thành phần DC (High-pass tracking)
   float         irDc_         = 0.0f;
-  float         acSmoothed_   = 0.0f;
+  float         redDc_        = 0.0f;
+
+  // Bộ lọc thông thấp Butterworth bậc 2 (fc = 2.5 Hz, fs = 50 Hz)
+  // Triệt tiêu hoàn toàn dicrotic notch (> 3.5 Hz) và rung giật nhiễu vi động
+  float         biquadX1_     = 0.0f;
+  float         biquadX2_     = 0.0f;
+  float         biquadY1_     = 0.0f;
+  float         biquadY2_     = 0.0f;
+
+  float         acFiltered_   = 0.0f;
   float         prevAc_       = 0.0f;
   float         prev2Ac_      = 0.0f;
   float         acMax_        = 0.0f;
   float         acMin_        = 0.0f;
-  unsigned long lastBeatMs_   = 0;
+
+  // Kênh Red AC phục vụ tính SpO2
+  float         redBiquadX1_  = 0.0f;
+  float         redBiquadX2_  = 0.0f;
+  float         redBiquadY1_  = 0.0f;
+  float         redBiquadY2_  = 0.0f;
+  float         redAcMax_     = 0.0f;
+  float         redAcMin_     = 0.0f;
+
+  // Cơ chế đo nhịp tim sinh lý thích ứng (Adaptive Physiological Blanking Window)
+  unsigned long lastBeatMs_        = 0;
+  unsigned long lastRrIntervalMs_  = 0;
   float         rates_[kRateBufferSize] = {0};
-  uint8_t       rateSpot_     = 0;
-  float         beatAvg_       = 0.0f;   // Trung bình trượt RR (giá trị thô trước lọc)
-  float         medianBpm_     = 0.0f;   // Kết quả trung vị khoảng RR
-  size_t        validBeatCount_ = 0;
+  uint8_t       rateSpot_          = 0;
+  float         beatAvg_           = 0.0f;   // Trung bình trượt RR (giá trị thô trước lọc)
+  float         medianBpm_         = 0.0f;   // Kết quả trung vị khoảng RR
+  size_t        validBeatCount_    = 0;
 
   // Thuật toán đo SpO2
   uint32_t irBuffer_[kSampleBufferSize]  = {0};
