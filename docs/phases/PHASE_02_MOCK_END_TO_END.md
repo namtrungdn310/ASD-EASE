@@ -74,6 +74,21 @@ Generator, raw-batch replay, compact telemetry, network-pause recovery and live 
 - Frontend production build and container start passed; http://localhost:5173 returned 200.
 - Visual field/marker inspection: NOT_VERIFIED (no browser surface available).
 
+## Verification update — 2026-10-20
+
+- Frontend `npm test`: 26/26 PASS, including real React DOM hook lifecycle,
+  StrictMode replay, unmount cleanup and DOM device-selection events in jsdom.
+  WebSocket/timers in that suite are controlled doubles, not a browser connection.
+- Isolated simulator transport check: 18/18 exact payload matches over real HTTP
+  and WebSocket across normal, poor-signal and disconnect/reconnect scenarios;
+  invalid telemetry rejected, subscriber reconnect passed. No normal app DB used.
+- Current frontend/backend Docker rebuild/start succeeded; both localhost endpoints
+  returned HTTP 200. This does not establish visual behavior.
+- Browser runtime URL selection returned `No browser is available`, discovery `[]`
+  after supported troubleshooting. Visual acceptance remains BLOCKED_BROWSER and
+  Phase 02 remains IN_PROGRESS. No clinical or hardware claim is made.
+- Evidence and manual acceptance: [branch 02 verification](../integration/02-VERIFICATION.md).
+
 ## Next Phase
 
 Phase 03 — MAX30102

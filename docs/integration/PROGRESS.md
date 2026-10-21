@@ -2,13 +2,13 @@
 
 Kế hoạch: [README.md](README.md). Baseline: `332f249`. Chủ phần triển khai: Trung (IT).
 
-Ngày cập nhật: 2026-10-18 (Asia/Saigon).
+Ngày cập nhật: 2026-10-20 (Asia/Saigon).
 
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
-- **Implementation:** năm file source của nhánh 01 đã hoàn tất. Sáu CI checks đã PASS ở commit `7ff1851`; nhánh cleanup đã rebase lên dev sau khi #8 merge, nội dung giữ nguyên. [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) được chuẩn bị để review; kết quả CI trên commit mới xem trực tiếp tại PR. Wiring vật lý vẫn chưa xác nhận.
-- **Nhánh đang làm:** `chore/repository-integration-cleanup`.
+- **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
+- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Bảy core files đạt build; suite frontend 26/26 PASS, gồm React DOM lifecycle/StrictMode/DOM selection trong jsdom với fake socket/timers. Transport simulator -> HTTP -> WebSocket thật PASS 18/18 gói. Docker stack hiện chạy. **BLOCKED_BROWSER:** không có browser điều khiển (`[]`) để nghiệm thu trực quan; không đồng nhất jsdom/HTTP 200 với visual PASS. Bằng chứng và bước kiểm tra tay: [02-VERIFICATION.md](02-VERIFICATION.md).
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -29,8 +29,8 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge, cleanup dựa trên dev mới | IN_REVIEW | 2026-10-18 | — | [#9](https://github.com/namtrungdn310/ASD-EASE/pull/9) | 5 core headers xong; CI cũ 6/6 PASS, CI commit mới theo GitHub. Wiring cần Tân xác nhận, giá trị cấu hình không đổi |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | TODO | — | — | — | Cần quan sát browser thực tế |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | [#10 draft](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Automated frontend 26/26, backend 13, AI 15, transport 18/18 PASS; BLOCKED_BROWSER (`[]`), còn visual acceptance; remote checks theo GitHub, không tự merge |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
@@ -50,7 +50,7 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
 | B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
 | B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
-| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | Ghi thiết bị và môi trường test khi có |
+| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | 2026-10-20: browser runtime chọn localhost lỗi No browser is available, discovery [] sau troubleshooting. Stack localhost đang chạy, cần Trung kiểm tra tay/cung cấp ảnh hoặc kết nối browser. Board acceptance vẫn riêng |
 
 ## Checklist cập nhật sau mỗi buổi
 
@@ -69,6 +69,23 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
 | 2026-10-18 | chore/repository-integration-cleanup / PR #9 | Trung hoàn tất 5 core headers; Codex kiểm tra và mở draft PR | Firmware build, 4 tổ hợp header, frontend build, Compose và conflict scan PASS; CI theo trạng thái GitHub | Merge PR #8 trước; cập nhật ancestry của cleanup sau squash merge, chờ CI/review rồi mới tạo nhánh 02 |
 | 2026-10-18 | chore/repository-integration-cleanup / sau PR #8 | Rebase ba commit cleanup lên dev `0bcd833`, không đưa lại commit kế hoạch vào PR #9 | So sánh tree trước/sau rebase: giống nhau; bốn file IDE local giữ nguyên hash; CI 6/6 đã pass tại `7ff1851` trước rebase | Review/merge PR #9 sau khi CI commit mới pass; nhánh 02 chỉ bắt đầu sau khi #9 merge |
+| 2026-10-18 | fix/frontend-live-connection-status | Xác nhận PR #9 merge tại 86cd09f, cập nhật dev và tạo nhánh 02 | Tree dev sau squash merge giống cleanup đã review; 4 local generated files giữ nguyên; CI PR cuối c764210 đã 6/6 PASS | Trung tự tạo frontend/src/types/connection.ts; kiểm tra xong file mới sang bước tiếp |
+
+| 2026-10-18 | fix/frontend-live-connection-status / connection.ts | Trung hoàn tất kiểu ConnectionStatus cho UI | TypeScript `--noEmit` PASS; chưa thay wire contract hoặc hook | Viết utils/validation.ts từng file, rồi module parse telemetry |
+
+| 2026-10-18 | fix/frontend-live-connection-status / validation.ts | Trung hoàn tất ba helper kiểm tra dữ liệu runtime | TypeScript PASS; 29 runtime assertions PASS | Viết parseTelemetry.ts, sau đó kiểm tra payload hợp lệ/lỗi trước khi nối hook |
+
+| 2026-10-18 | fix/frontend-live-connection-status / parseTelemetry.ts | Trung hoàn tất guard full telemetry và parser JSON | TypeScript PASS; 137 runtime assertions PASS | Viết telemetryStream.ts để quản lý lịch sử, freshness và status |
+
+| 2026-10-18 | fix/frontend-live-connection-status / telemetryStream.ts | Trung hoàn tất stream/chart helper và connection status | TypeScript PASS; 563 runtime assertions PASS, gồm kiểm tra từng bước rolling buffer, reset và stale boundary | Viết useLiveTelemetry.ts để nối helpers, chọn thiết bị và xử lý WebSocket lifecycle |
+
+| 2026-10-18 | fix/frontend-live-connection-status / useLiveTelemetry.ts | Trung hoàn tất hook nhận telemetry qua WebSocket; Codex kiểm tra và giải thích luồng | TypeScript/build PASS; 89 assertions trong harness Node mô phỏng state/effect, WebSocket, timer PASS (không phải React/browser). Bundle >500 kB là warning; test suite repo/CI còn TODO | Tiếp DeviceStatus.tsx, rồi Dashboard; cần nhãn stale cho dữ liệu giữ lại, selector và visual test trước khi đóng nhánh |
+
+| 2026-10-20 | fix/frontend-live-connection-status / DeviceStatus.tsx | Trung hoàn tất component bốn trạng thái; Codex kiểm tra text/icon/accessibility theo ui-ux-pro-max | TypeScript/build PASS; 74 assertions bằng React server rendering PASS; chưa kiểm thử browser/layout/screen reader; bundle >500 kB là warning | Trung viết Dashboard.tsx: nối status, chọn thiết bị, phiên mới nhất, nhãn dữ liệu cũ và không hiển thị dự đoán cũ như hiện tại |
+
+| 2026-10-20 | fix/frontend-live-connection-status / Dashboard.tsx | Trung hoàn tất core Dashboard; Codex thêm test suite lưu trong repo, npm script và CI step | npm run build PASS; npm test 16/16 PASS: render bốn trạng thái/null/synthetic, selector callback/chart props, parser/stream helpers; hook UI được mock, chưa phải browser/lifecycle test | Codex tiếp phần kiểm thử hỗ trợ hook và browser/simulator; chưa cần core file mới nếu không có lỗi; không đánh dấu Phase 02 DONE |
+
+| 2026-10-20 | fix/frontend-live-connection-status / lifecycle + transport | Codex thêm tests hỗ trợ, không sửa core source; build và bật Docker stack | Frontend 26/26, backend 13, AI 15, audit0, headers4/4, transport18/18 PASS. React DOM/jsdom dùng fake socket/timers; backend transport thật dùng DB tạm. Browser discovery[] | BLOCKED_BROWSER cho visual; theo 02-VERIFICATION.md để Trung quan sát hoặc kết nối browser, không tự merge/đóng Phase 02 |
 
 ## Điều kiện mở PR dev -> main
 
