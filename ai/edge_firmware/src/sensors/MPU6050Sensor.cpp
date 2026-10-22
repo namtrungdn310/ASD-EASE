@@ -164,9 +164,10 @@ MPU6050Data MPU6050Sensor::read() {
   int16_t rawGy = static_cast<int16_t>((buffer[10] << 8) | buffer[11]);
   int16_t rawGz = static_cast<int16_t>((buffer[12] << 8) | buffer[13]);
 
-  const float valAx = (static_cast<float>(rawAx) / 16384.0f) * 9.80665f;
-  const float valAy = (static_cast<float>(rawAy) / 16384.0f) * 9.80665f;
-  const float valAz = (static_cast<float>(rawAz) / 16384.0f) * 9.80665f;
+  // Bù trừ lật úp cảm biến: đảo chiều trục Y và Z (xoay 180° quanh trục X)
+  const float valAx =  (static_cast<float>(rawAx) / 16384.0f) * 9.80665f;
+  const float valAy = -(static_cast<float>(rawAy) / 16384.0f) * 9.80665f;
+  const float valAz = -(static_cast<float>(rawAz) / 16384.0f) * 9.80665f;
 
   data.rawAx = valAx;
   data.rawAy = valAy;
@@ -181,9 +182,10 @@ MPU6050Data MPU6050Sensor::read() {
 
   data.temperature = (static_cast<float>(rawTemp) / 340.0f) + 36.53f;
 
-  const float valGxDeg = static_cast<float>(rawGx) / 131.0f;
-  const float valGyDeg = static_cast<float>(rawGy) / 131.0f;
-  const float valGzDeg = static_cast<float>(rawGz) / 131.0f;
+  // Bù trừ lật úp: đảo chiều Gy và Gz
+  const float valGxDeg =  static_cast<float>(rawGx) / 131.0f;
+  const float valGyDeg = -static_cast<float>(rawGy) / 131.0f;
+  const float valGzDeg = -static_cast<float>(rawGz) / 131.0f;
 
   constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
   data.rawGx_deg = valGxDeg;
