@@ -20,6 +20,36 @@ Một đặc tả đủ rõ để viết backend và firmware độc lập: JSON
 - Đề xuất `docs/contracts/`: JSON examples, sequence lifecycle và mapping driver -> API; các ví dụ minh hoạ không phải dữ liệu người thật.
 - Các phase 07/08 và changelog khi bổ sung acceptance criteria; không sửa code trong PR `docs/*` này.
 
+## Đọc và chốt từng file với Trung
+
+Baseline triển khai: `dev` tại `d80cc0e` (PR #11); nhánh đã tạo từ baseline này.
+Ngày bắt đầu: 2026-10-22. Working tree sạch trước khi chuẩn bị tài liệu.
+
+Nhánh 03 là nhánh đặc tả: đọc code hiện tại để xác định contract đang được thực
+thi, không viết thêm/sửa source backend hoặc firmware. Trung đọc từng file;
+Codex giải thích ngắn mục đích, đoạn quan trọng và giới hạn, rồi chờ Trung xác
+nhận trước khi sang file khác. Codex xử lý Markdown/ví dụ/Git. Implementation
+các quyết định mới vẫn ở nhánh 04/05/06/07 theo kế hoạch.
+
+Thứ tự đọc dự kiến (chưa phải danh sách source sẽ sửa):
+
+1. `backend/app/schemas/telemetry.py`: file đầu tiên đang hướng dẫn, chưa có xác
+   nhận Trung đọc xong. Kiểu/range/null/default của telemetry đang nhận; root
+   extra=forbid không đồng nghĩa strict typing hoặc cấm extra ở mọi nested model.
+2. `backend/app/schemas/raw_batch.py`: cấu trúc stream, sample rates, equal-length
+   và timestamp reconstruction.
+3. `backend/app/schemas/session.py`: request start/stop và những lifecycle/ACK
+   chưa được triển khai.
+4. `ai/edge_firmware/include/common_types.h`, sau đó từng sensor header: mapping
+   output mới sau PR #11, đơn vị, null/sentinel, raw-vs-filtered; không mặc định
+   mapping của baseline cũ vẫn đúng.
+5. `docs/API_CONTRACT.md`: Codex cập nhật đặc tả dựa trên các file đã đọc; Trung
+   review từng phần. Sau đó lần lượt examples, DECISIONS và DATASET_PROTOCOL.
+
+Không tick đã hiểu/đã nghiệm thu thay Trung; thứ tự/tên file có thể điều chỉnh
+theo code thật, vẫn mỗi lượt một file. Không khai rate/GPIO đã xác nhận khi chưa
+có log hoặc xác nhận của Tân.
+
 ## Checklist: mapping dữ liệu
 
 - [ ] Giữ schema `1.0` khi ý nghĩa dữ liệu không đổi. Nếu bắt buộc breaking change, ghi version mới và lộ trình hỗ trợ/di chuyển trước khi code; không âm thầm đổi `1.0`.
@@ -76,6 +106,6 @@ Một đặc tả đủ rõ để viết backend và firmware độc lập: JSON
 
 | Ngày / commit | Quyết định / đầu vào | Bằng chứng / người xác nhận | Kết quả / blocker |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+| 2026-10-22 / branch preparation | Xác nhận nhánh docs/device-ingestion-contract từ dev d80cc0e; bắt đầu đọc schema telemetry | GitHub PR #10 merged ea959ef, PR #11 merged d80cc0e; working tree sạch trước chỉnh docs; đã đọc source schema hiện tại, chưa chạy test hoặc đổi implementation | Hướng dẫn Trung đọc telemetry.py đầu tiên; chưa xác nhận đọc xong, chưa chốt contract hoặc sampling |
 
 Nhánh kế tiếp: [04](04-backend-session-lifecycle.md); thông số phần cứng chưa đo vẫn phải ghi rõ giới hạn của chúng.

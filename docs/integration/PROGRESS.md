@@ -2,13 +2,14 @@
 
 Kế hoạch: [README.md](README.md). Baseline: `332f249`. Chủ phần triển khai: Trung (IT).
 
-Ngày cập nhật: 2026-10-20 (Asia/Saigon).
+Ngày cập nhật: 2026-10-22 (Asia/Saigon).
 
 ## Công việc hiện tại
 
 - **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
 - **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
-- **Nhánh đang làm:** `fix/frontend-live-connection-status`, tạo từ dev `86cd09f`. Bảy core files đạt build; suite frontend 26/26 PASS, gồm React DOM lifecycle/StrictMode/DOM selection trong jsdom với fake socket/timers. Transport simulator -> HTTP -> WebSocket thật PASS 18/18 gói. Docker stack hiện chạy. **BLOCKED_BROWSER:** không có browser điều khiển (`[]`) để nghiệm thu trực quan; không đồng nhất jsdom/HTTP 200 với visual PASS. Bằng chứng và bước kiểm tra tay: [02-VERIFICATION.md](02-VERIFICATION.md).
+- **Nhánh 02 đã tích hợp:** PR #10 merged vào dev tại `ea959ef` theo yêu cầu chủ repo ngày 2026-10-22 (Asia/Saigon), CI PR head trước merge 6/6 PASS. Frontend 26 tests và transport 18/18 gói PASS trước đó. Chưa có ảnh/log nghiệm thu browser độc lập, nên không tự đóng Phase 02; việc merge không biến visual test thành PASS.
+- **Nhánh đang làm:** `docs/device-ingestion-contract`, baseline `dev d80cc0e` sau PR #11 cập nhật firmware. Nhánh 03 chỉ sửa đặc tả/ví dụ dưới docs, chưa implementation. Đang hướng dẫn đọc file đầu `backend/app/schemas/telemetry.py`; chờ Trung đọc xong trước file kế.
 - **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
 - **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
 
@@ -30,8 +31,8 @@ Một PR phần mềm có thể merge trước test board nếu ghi rõ giới h
 | ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | [#10 draft](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Automated frontend 26/26, backend 13, AI 15, transport 18/18 PASS; BLOCKED_BROWSER (`[]`), còn visual acceptance; remote checks theo GitHub, không tự merge |
-| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | TODO | — | — | — | Cần xác nhận output driver từ Tân |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | [#10 merged](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Code merged ea959ef; CI PR head6/6 PASS, owner cho phép merge. BLOCKED chỉ phần visual acceptance chưa có bằng chứng độc lập; không chặn bắt đầu03 |
+| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | IN_PROGRESS | 2026-10-22 | — | — | Baseline d80cc0e; đọc telemetry.py từng file trước chốt docs. Cần xác nhận output/rate/units mới từ Tân; chưa đổi source |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
 | 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03,04 | TODO | — | — | — | Chưa triển khai |
@@ -86,6 +87,8 @@ Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa
 | 2026-10-20 | fix/frontend-live-connection-status / Dashboard.tsx | Trung hoàn tất core Dashboard; Codex thêm test suite lưu trong repo, npm script và CI step | npm run build PASS; npm test 16/16 PASS: render bốn trạng thái/null/synthetic, selector callback/chart props, parser/stream helpers; hook UI được mock, chưa phải browser/lifecycle test | Codex tiếp phần kiểm thử hỗ trợ hook và browser/simulator; chưa cần core file mới nếu không có lỗi; không đánh dấu Phase 02 DONE |
 
 | 2026-10-20 | fix/frontend-live-connection-status / lifecycle + transport | Codex thêm tests hỗ trợ, không sửa core source; build và bật Docker stack | Frontend 26/26, backend 13, AI 15, audit0, headers4/4, transport18/18 PASS. React DOM/jsdom dùng fake socket/timers; backend transport thật dùng DB tạm. Browser discovery[] | BLOCKED_BROWSER cho visual; theo 02-VERIFICATION.md để Trung quan sát hoặc kết nối browser, không tự merge/đóng Phase 02 |
+
+| 2026-10-22 | docs/device-ingestion-contract / chuẩn bị nhánh | Xác nhận PR #10 đã merge, đồng bộ dev sau PR #11; bắt đầu nhánh03 đúng tên trên d80cc0e | git fetch cho thấy HEAD không chậm hơn origin/dev; working tree sạch, chỉ sửa Markdown chuẩn bị; không kiểm thử/triển khai code mới | Trung đọc backend/app/schemas/telemetry.py, Codex chờ xác nhận rồi mới hướng dẫn file kế |
 
 ## Điều kiện mở PR dev -> main
 
