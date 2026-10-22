@@ -2,6 +2,9 @@
 #include <Arduino.h>
 #include "common_types.h"
 
+enum class Availability { NOT_IMPLEMENTED, UNAVAILABLE, READY, ERROR };
+enum class EngineeringState { NORMAL, ATTENTION, UNCERTAIN, CALIBRATING };
+
 struct TelemetryFrame {
   const char* schemaVersion;
   const char* deviceId;
@@ -23,4 +26,5 @@ class EdgeModel { public: Availability begin() { return Availability::NOT_IMPLEM
 class StateMachine { public: Availability begin() { return Availability::NOT_IMPLEMENTED; } };
 class TelemetryClient { public: Availability begin() { return Availability::NOT_IMPLEMENTED; } };
 class RawBatchClient { public: Availability begin() { return Availability::NOT_IMPLEMENTED; } };
+
 
