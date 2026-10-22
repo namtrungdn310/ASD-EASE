@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include "common_types.h"
 
 // =============================================================================
 // board_config.h — Unified Hardware & Sensor Configuration
@@ -16,10 +17,6 @@
 #define FIRMWARE_VERSION "0.2.0"
 #endif
 #define ASD_FIRMWARE_VERSION FIRMWARE_VERSION
-
-// ── Shared Enums
-// ──────────────────────────────────────────────────────────────
-enum class Availability { NOT_IMPLEMENTED, UNAVAILABLE, READY, ERROR };
 
 enum class GSRStatus {
   DISCONNECTED, // Điện áp < 0.15V: hở mạch, chưa đeo điện cực (LM324 lower
