@@ -1,68 +1,71 @@
-# 09 — Giao diện điều khiển và xem phiên thu
+# 09 — Giao diện điều khiển và xem phiên
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `feature/frontend-recording-control` |
-| Chủ trì | Trung — IT |
-| Phụ thuộc | 02, 04, 08 |
-| Ước lượng | 1–2 ngày |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 09 |
+| Phụ trách | Trung — IT |
+| Phụ thuộc |02/04/08 |
+| Ước lượng |1–2 ngày |
+| Tiến độ |[Dòng09](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Kết quả và phạm vi
 
-Người dùng chọn đúng thiết bị, bắt đầu/dừng phiên có xác nhận, theo dõi dữ liệu nhận và tải export. Sessions hiện là placeholder, App chỉ render Dashboard; nhánh này bổ sung đường điều hướng tối thiểu, không làm lại toàn bộ giao diện.
+Chọn thiết bị, Start/Stop có xác nhận, xem bản ghi và tải file. Sessions/History hiện mới giữ chỗ; thêm điều hướng tối thiểu, không làm lại giao diện.
 
-## File dự kiến
+Theo [kiến trúc](MQTT_ARCHITECTURE.md), browser chỉ HTTP/WS tới backend. Không cài MQTT trong browser hoặc đưa credential vào VITE_*/bundle.
 
-`frontend/src/pages/Sessions.tsx`, `App.tsx`, `api/index.ts`, API/session types mới, hook polling session/recording, shared selected device/session state, test UI. `History.tsx` chỉ triển khai nếu cần cho recording list đã chốt; không mở rộng thành phân tích event khoa học.
+File dự kiến: pages/Sessions.tsx, App.tsx, api/index.ts, kiểu phiên/API, hook hỏi trạng thái và lựa chọn thiết bị/phiên dùng chung. Chỉ làm History khi cần danh sách đã thống nhất, chưa phân tích nghiên cứu.
 
-## Checklist màn hình và state
+## Công việc
 
-- [ ] Thêm navigation Dashboard / Sessions; giữ bảng màu và components đang dùng.
-- [ ] Dùng cùng device/session selection với 02; không có hai selector đưa dashboard và nút Stop tới hai thiết bị khác nhau.
-- [ ] List thiết bị có last-seen và data origin; backend connected khác device live.
-- [ ] Start form có device và ID phiên hợp lệ; participant ID giả danh tuỳ nhu cầu đã chốt.
-- [ ] Nút Start gửi request một lần, có pending/disabled và xử lý 409/422 theo backend.
-- [ ] Khi backend nhận yêu cầu, hiển thị STARTING/chờ ACK; chỉ hiện RECORDING sau ACK thiết bị, không đoán từ HTTP 200.
-- [ ] Stop hiển thị STOPPING/draining, số batch đang chờ khi có dữ liệu; STOPPED không mặc định recording complete.
-- [ ] Mất thiết bị hoặc timeout -> hiển thị incomplete/aborted reason đúng; có thao tác tiếp theo theo API, không bấm Start lặp tạo nhiều phiên.
-- [ ] Hiển thị elapsed theo acquisition metadata, batch/sample counts và missing/gap indicator; không dùng thời gian browser như clock nguồn đo.
-- [ ] Danh sách phiên có filter/pagination, nguồn DEVICE/SYNTHETIC, trạng thái lifecycle và recording completeness.
-- [ ] Detail xem summary/manifest và tải export; không load toàn raw array để dựng list.
-- [ ] Poll/refetch backend theo chu kỳ cấu hình hoặc sự kiện được hỗ trợ; tránh busy loop, cleanup khi đổi trang.
-- [ ] Refresh browser khôi phục trạng thái từ backend; localStorage không là nguồn thật cho session active.
-- [ ] `VITE_API_BASE_URL`/WS URL phù hợp máy mở dashboard. Nếu truy cập bằng máy khác trong LAN, localhost mặc định không trỏ về laptop server; document cấu hình build/CORS cần thiết.
-- [ ] Có loading/empty/error, keyboard labels và trạng thái nút đủ rõ; không hiển thị nguyên stack trace cho người dùng.
-- [ ] Badge synthetic vẫn rõ; không thêm metric model/SpO2 chưa có API version tương ứng.
+- [ ] Điều hướng Dashboard/Sessions, giữ phong cách/component hiện có.
+- [ ] Cùng lựa chọn device/session với02, nút Stop không trỏ thiết bị khác dashboard.
+- [ ] List có lần nhận gần nhất/nguồn. Tách HTTP/WS, broker, presence, tuổi mẫu và trạng thái ghi; online không tự là live.
+- [ ] Form Start có ID/thiết bị hợp lệ, ID người giả danh nếu cần.
+- [ ] Gửi Start một lần, chờ/disable, xử lý409/422 đúng.
+- [ ] HTTP nhận yêu cầu chỉ hiện STARTING; RECORDING sau ACK thiết bị, không đoán từ200/PUBACK.
+- [ ] Broker mất/backend xử lý lỗi thì hiện chờ/quá hạn/lý do từ API, không tự thêm trạng thái nghiệp vụ.
+- [ ] Stop hiện STOPPING/gửi nốt và số batch chờ khi API có; STOPPED không mặc định đủ.
+- [ ] Thiết bị mất/timeout báo thiếu/ABORTED, không bấm lặp tạo nhiều phiên.
+- [ ] Thời lượng theo mốc thu, số mẫu/batch và gap; không lấy đồng hồ browser làm nguồn.
+- [ ] List có lọc/phân trang/nguồn/trạng thái và mức đủ dữ liệu.
+- [ ] Detail có tổng kết/bản mô tả/tải file, không tải toàn raw cho list.
+- [ ] Hỏi lại API theo chu kỳ cấu hình hoặc sự kiện, không vòng liên tục; dọn khi đổi trang.
+- [ ] Hỏi định kỳ ở đây là browser tra cứu, không khôi phục firmware polling. WS mở nhưng thiếu telemetry vẫn stale theo02.
+- [ ] Refresh lấy trạng thái thật từ backend; localStorage không quyết định phiên đang mở.
+- [ ] API/WS URL và CORS đúng máy LAN, localhost browser khác máy không là laptopserver.
+- [ ] Có loading/rỗng/lỗi, nhãn bàn phím rõ; không lộ stack trace.
+- [ ] Giữ nhãn SYNTHETIC, không thêm SpO2/metric mô hình khi API chưa hỗ trợ.
 
-## Ma trận kiểm thử
+## Kiểm thử
 
-| Tình huống | Kết quả mong đợi |
+| Ca | Kết quả |
 |---|---|
-| Không thiết bị / thiết bị chưa gửi | Empty/waiting rõ, không báo recording giả |
-| Start thành công nhưng ACK chậm | STARTING, không double submit |
-| Start conflict / validation error | Thông báo phù hợp, giữ form sửa được |
-| Stop có backlog / timeout | STOPPING -> complete hoặc incomplete theo backend |
-| Refresh/chuyển trang/đổi device | Selected session nhất quán, polling/socket không rò rỉ |
-| Recording synthetic/real | Badge/filter/export nguồn đúng |
-| Export tải lỗi / session lớn | UI xử lý lỗi và không giữ raw lớn trong memory |
-| Mobile browser / keyboard | Các thao tác chính vẫn dùng được |
+| Chưa thiết bị/dữ liệu | Rỗng/chờ rõ, không phiên giả |
+| Start ACK chậm | STARTING, không gửi đôi |
+| HTTP/WS còn, broker mất/presence cũ | Chờ/quá hạn/stale đúng |
+| Broker mất, bản ghi cũ còn | Xem/tải được qua HTTP |
+| Start xung đột/sai dữ liệu | Báo rõ, sửa form được |
+| Stop còn batch/timeout | Đủ/thiếu theo backend |
+| Refresh/đổi trang/thiết bị | Lựa chọn nhất quán, không rò polling/socket |
+| Giả lập/thật | Nhãn/lọc/xuất nguồn đúng |
+| Tải lỗi/phiên lớn | Báo lỗi, không giữ raw lớn trong RAM |
+| Màn hình nhỏ/bàn phím | Thao tác chính dùng được |
 
-Dùng mock API cho test UI có kiểm soát, sau đó simulator và board cho integration. Lưu bằng chứng browser thực tế, không đánh PASS chỉ từ `npm run build`.
+Dùng API giả có kiểm soát trước, rồi simulator/board. Build không thay ảnh/nghiệm thu browser.
 
-## Điều kiện merge
+## Nghiệm thu và khôi phục
 
-- [ ] TypeScript/build + tests lifecycle UI pass; visual test có ghi thiết bị/browser.
-- [ ] Không có optimistic state báo đã thu trước ACK hoặc báo complete khi còn gap.
-- [ ] Required checks pass; contract/README sử dụng được cập nhật.
-- [ ] Commit gợi ý: `feat(frontend): control and inspect recording sessions`.
+- [ ] TypeScript/build/tests trạng thái đạt; có bằng chứng trình duyệt/thiết bị.
+- [ ] Không báo đã thu trước ACK hoặc đủ khi còn gap.
+- [ ] Không credential/kết nối MQTT trong bundle; API/WS là nguồn trạng thái.
+- [ ] CI và tài liệu đạt.
+- [ ] Commit gợi ý: `feat(frontend): điều khiển và xem phiên thu`.
 
-## Rollback
+UI lỗi vẫn thao tác API theo đặc tả; không sửa tay DB. Rời trang không tự Stop phiên ngoài ý muốn.
 
-Nếu UI gặp vấn đề, API vẫn có thể thao tác bằng công cụ dev theo contract; không tự thay state DB để chữa giao diện. Trở về dashboard không stop một session ngoài ý muốn.
+## Nhật ký
 
-## Nhật ký / kết quả thực hiện
-
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
+| Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+|—|—|—|Chưa thực hiện|

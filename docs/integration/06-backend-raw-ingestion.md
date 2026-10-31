@@ -1,22 +1,20 @@
-# 06 — Raw ingestion nhất quán, giới hạn và không ghi trùng
+# 06 — Nhận và lưu batch raw không trùng
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `feature/backend-raw-ingestion` |
-| Chủ trì | Trung — IT |
-| Phụ thuộc | 03, 04 |
-| Ước lượng | 1,5–2,5 ngày |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 06 |
+| Phụ trách | Trung — IT |
+| Phụ thuộc |03/04 |
+| Ước lượng |1,5–2,5 ngày |
+| Tiến độ |[Dòng06](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Kết quả và phạm vi
 
-`POST /api/v1/raw-batch` xác nhận đúng việc lưu dữ liệu, không ghi trùng khi firmware retry, giữ thứ tự và báo thiếu dữ liệu. Raw nằm ở file, SQLite chỉ chứa metadata/index.
+POST /api/v1/raw-batch xác nhận đúng việc đã lưu, không đếm/lưu đôi khi retry và báo thiếu dữ liệu. Raw nằm ở file, SQLite giữ chỉ mục. Giữ HTTP, không thêm topic raw MQTT. Tổng kết điều khiển dùng adapter04; PUBACK không thay ACK lưu. Theo [kiến trúc](MQTT_ARCHITECTURE.md).
 
-## File dự kiến
+File liên quan: api/v1/raw_data.py, schemas/raw_batch.py, services/raw_storage.py, dịch vụ phiên, DB/chuyển dữ liệu, cấu hình, tests và simulator. Đồng bộ đặc tả/giai đoạn08.
 
-`backend/app/api/v1/raw_data.py`, `schemas/raw_batch.py`, `services/raw_storage.py`, session service, DB models/migrations, config, raw tests. Cập nhật simulator/fixtures để đi qua session lifecycle, contract lỗi và Phase 08.
-
-## Thiết kế lưu đề xuất
+## Cách lưu
 
 ```text
 RAW_STORAGE_DIR/
@@ -24,56 +22,59 @@ RAW_STORAGE_DIR/
   SYNTHETIC/<session_id>/<device_id>/batches/<batch_id>.json
 ```
 
-Chốt layout ở implementation theo contract. Tên thư mục là ID đã validate và resolve dưới root; client không gửi path. File batch bất biến, file tạm không được coi là batch đã nhận. Dùng metadata index cho hash, counts, khoảng thời gian, origin và trạng thái lưu, không lưu raw arrays vào SQLite.
+Đây là layout đích. ID kiểm tra và đường dẫn phải nằm trong root; client không chọn path. Batch bất biến, file tạm chưa là đã nhận. DB giữ hash/số mẫu/thời gian/nguồn/trạng thái, không chứa mảng mẫu thô.
 
-## Checklist validation và session
+## Kiểm tra dữ liệu
 
-- [ ] Kiểm tra session tồn tại, đúng device/origin, state nhận dữ liệu hợp lệ; không tự tạo session từ payload.
-- [ ] STOPPING chỉ nhận batch nằm trước cutoff và trong drain policy; batch đến muộn sau khi đóng có kết quả đúng contract.
-- [ ] ID có allowlist/độ dài, chặn absolute path, `..`, `/`, `\` và resolve containment; không chỉ nối string.
-- [ ] Giới hạn byte request trước khi đọc body không giới hạn, có cách xử lý request không có Content-Length; giới hạn samples trong Pydantic sau parse.
-- [ ] Kiểm tra equal-length theo từng stream; cho null đúng vị trí. Không bắt PPG/IMU/GSR có số mẫu bằng nhau vì rate khác nhau.
-- [ ] Reject NaN/Infinity, bool giả số, giá trị ngoài phạm vi đã chốt; không silently truncate/coerce làm đổi dữ liệu.
-- [ ] Rate, thời gian bắt đầu, final partial batch và nominal window khớp policy; phát hiện batch chồng lấn/gap theo contract.
+- [ ] Phiên tồn tại, đúng thiết bị/nguồn/quyền/trạng thái; không tạo phiên từ payload.
+- [ ] STOPPING chỉ nhận theo cutoff/hạn gửi nốt; batch muộn hoặc đóng trả đúng đặc tả.
+- [ ] Dùng cùng quyền/nguồn với MQTT; body tự khai không chứng minh danh tính.
+- [ ] ID có allowlist/độ dài, chặn absolute path, .., /, \\ và kiểm tra đường dẫn sau resolve.
+- [ ] Chặn quá byte ngay khi đọc, kể cả thiếu Content-Length; sau parse giới hạn số mẫu.
+- [ ] Đúng độ dài PPG/6 trục IMU, null đúng vị trí; không bắt ba cảm biến cùng số mẫu.
+- [ ] Từ chối NaN/Infinity, bool/chuỗi giả số, ngoài dải; không âm thầm cắt hoặc ép kiểu làm đổi dữ liệu.
+- [ ] Cấu hình/rate/mốc thu/count/cửa sổ/batch cuối đúng; phát hiện chồng lấp/khoảng trống.
 
-## Checklist retry, concurrency và crash recovery
+## Retry, đồng thời và lỗi khi lưu
 
-- [ ] Unique key DB `(session_id, device_id, batch_id)` kèm origin đã ràng buộc session.
-- [ ] Canonical hash có quy tắc rõ cho JSON field order/number/null; duplicate là cùng payload theo contract, không phụ thuộc whitespace HTTP body.
-- [ ] Cùng key/hash: trả ACK đã nhận, không append hoặc tăng sample count lần hai.
-- [ ] Cùng key/hash khác: 409, giữ nguyên bản cũ, log metadata conflict.
-- [ ] Ghi tạm -> flush/đóng -> publish atomic trên cùng filesystem; bảo vệ key khi concurrent workers, không chỉ dùng lock trong một Python process.
-- [ ] Chốt crash windows DB/file: pending index, file publish, complete index, ACK. Không ACK trước khi trạng thái durable nhất quán.
-- [ ] Có reconcile file đã ghi nhưng thiếu index và index thiếu file; phục hồi không ghi đè recording gốc, trạng thái không thể phục hồi được báo incomplete.
-- [ ] Disk full/permission error/JSON write error trả lỗi rõ, không để file hỏng xuất hiện như batch hợp lệ.
-- [ ] Chấp nhận out-of-order theo policy và giữ nhận diện gap; không dùng `latest_batch_id` để loại nhầm retry/late batch hợp lệ.
-- [ ] Đếm batch/mẫu một lần; ACK bao gồm ID và duplicate status theo contract.
-- [ ] Stop/drain chỉ complete khi final batch ID và tập batch cần có được đối chiếu; timeout -> incomplete có danh sách gap.
-- [ ] Dữ liệu JSONL legacy vẫn đọc/được giữ; migration chỉ khi có backup và đối chiếu sample count/hash. Không xoá volume cũ.
+- [ ] DB có khoá duy nhất (session_id,device_id,batch_id), nguồn gắn phiên.
+- [ ] Hash JSON chuẩn hoá đúng quy tắc, không phụ thuộc khoảng trắng/thứ tự khoá.
+- [ ] Cùng khoá/hash trả ACK trùng, không tăng số batch/mẫu lần2.
+- [ ] Cùng khoá khác hash trả409 và giữ bản cũ.
+- [ ] File tạm→flush/fsync→công bố nguyên tử cùng filesystem; ràng buộc DB bảo vệ nhiều process, không chỉ khoá Python.
+- [ ] Thử các điểm lỗi PENDING/file/COMPLETE/ACK; không xác nhận trước khi dữ liệu nhất quán/lưu bền.
+- [ ] Đối chiếu file thiếu chỉ mục hoặc ngược lại; không ghi đè bản gốc, không phục hồi được thì báo thiếu.
+- [ ] Hết đĩa/quyền/lỗi ghi trả lỗi, file hỏng không xuất hiện như batch hợp lệ.
+- [ ] Nhận sai thứ tự theo quy tắc, không dùng latest_batch_id để loại nhầm batch cũ hợp lệ.
+- [ ] ACK chứa đúng ID/trùng; chỉ đếm một lần.
+- [ ] Gửi nốt chỉ complete sau đối chiếu ID0..final; hết hạn ghi các batch thiếu.
+- [ ] Tổng kết MQTT trước/sau raw cuối và tổng kết lặp cho cùng kết quả; ACK Stop chưa chứng minh đủ raw.
+- [ ] Broker mất không làm raw/query cho phiên đã cấp quyền ngừng vô lý; không tự mở phiên hoặc coi mất broker là Stop.
+- [ ] JSONL cũ giữ đọc được; chuyển đổi chỉ sau sao lưu/đối chiếu số mẫu/hash, không xoá volume.
 
-## Ma trận kiểm thử
+## Kiểm thử
 
-| Test | Kết quả mong đợi |
+| Ca | Kết quả |
 |---|---|
-| First submit + retry nhiều lần | Một batch, một lần sample count; ACK ổn định |
-| Cùng ID khác payload; hai request đồng thời | Không overwrite hoặc ghi đôi; conflict rõ |
-| Batch đến 3,1,2; batch bị thiếu | Order export xác định, gap được ghi đúng |
-| Sai session/device/origin, path traversal | Không ghi ra ngoài root hoặc vào phiên khác |
-| Payload quá lớn, null, NaN, axes lệch độ dài | HTTP đúng contract; không lưu partial payload |
-| Mất ACK sau khi ghi file | Retry nhận duplicate, dữ liệu không tăng |
-| Crash giữa các bước ghi/index; disk full | Recovery và lỗi có kiểm chứng, không false accepted |
-| STOPPING: final batch đến/không đến | Complete/incomplete được phân biệt |
+| Gửi mới/retry/mất ACK | Một bản/một lần đếm, ACK ổn định |
+| Trùng ID khác nội dung/đồng thời | Không ghi đè/ghi đôi, xung đột rõ |
+| Batch3,1,2 hoặc thiếu batch | Xuất đúng thứ tự, ghi gap |
+| Sai quyền/phiên/nguồn/path | Không ghi ngoài root hoặc vào phiên khác |
+| Quá cỡ, null, NaN, lệch trục | Mã HTTP đúng, không lưu dở payload |
+| Lỗi giữa file/chỉ mục, hết đĩa | Phục hồi có bằng chứng, không accepted giả |
+| Stop/tổng kết/raw đến mọi thứ tự | Đủ/thiếu nhất quán |
+| Mất riêng broker hoặc HTTP | Không dùng PUBACK/ACKStop thay ACKraw |
 
-## Điều kiện merge / bàn giao nhánh 07
+## Bàn giao07
 
-- [ ] Backend tests có fixtures tạm, concurrency và failure injection cho các cửa sổ lỗi chính.
-- [ ] Tài liệu ACK/errors đủ để firmware xử lý retry; ví dụ dùng trong C++ tests.
-- [ ] Không regression telemetry/session/simulator; required checks pass.
-- [ ] Raw storage thực tế có thể kiểm tra bằng sample count/hash; không chỉ thấy file tồn tại.
-- [ ] Commit gợi ý: `feat(backend): persist raw batches idempotently with session validation`.
+- [ ] Tests dùng vùng tạm, có đồng thời và gây lỗi ở điểm lưu chính.
+- [ ] Ví dụ ACK/lỗi đủ cho firmware viết retry và tests C++.
+- [ ] Không làm hỏng telemetry/phiên/simulator, CI đạt.
+- [ ] Kiểm tra số mẫu/hash thực, không chỉ thấy file tồn tại.
+- [ ] Commit gợi ý: `feat(backend): lưu raw chống trùng và kiểm tra phiên`.
 
-## Nhật ký / kết quả thực hiện
+## Nhật ký
 
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
+| Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+|—|—|—|Chưa thực hiện|

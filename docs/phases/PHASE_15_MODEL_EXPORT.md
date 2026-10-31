@@ -1,74 +1,74 @@
-# Phase 15 — Model Export
+# Giai đoạn 15 — Xuất mô hình
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Export the selected, approved small model and complete provenance metadata.
+Xuất mô hình nhỏ đã được duyệt, kèm đầy đủ thông tin nguồn.
 
-## Why This Phase Exists
+## Lý do
 
-ESP32 inference needs deterministic portable parameters.
+ESP32 cần bộ tham số có thể dùng lại và cho kết quả nhất quán.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 14
+Giai đoạn 14
 
-## Inputs
+## Đầu vào
 
-Selected model and frozen feature order.
+Mô hình đã chọn và thứ tự đặc trưng cố định.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/export/...; ai/edge_firmware/include/model_generated.h
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Generate code/data; do not use untrusted joblib; retain version and feature order.
+Sinh mã/tham số, giữ phiên bản và thứ tự đặc trưng; không tải joblib không tin cậy.
 
-## Tests
+## Kiểm thử
 
-Round-trip load and fixed-vector Python checks.
+Lưu/tải lại rồi đối chiếu trên bộ đầu vào cố định bằng Python.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 15; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Order, precision or unsupported-operation mismatch.
+Sai thứ tự, sai độ chính xác số hoặc phép toán không được hỗ trợ.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Compare each parameter/output with source artifact.
+So từng tham số và kết quả với mô hình gốc.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 16 — Edge Inference
+Giai đoạn 16 — Suy luận trên thiết bị
 

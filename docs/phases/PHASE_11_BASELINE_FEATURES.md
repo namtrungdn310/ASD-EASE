@@ -1,74 +1,74 @@
-# Phase 11 — Baseline Features
+# Giai đoạn 11 — Mức nền và đặc trưng
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Implement personal baselines, rolling windows and shared feature definitions.
+Xây dựng mức nền cá nhân, cửa sổ trượt và định nghĩa đặc trưng chung.
 
-## Why This Phase Exists
+## Lý do
 
-Avoids one threshold for all participants and enables parity.
+Tránh dùng một ngưỡng cho mọi người và hỗ trợ đối chiếu Python/C++.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 10
+Giai đoạn 10
 
-## Inputs
+## Đầu vào
 
-Quality-gated processed streams.
+Luồng đã xử lý và kiểm tra chất lượng.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/baseline/...; ai/src/feature_extraction/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Fit baselines without test leakage; share mathematical definitions with future C++.
+Không học mức nền từ tập đánh giá; dùng định nghĩa toán nhất quán với C++.
 
-## Tests
+## Kiểm thử
 
-Window boundary, baseline isolation, missingness and synthetic/real interface tests.
+Kiểm tra biên cửa sổ, tách mức nền, mẫu thiếu và hai nguồn dữ liệu.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 11; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Leakage, unstable baselines or inconsistent window timing.
+Lộ dữ liệu, mức nền không ổn định hoặc cửa sổ lệch thời gian.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Use golden small arrays and inspect each intermediate.
+Dùng mảng mẫu nhỏ có đáp án biết trước, kiểm tra từng giá trị trung gian.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 12 — Rule Baselines
+Giai đoạn 12 — Phương pháp đối chứng theo quy tắc
 

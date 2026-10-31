@@ -1,2 +1,2 @@
-"""ASD Edge AI local receiver backend."""
+"""Backend nhận dữ liệu Edge AI trong mạng cục bộ."""
 

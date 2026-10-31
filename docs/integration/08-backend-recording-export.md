@@ -1,73 +1,65 @@
-# 08 — Tra cứu, kiểm tra và export recording
+# 08 — Tra cứu, kiểm tra và xuất bản ghi
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `feature/backend-recording-export` |
-| Chủ trì | Trung — IT |
-| Phụ thuộc | 06; 07 trước nghiệm thu dataset từ thiết bị |
-| Ước lượng | 1–2 ngày |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 08 |
+| Phụ trách | Trung — IT |
+| Phụ thuộc |06;07 trước nghiệm thu dữ liệu thật |
+| Ước lượng |1–2 ngày |
+| Tiến độ |[Dòng08](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Kết quả và phạm vi
 
-Đọc lại một phiên đã ghi, xác định dữ liệu đầy đủ/thiếu và xuất recording + manifest để xử lý offline sau này. Không gộp việc train model hay xây feature pipeline vào PR này.
+Đọc lại phiên, xác định đủ/thiếu và xuất raw kèm bản mô tả để xử lý sau. Chưa train mô hình hoặc xây pipeline đặc trưng. Theo [kiến trúc](MQTT_ARCHITECTURE.md), query/export vẫn HTTP và đọc file/chỉ mục, không cần broker online.
 
-## File / API đề xuất
+API dự kiến: GET /sessions/{session_id}, /sessions/{session_id}/recording, /sessions/{session_id}/export. Chốt response trước frontend09. Thêm dịch vụ đọc/kiểm tra, schema có version, tests, hướng dẫn dataset/giai đoạn08. Có thể xuất JSONL+JSON trong ZIP, không sửa file gốc.
 
-- Backend service đọc recording/manifest và API session detail/recording/export; schema response có version rõ.
-- Endpoint dự kiến: `GET /sessions/{session_id}`, `/sessions/{session_id}/recording`, `/sessions/{session_id}/export`; chốt shape cụ thể trong contract trước khi frontend dùng.
-- DB index từ 06, tests round-trip/streaming export, `docs/DATASET_PROTOCOL.md` và Phase 08.
-- Format xuất đề xuất: raw JSONL theo contract + manifest JSON, có thể đóng gói ZIP khi tải. Không đổi file gốc sau khi xuất.
+## Tra cứu và kiểm tra
 
-## Checklist query/validation
+- [ ] List/detail có device, nguồn, trạng thái, thời gian thu/nhận, số mẫu và lý do thiếu; không trả toàn raw trong danh sách.
+- [ ] Có phân trang/lọc device/nguồn, không trộn phiên.
+- [ ] Đọc theo chỉ mục; file thiếu/hash sai phải báo, không bỏ rồi gọi đủ.
+- [ ] Ghép đúng thứ tự, phát hiện chồng lấp, khoảng trống, clock reset và khoá trùng.
+- [ ] Giữ null/vị trí thiếu; nội suy/lấy mẫu lại là bước dẫn xuất riêng.
+- [ ] Đối chiếu DB/file/count với cutoff/final batch; STOPPED chưa chắc đủ.
+- [ ] Tổng kết MQTT trước/sau raw HTTP/lặp cho cùng kết quả; presence/PUBACK/chartlive không chứng minh raw đủ.
+- [ ] Có đường đọc/chuyển JSONL cũ rõ, không xoá file chưa nhận dạng.
 
-- [ ] List/detail trả device, origin, state, acquisition time, receiving time, counts và complete/incomplete reason; không trả toàn bộ raw array trong list sessions.
-- [ ] Phân trang list; chọn device/origin để query; không trộn data giữa phiên.
-- [ ] Xây recording reader theo index, hỗ trợ phát hiện missing file/hash mismatch, không tự bỏ file hỏng rồi báo complete.
-- [ ] Ghép batch theo thứ tự contract; detect overlap/gap/reset timestamp và duplicate key.
-- [ ] Giữ null/missing samples ở vị trí đúng. Nếu có lựa chọn resample/fill thì thuộc bước xử lý riêng, không sửa raw export.
-- [ ] Đối chiếu count/index/file và cutoff/final batch; phân biệt STOPPED với recording complete.
-- [ ] Dữ liệu legacy từ JSONL cũ có đường đọc/migration được mô tả; không xoá file không nhận dạng.
+## Bản mô tả và xuất
 
-## Checklist manifest/export
+- [ ] Có phiên bản định dạng/schema, phiên/thiết bị/nguồn, firmware/cấu hình và nguồn đo thật.
+- [ ] Ghi transport/phiên bản client/broker khi biết; thiếu thì unknown/null, không token/key hoặc thông tin riêng.
+- [ ] Ghi đơn vị, tốc độ danh định/đã đo, trung bình/lọc tại driver, mốc thời gian và ý nghĩa null.
+- [ ] Ghi số mẫu/batch, khoảng ID, mất/thử lại đã đối chiếu và trạng thái đủ/thiếu.
+- [ ] Dùng ID người giả danh nếu có, không đòi tên thật và không điền giả.
+- [ ] SYNTHETIC giữ bộ sinh/seed khi có thật, không đoán.
+- [ ] Hash/commit/cấu hình có căn cứ; hash không chứng minh phép đo đúng.
+- [ ] Mặc định xuất phiên đã đóng; nếu hỗ trợ phiên đang chạy phải có cutoff rõ.
+- [ ] Ghi/chuyển từng phần hoặc file tạm có hạn, không nạp cả dataset vào RAM; chỉ dọn file xuất tạm.
+- [ ] Tải theo ID hợp lệ, không cho client chọn filesystem path.
+- [ ] Có loader/kiểm tra offline đối chiếu mẫu/thứ tự; chưa nối train/evaluation.
 
-- [ ] Manifest có export-format version, wire schema, session/device/origin, firmware/config và metadata nguồn đo có thực.
-- [ ] Lưu đơn vị, measured/nominal rate phân biệt, FIFO averaging/filtering ở driver, timestamp epoch và null semantics.
-- [ ] Ghi counts, batch ID range, gap/drop/retry counters đã xác minh, trạng thái complete/incomplete và lý do.
-- [ ] Metadata người tham gia giả danh khi có, không yêu cầu tên thật để export; thiếu thông tin không tự điền giả.
-- [ ] Export SYNTHETIC giữ generator/seed nếu thực có; field không có nguồn trả unknown/null thay vì đoán.
-- [ ] Ghi hash file/manifest và commit/config tham chiếu khi biết; không tự tuyên bố hash chứng minh tính đúng của phép đo.
-- [ ] Default chỉ export phiên đã đóng hoặc tạo snapshot cutoff rõ ràng nếu cho phép export phiên đang chạy.
-- [ ] Streaming/chunked hoặc file tạm hữu hạn để không load cả dataset vào RAM; cleanup file export tạm, không xoá raw.
-- [ ] Kiểm soát đường tải theo ID đã validate, không cho request chọn filesystem path tuỳ ý.
-- [ ] Cung cấp loader/script kiểm tra recording offline để đối chiếu samples/order. Chưa nối train/evaluation.
+## Kiểm thử và nghiệm thu
 
-## Ma trận kiểm thử
-
-| Test | Kết quả mong đợi |
+| Ca | Kết quả |
 |---|---|
-| Ingest fixture -> export -> load | Count, order, value, null và units giữ nguyên |
-| Out-of-order arrival / retry | Export không nhân đôi và đúng order |
-| Mất batch / file hỏng / hash sai | Incomplete và danh sách vấn đề rõ, không false success |
-| Session DEVICE và SYNTHETIC | Chọn/export riêng, manifest provenance đúng |
-| Backend restart | Index/recording vẫn đọc được |
-| Phiên lớn hơn RAM giả lập nhỏ | Export không đọc nguyên bộ vào memory |
-| Phiên đang chạy/stop chưa drain | Snapshot policy hoặc từ chối rõ theo contract |
+| Nhận mẫu→xuất→đọc lại | Số, thứ tự, giá trị, null, đơn vị giữ nguyên |
+| Retry/đến sai thứ tự | Không nhân đôi, đúng thứ tự |
+| Mất/hỏng file/hash sai | Báo thiếu và vấn đề rõ |
+| DEVICE/SYNTHETIC | Lọc/xuất riêng, nguồn đúng |
+| Backend restart/broker offline | Đọc được dữ liệu đã lưu |
+| Phiên lớn hơn RAM thử | Không nạp nguyên bộ |
+| Phiên chạy/Stop chưa gửi nốt | Từ chối hoặc snapshot theo quy tắc, không ngầm gọi đủ |
 
-## Điều kiện merge
+- [ ] Tests có đối chiếu thật và ca lỗi, không chỉ HTTP200.
+- [ ] Tài liệu API/types đủ cho09, dữ liệu cũ đọc được hoặc chuyển đổi đã thử.
+- [ ] CI đạt, nghiệm thu bản ghi thật ghi riêng khi còn chờ board.
+- [ ] Commit gợi ý: `feat(backend): kiểm tra và xuất bản ghi kèm mô tả`.
 
-- [ ] Round-trip test có dữ liệu biết trước và failure cases, không chỉ test HTTP 200.
-- [ ] API và response types được document cho nhánh 09.
-- [ ] Giữ tương thích với recordings đang có hoặc có migration đã kiểm thử.
-- [ ] Required checks pass; real-recording verification ghi riêng nếu còn chờ board.
-- [ ] Commit gợi ý: `feat(backend): inspect and export sensor recordings with manifests`.
+Xuất là sản phẩm dẫn xuất; tắt API/khôi phục reader không đổi raw. Giữ file hỏng và trạng thái để điều tra, không xoá âm thầm.
 
-## Rollback
+## Nhật ký
 
-Export là sản phẩm dẫn xuất; tắt endpoint/lùi reader không thay đổi batch gốc. Nếu phát hiện file hỏng, giữ lại và ghi trạng thái để điều tra, không silently delete.
-
-## Nhật ký / kết quả thực hiện
-
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
+| Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+|—|—|—|Chưa thực hiện|

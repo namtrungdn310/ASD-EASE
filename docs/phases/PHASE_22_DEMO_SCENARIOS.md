@@ -1,74 +1,74 @@
-# Phase 22 — Demo Scenarios
+# Giai đoạn 22 — Kịch bản trình diễn
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Prepare repeatable movement-only, multimodal-change and poor-signal demonstrations.
+Chuẩn bị kịch bản lặp lại được: chỉ chuyển động, thay đổi nhiều tín hiệu và chất lượng kém.
 
-## Why This Phase Exists
+## Lý do
 
-Judges need safe, interpretable engineering behavior.
+Trình diễn hành vi kỹ thuật an toàn, dễ giải thích.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 21
+Giai đoạn 21
 
-## Inputs
+## Đầu vào
 
-Stable hardware, Edge state logic and dashboard.
+Phần cứng ổn định, logic trên thiết bị và dashboard.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 docs/COMPETITION_MODE_TEST.md; docs/phases/PHASE_22_DEMO_SCENARIOS.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Describe controlled signal changes without claiming simulated anxiety.
+Mô tả thay đổi tín hiệu có kiểm soát, không gọi đó là giả lập được lo âu.
 
-## Tests
+## Kiểm thử
 
-Repeat each scenario; verify expected engineering state and recovery.
+Lặp từng kịch bản, đối chiếu trạng thái kỹ thuật mong đợi và phục hồi.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 22; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Unsafe manipulation, irreproducibility or misleading narration.
+Thao tác không an toàn, khó lặp lại hoặc lời giải thích gây hiểu sai.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Stop scenario, reset baseline and use documented safe procedure.
+Dừng kịch bản, đặt lại mức nền và dùng quy trình an toàn đã ghi.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 23 — Benchmark
+Giai đoạn 23 — Đo hiệu năng
 

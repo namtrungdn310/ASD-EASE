@@ -1,51 +1,51 @@
-# Synthetic Multimodal Data Specification
+# Đặc tả dữ liệu giả lập đa cảm biến
 
-## Purpose and scientific limitation
+## Mục đích và giới hạn
 
-The generator enables ingestion, preprocessing, quality, baseline, feature, integration and parity software work before hardware datasets exist. It is a configurable engineering approximation—not real ASD physiological data, a medically validated PPG/EDA simulator, clinical evidence, or proof of anxiety recognition.
+Bộ sinh giúp thử nhận dữ liệu, xử lý, chất lượng, mức nền, đặc trưng và tích hợp trước khi có bộ dữ liệu phần cứng. Đây là xấp xỉ kỹ thuật có cấu hình: không phải dữ liệu sinh lý ASD thật, bộ mô phỏng PPG/EDA được chứng nhận hay bằng chứng nhận diện lo âu.
 
-## Shared temporal model
+## Thời gian và đơn vị
 
-Each session has shared latent activity, simulated autonomic activation, contact quality, periodic movement and time since onset. Sensor streams sample interpolated versions of these variables at configurable rates. Defaults are PPG 100 Hz, IMU 50 Hz, GSR 20 Hz and telemetry 1 Hz. These are development defaults only. Samples remain ordered; optional jitter keeps explicit per-stream timestamps; raw API batches use precise rate-based reconstruction and `null` placeholders for loss.
+Mỗi phiên dùng chung các biến giả lập về hoạt động, kích hoạt tự chủ, tiếp xúc, chuyển động lặp và thời gian. Các cảm biến lấy mẫu những biến đó ở tốc độ riêng: mặc định PPG100/IMU50/GSR20/telemetry1 Hz, chỉ là cấu hình phát triển.
 
-## Signal assumptions and units
+Giữ thứ tự mẫu. Jitter có timestamp riêng trong file; batch raw API dùng khoảng thời gian đều theo rate và null cho mẫu thiếu, không bảo toàn jitter tuỳ ý.
 
-- PPG red/IR: approximate pulse morphology (systolic peak plus smaller dicrotic component), phase integrated from the same HR reference, baseline drift, noise and motion/contact artifacts. Units are device-like sample counts (0–262143), not optical/clinical units.
-- HR: participant resting baseline plus slow variability, activation/activity effects and small noise. It is derived consistently with PPG phase, not an unrelated random series.
-- GSR: 12-bit ADC-like counts (0–4095), individual tonic baseline, slow drift, delayed activation response, independent occasional transients, noise and contact artifacts. Counts are not calibrated microsiemens and are not a direct anxiety measure.
-- IMU: acceleration in g and gyroscope in degrees/s, including gravity under slowly changing orientation, natural/ordinary movement, periodic motion and noise. Periodic movement is not assumed to mean distress.
+- PPG red/IR: sóng gần đúng có đỉnh mạch, thành phần nhỏ phụ, trôi nền, nhiễu và ảnh hưởng tiếp xúc/chuyển động. Đơn vị số đếm0–262143, không đơn vị quang học/lâm sàng.
+- HR: mức nghỉ cá nhân, biến thiên chậm và ảnh hưởng hoạt động; dùng cùng pha PPG, không là chuỗi ngẫu nhiên độc lập.
+- GSR: ADC giả0–4095 với mức nền, trôi chậm, đáp ứng có độ trễ, nhiễu và mất tiếp xúc; không phải µS đã hiệu chuẩn hoặc thước đo lo âu.
+- IMU: gia tốc g và vận tốc góc degrees/s, có trọng lực, đổi hướng, chuyển động thường/lặp và nhiễu. Chuyển động lặp không mặc định là căng thẳng.
 
-Motion influences PPG corruption/contact quality, while GSR transients and delay remain independently timed. `artifact_frequency` is an approximate artifact-event start rate per second; dropout is a per-sample probability. Noise and participant baseline variation are configurable. Normal activity and elevated-activation scenarios deliberately overlap.
+Chuyển động ảnh hưởng chất lượng PPG; đáp ứng GSR có thời điểm/độ trễ riêng. artifact_frequency gần đúng là số lần bắt đầu nhiễu mỗi giây; dropout là xác suất theo mẫu. Các kịch bản thường/kích hoạt cao có vùng chồng lấp có chủ đích.
 
-## Scenarios
+## Kịch bản
 
-- `NORMAL_REST`: low activity with natural variability.
-- `NORMAL_ACTIVITY`: ordinary motion and possible HR increase; useful for false-alert tests.
-- `REPETITIVE_MOVEMENT`: a periodic wrist-motion pattern without forced GSR activation; not a validated model of stimming.
-- `ELEVATED_AROUSAL_PROXY`: imperfectly correlated HR/GSR trends and optional movement; never confirmed anxiety.
-- `POOR_SIGNAL`: low contact, motion corruption and increased dropout for quality gating.
-- `TRANSITION`: gradual logistic change rather than simultaneous jumps.
-- `DISCONNECT_RECONNECT`: stable acquisition timeline while the mock transport pauses.
+| Mã giữ nguyên | Ý nghĩa |
+|---|---|
+| NORMAL_REST | Hoạt động thấp, dao động tự nhiên |
+| NORMAL_ACTIVITY | Chuyển động thường, HR có thể tăng; thử cảnh báo sai |
+| REPETITIVE_MOVEMENT | Cổ tay lặp theo chu kỳ, không ép GSR tăng; không mô hình stimming đã xác nhận |
+| ELEVATED_AROUSAL_PROXY | Xu hướng HR/GSR có tương quan không hoàn hảo, không phải lo âu đã xác nhận |
+| POOR_SIGNAL | Tiếp xúc thấp, nhiễu/mất mẫu tăng để thử kiểm tra chất lượng |
+| TRANSITION | Thay đổi từ từ, không nhảy đồng loạt |
+| DISCONNECT_RECONNECT | Mốc thu liên tục trong lúc tạm dừng đường gửi |
 
-## Individuals and variability
+## Cá nhân, nhãn và nguồn
 
-Pseudonymous `SYN-P###` profiles vary resting HR, HR variability, GSR baseline/gain, movement gain, contact, noise and response delay. Trials use distinct seed offsets; renaming an identical session is not acceptable.
+Hồ sơ SYN-P### thay đổi HR nghỉ/dao động, GSR nền/độ đáp ứng, chuyển động, tiếp xúc, nhiễu và độ trễ. Mỗi lần đo có seed riêng; đổi tên cùng tín hiệu không tạo phiên độc lập.
 
-## Labels and leakage
+Nhãn kịch bản khác trạng thái triển khai. synthetic/labeling.py chứa ánh xạ thử nghiệm; chất lượng thấp có thể chuyển UNCERTAIN. Không dùng ID, kịch bản, seed, điểm/trạng thái sinh ra làm đầu vào mô hình. Không tạo nhãn bằng đúng ngưỡng sau đó dùng làm đối chứng.
 
-Scenario ground truth is distinct from deployment engineering state. The explicit experimental mapping lives in `synthetic/labeling.py`; low quality overrides to `UNCERTAIN`. It is not a clinical-label mapping. Scenario/participant/session IDs, simulator probabilities, selected state and seed are prohibited model inputs. Poor-quality windows should be quality-gated and may be excluded from binary experiments. Labels must not be created by the exact fixed thresholds later used as baselines.
+File JSON có metadata, streams, telemetry. Bản mô tả giữ data_origin=SYNTHETIC, phiên bản/cấu hình bộ sinh, seed, schema, người/phiên, kịch bản, tốc độ, thời lượng, giờ UTC tạo và giới hạn sử dụng. File sinh ở ai/data/synthetic, không đưa dữ liệu người tham gia lên Git.
 
-## Dataset schema and provenance
+## Tái lập và kiểm tra
 
-Saved JSON contains `metadata`, `streams` and compact `telemetry`. Manifest records `data_origin=SYNTHETIC`, generator version/config, seed, schema version, participant/session, scenario, rates, duration, UTC creation time and limitation notice. Generated files remain below `ai/data/synthetic` and are gitignored; real data remains elsewhere.
+Cùng cấu hình/hồ sơ/seed tạo lại cùng mảng tín hiệu; created_at không cần giống từng byte. Kiểm tra timestamp, số mẫu, phạm vi, schema, mất mẫu, chất lượng theo chuyển động, khác biệt phiên, chuyển tiếp, lưu/tải và giao diện xử lý. Biểu đồ chỉ để quan sát, không chứng nhận sinh lý.
 
-## Reproducibility and validation
+## Chạy thử
 
-Identical configuration, profile and seed reproduce signal arrays. Timestamps, sample counts/rates, ranges, schema, dropout, motion-quality coupling, baseline differences, non-identical sessions, transitions, serialization and preprocessing compatibility are tested. `created_at` metadata is not expected to be byte-identical. Diagnostic plots support visual inspection only, not physiological validation.
+Các lệnh dưới dùng PowerShell từ thư mục gốc, sau khi cài dependencies:
 
-## Usage
-
-```bash
+```powershell
 $env:PYTHONPATH="ai"
 python -m simulator.mock_device --scenario repetitive_movement --duration 30 --save
 python -m simulator.mock_device --generate-dataset --duration 30
@@ -53,4 +53,4 @@ python -m simulator.mock_device --replay ai/data/synthetic/raw/SYN-SESSION001.js
 python -m pytest ai/tests
 ```
 
-Inside Docker, prefix with `docker compose --profile ai run --rm ai`. A synthetic-only training smoke test belongs to a later ML phase and any resulting model must carry `SYNTHETIC_ONLY` provenance; it cannot be auto-selected for deployment.
+Trong Docker, dùng tiền tố docker compose --profile ai run --rm ai. Thử huấn luyện bằng giả lập thuộc giai đoạn ML sau; mô hình phải ghi SYNTHETIC_ONLY và không tự được chọn triển khai thật.

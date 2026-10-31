@@ -1,7 +1,7 @@
-"""Replay real simulator HTTP -> backend -> WebSocket using an isolated test DB.
+"""Phát simulator qua HTTP -> backend -> WebSocket với DB kiểm thử riêng.
 
-Run with the project's Python environment from any directory. No production
-database, raw files or existing services are modified. This is not a browser test.
+Chạy bằng môi trường Python dự án từ thư mục bất kỳ. Không sửa DB, raw
+hoặc dịch vụ đang dùng. Đây không phải kiểm thử trình duyệt.
 """
 import asyncio
 import json
@@ -27,7 +27,7 @@ async def verify(base_url: str, ws_url: str) -> None:
     scenarios = [Scenario.NORMAL_REST, Scenario.POOR_SIGNAL, Scenario.DISCONNECT_RECONNECT]
     async with httpx.AsyncClient(base_url=base_url, timeout=10) as client:
         async with websockets.connect(ws_url) as connection:
-            # Schema rejection must not broadcast a broken telemetry payload.
+            # Gói sai schema phải bị từ chối, không phát sang WebSocket.
             invalid = await client.post("/api/v1/telemetry", json={"schema_version": "broken"})
             assert invalid.status_code == 422, invalid.text
             try:
@@ -68,7 +68,7 @@ async def verify(base_url: str, ws_url: str) -> None:
                     assert received[3]["timestamp_ms"] - received[2]["timestamp_ms"] == 1000, "acquisition timeline changed by pause"
                 print(f"PASS {scenario.value}: {len(received)} HTTP payloads exactly matched live WebSocket messages")
 
-        # Reopen a subscriber connection and verify new data is delivered.
+        # Mở lại kết nối nhận và kiểm tra có dữ liệu mới.
         async with websockets.connect(ws_url) as reconnected:
             session = generator.generate(ParticipantProfile(), "SYN-RECONNECTED", Scenario.NORMAL_REST)
             expected = session.telemetry[0]

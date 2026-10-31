@@ -1,88 +1,79 @@
-# Kế hoạch IT — Chuẩn hoá dữ liệu và kết nối ESP32 với backend
+# Kế hoạch chuẩn hoá và kết nối ESP32
 
-Ngày lập: 2026-10-18 (Asia/Saigon). Baseline đã đọc: `dev` tại `332f249` (PR #7).
+Lập2026-10-18, cập nhật2026-10-31, Asia/Saigon. Ban đầu trên dev332f249; nhánh03 từ d80cc0e sau PR #11.
 
-## Mục tiêu bàn giao
+## Mục tiêu
 
-IT phụ trách trọn phần chuẩn hoá dữ liệu, điều khiển phiên, serializer firmware, Wi-Fi/HTTP, raw batching, backend nhận/lưu/export và dashboard. Kết quả cần đạt:
+IT làm chuẩn hoá dữ liệu, phiên, đóng gói firmware, Wi-Fi/MQTT, raw HTTP, backend nhận/lưu/xuất và dashboard. Tân phụ trách phần cứng/driver/đo thực tế. Theo [kiến trúc](MQTT_ARCHITECTURE.md):
 
 ```text
-Cảm biến thật -> sampling -> buffer -> serializer -> ESP32 Wi-Fi/HTTP
-                                                       |
-                          +----------------------------+----------------------+
-                          v                                                   v
-                 /api/v1/telemetry                                  /api/v1/raw-batch
-                          |                                                   |
-                 WebSocket -> dashboard                       file batch + SQLite metadata
-                                                                              |
-                                                                   kiểm tra -> export + manifest
+ESP32 -- MQTT telemetry/ACK --> broker --> backend --> WS --> dashboard
+ESP32 <-- MQTT lệnh/trạng thái -- broker <-- backend <-- HTTP từ UI
+ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 ```
 
-Trạng thái lập kế hoạch không phải bằng chứng đã triển khai. Các tính năng dưới đây chưa được đánh dấu hoàn thành chỉ vì bộ tài liệu này đã merge. Nhánh hiện tại `docs/it-device-integration-plan` chỉ xuất bản kế hoạch.
+01 và code02 đã merge;03 đã hoàn tất đặc tả, push và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12). Chủ repo yêu cầu merge khi đủ CI và không xung đột; trạng thái merge xem tại PR. Xem [bàn giao](03-HANDOFF.md) và [tracker](PROGRESS.md). MQTT chưa chạy thực tế.
 
-## Hiện trạng làm cơ sở
+## Điểm xuất phát
 
-- Firmware đã có driver MAX30102/MPU6050/GSR, EMA và báo cáo Serial text/JSON; chưa có transport HTTP hoạt động.
-- JSON Serial hiện khác contract API; không gửi nguyên JSON này vào backend.
-- Backend đã có telemetry, session, raw-batch và WebSocket; raw storage hiện chỉ append JSONL theo session, chưa xử lý retry/idempotency và ràng buộc session đầy đủ.
-- Trang Sessions/History còn placeholder; kết nối WebSocket chưa phản ánh việc thiết bị có đang gửi dữ liệu mới hay không.
-- `FINAL_VERIFICATION.md` còn marker conflict; `.env.example` bị xoá; có file cấu hình IDE sinh tự động chứa đường dẫn máy riêng.
-- Baseline đã kiểm tra trước khi lập kế hoạch: 13 backend tests, 15 AI tests và firmware build pass. Các kết quả này không xác nhận đo đúng trên phần cứng.
+Có driver/EMA/Serial nhưng JSON khác API; mạng ESP32 chưa triển khai. Backend có HTTPtelemetry/raw/WS nhưng raw mới appendJSONL, chưa đủ chống trùng/phiên. Sessions/History còn giữ chỗ; frontend02 có trạng thái còn mới nhưng thiếu nghiệm thu browser.
 
-## Phân công mới
+Cleanup01 xử lý tài liệu/env; PR #11 có thêm lại file IDE và cập nhật driver. Không xoá file nhóm trong nhánh đặc tả. Mapping/rate phải đối chiếu lại; số đo phần cứng còn thiếu.
+
+## Phân công
 
 | Người | Phạm vi |
 |---|---|
-| IT — Trung | Tất cả 10 nhánh trong kế hoạch này, bao gồm firmware giao thức, networking và raw buffer |
-| Tự động hoá — Tân | Wiring, chân GPIO, board/flash/PSRAM, driver cảm biến, hiệu chuẩn, tốc độ lấy mẫu và nguồn/battery thực tế |
-| Cùng phối hợp | Xác nhận đơn vị/nhịp mẫu đầu ra driver, log board, kiểm thử trên thiết bị thật và nghiệm thu |
+| Trung — IT |10 nhánh, gồm firmware mạng/đóng gói/bộ đệm và backend/frontend |
+| Tân — Tự động hoá |Wiring, GPIO, board/flash/PSRAM, nguồn/pin, driver, hiệu chuẩn/rate |
+| Cùng phối hợp |Đơn vị/log đo, thử thiết bị và nghiệm thu |
 
-Trước khi sửa `main.cpp` hoặc `board_config.h`, thống nhất với Tân để tránh hai người sửa cùng file. IT ưu tiên module riêng trong `src/communication/`, `include/communication/` và module buffer; thay đổi driver cần một PR riêng có phối hợp.
+Thống nhất trước khi sửa chung main.cpp/board_config.h. IT ưu tiên mô-đun riêng; thay thuật toán driver cần phối hợp. Nhánh05 chưa tự chuyển người phụ trách chỉ từ trao đổi đề xuất.
 
-## Danh sách nhánh và phụ thuộc
+## Nhánh và phụ thuộc
 
-| ID | Nhánh | Điều kiện bắt đầu | Kế hoạch |
+| ID | Nhánh | Điều kiện | Kế hoạch |
 |---|---|---|---|
-| 01 | `chore/repository-integration-cleanup` | Kế hoạch đã merge | [01](01-repository-integration-cleanup.md) |
+| 01 | `chore/repository-integration-cleanup` | PR #8 | [01](01-repository-integration-cleanup.md) |
 | 02 | `fix/frontend-live-connection-status` | 01 | [02](02-frontend-live-connection-status.md) |
 | 03 | `docs/device-ingestion-contract` | 01 | [03](03-device-ingestion-contract.md) |
 | 04 | `feature/backend-session-lifecycle` | 03 | [04](04-backend-session-lifecycle.md) |
-| 05 | `feature/firmware-telemetry-client` | 03, 04; 02 trước nghiệm thu dashboard | [05](05-firmware-telemetry-client.md) |
-| 06 | `feature/backend-raw-ingestion` | 03, 04 | [06](06-backend-raw-ingestion.md) |
-| 07 | `feature/firmware-raw-batching` | 05, 06; có xác nhận sampling từ Tân | [07](07-firmware-raw-batching.md) |
-| 08 | `feature/backend-recording-export` | 06; 07 trước nghiệm thu dữ liệu thật | [08](08-backend-recording-export.md) |
-| 09 | `feature/frontend-recording-control` | 02, 04, 08 | [09](09-frontend-recording-control.md) |
-| 10 | `chore/e2e-device-ingestion` | 01–09 và phần cứng sẵn sàng | [10](10-e2e-device-ingestion.md) |
+| 05 | `feature/firmware-telemetry-client` | 03/04;02 cho UI | [05](05-firmware-telemetry-client.md) |
+| 06 | `feature/backend-raw-ingestion` | 03/04 | [06](06-backend-raw-ingestion.md) |
+| 07 | `feature/firmware-raw-batching` | 05/06 và số đo mẫu | [07](07-firmware-raw-batching.md) |
+| 08 | `feature/backend-recording-export` | 06;07 trước nghiệm thu thật | [08](08-backend-recording-export.md) |
+| 09 | `feature/frontend-recording-control` | 02/04/08 | [09](09-frontend-recording-control.md) |
+| 10 | `chore/e2e-device-ingestion` | 01–09 và board | [10](10-e2e-device-ingestion.md) |
 
-Thứ tự làm một người: **01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07 -> 08 -> 09 -> 10**. 02 và 03, hoặc 05 và 06, có thể đổi thứ tự nếu giữ đúng phụ thuộc. Không cần tạo tất cả nhánh cùng lúc.
+Thứ tự tiếp:03→04→05→06→07→08→09→10. Sau04 có thể đổi thứ tự05/06;08 bắt đầu sau06 bằng mẫu nhưng cần07 trước nghiệm thu thật. Không tạo tất cả nhánh cùng lúc.
 
-## Những quyết định phải chốt ở nhánh 03
+Broker/backend MQTT ở04 để05 có bên nhận.04 nhiều việc hơn nên tách commit theo phần; muốn thêm nhánh phải báo Trung trước.
 
-Đây là phương án đề xuất cho implementation, chưa thay thế [API_CONTRACT.md](../API_CONTRACT.md):
+## Quyết định đã ghi ở03
 
-1. Giữ wire schema telemetry/raw `1.0` nếu không đổi ý nghĩa/trường bắt buộc. Endpoint điều khiển session có contract riêng được mô tả đồng bộ. Breaking change phải có kế hoạch version và cập nhật backend, TypeScript, C++, simulator cùng nhau.
-2. Backend quản lý phiên; ESP32 poll session-control, xác nhận bắt đầu, rồi dùng một mốc thời gian thu nhận chung. Khi reboot trong phiên, báo gián đoạn và kết thúc/đánh dấu phiên cũ; không reset timestamp về 0 trong cùng phiên.
-3. Lifecycle đề xuất: `STARTING -> RECORDING -> STOPPING -> STOPPED`; có `ABORTED` khi không thể hoàn tất. Chỉ `RECORDING` khi thiết bị xác nhận. `STOPPING` nhận nốt raw đã thu trước mốc dừng trong khoảng chờ hữu hạn.
-4. Raw batch bất biến, định danh bằng `(session_id, device_id, batch_id)`, retry giữ nguyên dữ liệu. Cùng ID/cùng payload được xác nhận lại; cùng ID/khác payload trả `409`.
-5. Lưu mỗi batch thành một file, SQLite lưu index/metadata. Chỉ trả thành công khi dữ liệu đã ghi xong và index nhất quán hoặc có cơ chế phục hồi đã kiểm thử.
-6. Raw IMU dùng `g` và `degrees/s`, lấy trước EMA. PPG dùng red/IR counts; GSR giữ ADC trước EMA và ghi rõ việc averaging tại driver trong manifest. Không thay raw bằng chỉ số hiển thị đã làm mượt.
-7. Giữ mẫu thiếu bằng `null`, giữ thời gian thực của phiên. Không gom 1 giây snapshot Serial rồi gọi đó là raw 100 Hz.
-8. Chưa có model: `model_version=none`, `probability=null`; trạng thái `CALIBRATING`/`UNCERTAIN` theo quy tắc đã viết. Không suy ra `NORMAL` chỉ từ việc driver báo `VALID`.
-9. Tách metadata `DEVICE`/`SYNTHETIC` từ session đến storage/export; không suy nguồn chỉ bằng prefix ID. Dữ liệu fixture và replay phải có nhãn đúng.
+1. Telemetry/raw1.0 giữ cấu trúc, control phiên bản riêng; thay đổi mất tương thích có kế hoạch.
+2. Backend giữ phiên; UIHTTPStartStop→MQTTcommand→ACK, đồng bộ sau reconnect; không firmware pollHTTP song song.
+3. STARTING→RECORDING→STOPPING→STOPPED, ABORTED khi không khép được; ACK thực thi khác PUBACK.
+4. Raw bất biến theo phiên/thiết bị/batch; cùng ID/nội dung xác nhận lại, khác trả409.
+5. Mỗi batch một file/chỉ mục; xác nhận sau lưu bền/nhất quán, có đối chiếu sau lỗi.
+6. IMUraw g/degrees-s trướcEMA, PPGred/IR, GSR ADCtrung bình8 trướcEMA; giữ rõ đơn vị/phép xử lý.
+7. Null giữ mẫu thiếu/thời gian; không biến snapshot1Hz thành raw100Hz.
+8. Chưa mô hình: modelnone/probabilitynull, CALIBRATING/UNCERTAIN, không tựNORMAL từVALID.
+9. Nguồn DEVICE/SYNTHETIC được ràng buộc, không chỉ tin prefix.
+10. Topic/QoS/retain, danh tính/quyền, boot/generation, giới hạn và timeout theo [đặc tả](../API_CONTRACT.md).
+11. Tổng kết MQTT có thể trước/sau rawHTTP; đủ dữ liệu phải đối chiếu ID/count, không dựa thứ tự hai kênh.
 
-## Cách dùng và theo dõi
+## Theo dõi và học
 
-- Mở [PROGRESS.md](PROGRESS.md) để chọn công việc tiếp theo và cập nhật trạng thái tổng.
-- Mở file nhánh tương ứng, thực hiện checklist theo thứ tự, ghi command/kết quả vào bảng bằng chứng của file đó.
-- Khi code hoàn thành nhưng chưa có phần cứng, dùng `WAITING_HARDWARE`; không dùng `DONE` cho nghiệm thu thiết bị thật.
-- Cập nhật kế hoạch nhánh và tracker trong chính PR code; đừng chờ cuối dự án mới bổ sung.
-- [../PROGRESS.md](../PROGRESS.md) vẫn là tiến độ các phase chính thức. Tracker ở đây theo dõi các PR triển khai, không thay thế điều kiện nghiệm thu phase.
-- Phase 02 chỉ đóng sau kiểm chứng browser. Phase 07–08 chỉ đóng sau test thiết bị thật. Phase 00/03–06 cần bằng chứng phần cứng từ Tân. Phase 09 mới chuẩn bị hạ tầng, chưa coi là đã thu dataset.
-- Kế hoạch này dừng ở nghiệm thu ingestion/recording. Chưa mở rộng sang train model, inference, benchmark khoa học hay đóng băng thi đấu.
+Cập nhật đúng kế hoạch/tracker trong PR. Chờ board dùng WAITING_HARDWARE; build/merge không thay nghiệm thu. [Tiến độ giai đoạn](../PROGRESS.md) khác bảng nhánh.
 
-## Quy trình Git cho từng nhánh
+Riêng03 Codex đã hoàn thiện theo yêu cầu2026-10-31. Các nhánh code sau Trung vẫn có thể gõ từng file, kiểm tra rồi mới qua tiếp. Giai đoạn02 cần browser;07/08 cần thiết bị thật;09 thu dataset không hoàn tất chỉ vì có hạ tầng ghi.
 
-Chỉ thực hiện khi working tree sạch và không có merge/rebase đang dở:
+Phạm vi này dừng ở nhận/ghi dữ liệu; train/benchmark/thi đấu lập kế hoạch sau.
+
+## Git cho từng nhánh
+
+Chỉ khi cây làm việc sạch, không merge/rebase dở:
 
 ```powershell
 git status
@@ -91,55 +82,48 @@ git pull --ff-only origin dev
 git switch -c chore/repository-integration-cleanup
 ```
 
-Thay tên nhánh bằng đúng tên trong bảng. Hoàn thành một phần việc:
+Thay tên nhánh bằng bảng. Hoàn thành phần việc:
 
 ```powershell
 git status
 git add <cac-file-lien-quan>
 git diff --staged
-git commit -m "chore: clean up firmware integration artifacts"
+git commit -m "chore: dọn cấu hình tích hợp"
 git push -u origin chore/repository-integration-cleanup
 ```
 
-Tạo PR **base `dev`**, điền test evidence và liên kết file kế hoạch. Sáu required checks giữ nguyên tên: `Workflow policy`, `Backend tests`, `AI tests`, `Frontend build`, `Firmware build`, `Repository checks`.
+PRbase dev, ghi kiểm thử và link kế hoạch. Giữ tên6 checks: Workflow policy, Backend tests, AI tests, Frontend build, Firmware build, Repository checks.
 
-PR của Trung có thể dùng review bypass theo thiết lập hiện có, sau khi checks pass, branch cập nhật và không conflict. PR của Tân cần Trung approve. Không push trực tiếp `dev`/`main`.
+Tân cần Trung approve; PRTrung dùng ngoại lệ theo quyền sau đủ CI/cập nhật/không conflict. Không push trực tiếp. Sau squash quay dev/pull/tạo nhánh mới; -d từ chối thì kiểm tra trước, không tự -D.
 
-Sau squash merge, quay về `dev`, pull và tạo nhánh kế tiếp. Không tiếp tục commit vào nhánh đã merge. Khi cần xoá local branch đã squash, kiểm tra commit và diff trước; `git branch -d` có thể từ chối vì lịch sử commit khác nhau, không tự chuyển sang `-D`.
-
-Nếu `dev` đổi trong lúc đang làm, cập nhật feature branch theo quy trình nhóm. Không dùng `git pull origin dev` với ý định chuyển về `dev`; lệnh đó merge vào nhánh đang đứng.
+git pull origin dev không chuyển nhánh: nó merge vào nhánh đang đứng.
 
 ## Lệnh kiểm tra dùng lại
 
-Chạy tại root với PowerShell và `.venv` đã có dependencies:
+PowerShell từ root, .venv đã có dependencies:
 
 ```powershell
-# Backend: chạy từ backend để import app đúng.
 Push-Location backend
 ..\.venv\Scripts\python.exe -m pytest -q
 Pop-Location
-
-# AI/simulator.
 $env:PYTHONPATH = (Resolve-Path .\ai).Path
 .\.venv\Scripts\python.exe -m pytest ai/tests -q
 Remove-Item Env:\PYTHONPATH
-
-# Frontend / cấu hình / firmware.
 npm --prefix frontend run build
 docker compose --profile ai config --quiet
 .\.venv\Scripts\pio.exe run -d ai/edge_firmware
 git diff --check
 ```
 
-Nếu terminal đã đặt `PYTHONPATH` riêng, lưu và phục hồi giá trị thay vì xoá. Các lệnh trên là baseline; mỗi file nhánh còn có test hành vi riêng. Không ghi PASS cho lệnh chưa chạy.
+Nếu PYTHONPATH đã có giá trị riêng, lưu/khôi phục thay vì xoá. Mỗi nhánh còn tests hành vi riêng; chưa chạy không ghi PASS.
 
 ## Mốc bàn giao
 
 | Mốc | Điều kiện |
 |---|---|
-| M1 — nền tảng/contract | 01–04 xong; mock E2E đã quan sát; dữ liệu/lifecycle đã thống nhất |
-| M2 — telemetry thật | 05 xong; ESP32 POST LAN và dashboard nhận đúng dữ liệu DEVICE |
-| M3 — recording thật | 06–08 xong; raw từ board được lưu, retry không trùng và export đọc lại đúng |
-| M4 — vận hành/ nghiệm thu | 09–10 xong; bắt đầu/dừng có xác nhận, kiểm thử mất mạng và báo cáo đầy đủ |
+| M1 |01–04, broker/thiết bị giả→phiên/WS; contract thống nhất, browser02 có bằng chứng |
+| M2 |05, telemetry/ACK thật qua LAN, dashboard đúng DEVICE và còn mới |
+| M3 |06–08, raw thật lưu chống trùng, xuất/đọc lại đúng |
+| M4 |09–10, Start/Stop có xác nhận, thử lỗi và báo cáo đủ |
 
-Ước lượng để phân bổ công việc: khoảng 10–18 ngày làm việc IT nếu phần cứng sẵn sàng, chưa tính thời gian chờ phản hồi và sửa driver. Đây không phải deadline; tracker dùng kết quả test và blocker thực tế.
+Ước lượng03–10 khoảng13–23 ngày IT nếu board sẵn sàng, chưa tính học/chờ/sửa driver; không phải deadline. Cập nhật theo kết quả thật sau thử tương thích04/05.

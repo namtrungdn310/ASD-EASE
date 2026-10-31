@@ -1,24 +1,22 @@
-# Local configuration and development setup
+# Cài đặt và cấu hình trên máy
 
-## Configuration ownership
+## File cấu hình
 
-- `.env.example` is a tracked template with development defaults, not a working secret file.
-- Backend settings in `backend/app/core/config.py` load `.env` relative to the process working directory. Run native backend commands from `backend/`.
-- Native Vite reads configuration from the frontend project directory. Use `frontend/.env.local` for local overrides.
-- `VITE_*` values are public browser configuration. Do not put passwords, tokens or Wi-Fi credentials in them.
-- `.env`, `.env.local` and other `.env.*` files are ignored; `.env.example` remains tracked.
+- .env.example là mẫu được theo dõi trong Git, không chứa secret thật.
+- Backend đọc .env theo thư mục chạy; chạy backend trực tiếp từ backend/.
+- Vite đọc cấu hình trong frontend/, dùng frontend/.env.local để ghi giá trị riêng.
+- VITE_* là công khai, nằm trong mã build trình duyệt; không đặt mật khẩu/token/Wi-Fi.
+- .env và .env.* được bỏ qua, trừ .env.example.
 
-## Native backend
+## Backend trực tiếp
 
-From the repository root, copy the template only if you do not already have a local backend configuration:
+Chỉ sao chép khi chưa có cấu hình local; không ghi đè file đang dùng:
 
 ```powershell
 Copy-Item -LiteralPath .env.example -Destination backend/.env
 ```
 
-The template contains backend settings plus Vite examples. `Settings` ignores extra keys; the Vite values in this backend file do not configure the frontend.
-
-Run the receiver from `backend/` so relative storage and SQLite paths resolve there:
+Settings bỏ qua khoá thừa; Vite trong file backend không cấu hình frontend. DATABASE_URL, RAW_STORAGE_DIR, CORS_ORIGINS là ba trường đang hỗ trợ; host/port truyền qua Uvicorn.
 
 ```powershell
 Push-Location backend
@@ -26,24 +24,24 @@ Push-Location backend
 Pop-Location
 ```
 
-`DATABASE_URL`, `RAW_STORAGE_DIR` and `CORS_ORIGINS` are the settings currently supported by this template. Host/port are Uvicorn command arguments, not fields in the current settings model.
+Chạy đúng thư mục để SQLite và đường lưu tương đối trỏ về backend.
 
-## Native frontend
+## Frontend trực tiếp
 
-Create a local `frontend/.env.local` with these public values if overrides are needed:
+Nếu cần, tạo frontend/.env.local:
 
 ```dotenv
 VITE_API_BASE_URL=http://localhost:8000
 VITE_WS_URL=ws://localhost:8000/api/v1/ws/live
 ```
 
-Then run from the repository root:
+Từ thư mục gốc:
 
 ```powershell
 npm --prefix frontend run dev
 ```
 
-Vite reads environment values at startup/build. Restart the development server after editing them, or rebuild a production bundle. A static frontend container does not pick up new browser configuration simply by changing runtime environment variables.
+Vite đọc biến khi khởi động/build. Đổi cấu hình thì khởi động lại dev server hoặc build lại. Đổi biến môi trường runtime không tự sửa bundle tĩnh.
 
 ## Docker Compose
 
@@ -52,18 +50,19 @@ docker compose --profile ai config --quiet
 docker compose up -d --build backend frontend
 ```
 
-`compose.yaml` explicitly sets backend container storage paths and frontend `build.args`. Placing values in root `.env` does not override constants that are not interpolated in Compose. To change those settings, update the appropriate Compose configuration and rebuild the frontend when its Vite arguments change. Keep any actual credential in an ignored local file.
+compose.yaml đặt trực tiếp đường lưu container và build.args frontend. .env ở root không tự thay các giá trị không được nội suy; cần sửa cấu hình phù hợp, build lại frontend khi đổi Vite. Secret thật ở file local bị bỏ qua.
 
-## Firmware and LAN
+## Firmware và LAN
 
-- `ai/edge_firmware/platformio.ini` currently uses environment `esp32s3_supermini`, firmware `0.2.0`, a generic `esp32-s3-devkitc-1` board definition and a configured 4 MB flash size. Those are build settings, not measured hardware evidence.
-- Build from the repository root: `.\.venv\Scripts\pio.exe run -d ai/edge_firmware`.
-- Local firmware credentials belong in `ai/edge_firmware/include/network_config.h`, which is ignored. The example header is tracked. The networking client is planned work and is not enabled just by creating this file.
-- An ESP32 must address the receiver using the laptop LAN IP and port `8000`; `localhost` on the ESP32 refers to the ESP32 itself.
-- If a browser runs on a different LAN computer, its localhost is also not the receiver laptop. Frontend API/WS URLs and backend CORS origins must match that setup.
+- platformio.ini hiện dùng esp32s3_supermini, firmware0.2.0, board esp32-s3-devkitc-1, flash cấu hình4 MB. Chưa phải kết quả nhận dạng board.
+- Build từ root: .\.venv\Scripts\pio.exe run -d ai/edge_firmware.
+- Wi-Fi/credential local nằm trong ai/edge_firmware/include/network_config.h bị bỏ qua; file example có trong Git. Chép file này chưa làm networking hoạt động.
+- ESP32 dùng IP LAN laptop. localhost trên ESP32 là chính nó; tên service Docker không phải DNS LAN.
+- Theo thiết kế mới, broker MQTT có địa chỉ/cổng riêng; HTTP raw dùng backend8000. Hai client chưa được triển khai chỉ bằng việc thêm cấu hình.
+- Browser trên máy LAN khác cũng không dùng localhost để trỏ laptop; cần API/WS URL và CORS đúng.
 
-## IDE-generated files
+## File IDE sinh tự động
 
-`ai/edge_firmware/.vscode/` and `compile_commands.json` are local generated files. They are intentionally untracked so paths such as another developer's home/toolchain directory cannot become shared configuration. Untracking them preserves existing files on disk; regenerate local configuration through PlatformIO as needed.
+.vscode và compile_commands.json chứa đường dẫn máy riêng, không nên chia sẻ như cấu hình chung. PR #11 có đưa lại một số file sinh tự động; không xoá chúng trong lượt chỉnh tài liệu này. Tạo lại bằng PlatformIO khi cần.
 
-See [hardware profile](HARDWARE_PROFILE.md) for wiring/configuration evidence still required and [integration progress](integration/PROGRESS.md) for the current branch work.
+Xem [phần cứng](HARDWARE_PROFILE.md) và [tiến độ](integration/PROGRESS.md).

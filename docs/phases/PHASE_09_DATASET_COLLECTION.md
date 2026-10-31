@@ -1,74 +1,74 @@
-# Phase 09 — Dataset Collection
+# Giai đoạn 09 — Thu thập bộ dữ liệu
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Collect protocol-compliant real sessions separately from synthetic sessions.
+Thu các phiên thật theo quy trình, tách khỏi dữ liệu giả lập.
 
-## Why This Phase Exists
+## Lý do
 
-Scientific phases require independent real observations; generated data is insufficient.
+Các bước nghiên cứu cần quan sát độc lập từ cảm biến thật.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 08
+Giai đoạn 08
 
-## Inputs
+## Đầu vào
 
-Approved protocol, pseudonymous IDs, working logger.
+Quy trình được duyệt, ID giả danh và bộ ghi đang hoạt động.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/data/raw/...; docs/DATASET_PROTOCOL.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Separate real/synthetic namespaces, provenance and trials; never mark complete from synthetic sessions.
+Tách nguồn, không gian tên và lần đo; không nghiệm thu bằng phiên giả lập.
 
-## Tests
+## Kiểm thử
 
-Validate consent/protocol as applicable, manifests, sample counts and held-out plan.
+Kiểm tra sự đồng thuận/quy trình phù hợp, bản mô tả dữ liệu, số mẫu và kế hoạch tập đánh giá.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 09; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Privacy, insufficient coverage, imbalance or label ambiguity.
+Rò rỉ riêng tư, dữ liệu thiếu bao phủ, lệch lớp hoặc nhãn chưa rõ.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Stop collection on protocol/privacy issues; quarantine incomplete sessions.
+Dừng thu khi có vấn đề quy trình/riêng tư; tách các phiên chưa đầy đủ.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 10 — Signal Processing
+Giai đoạn 10 — Xử lý tín hiệu
 

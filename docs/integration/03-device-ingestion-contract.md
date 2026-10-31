@@ -1,81 +1,89 @@
-# 03 — Chốt contract thiết bị, session và raw batch
+# 03 — Đặc tả thiết bị, phiên và batch raw
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
-| Nhánh | `docs/device-ingestion-contract` |
-| Chủ trì | Trung — IT; Tân xác nhận ngữ nghĩa dữ liệu driver |
-| Phụ thuộc | 01 |
-| Ước lượng | 1–2 ngày, gồm trao đổi/log sampling |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 03 |
+| Nhánh | docs/device-ingestion-contract |
+| Chủ trì | Trung — IT; Codex hoàn thiện tài liệu theo yêu cầu2026-10-31, Tân xác nhận phần cứng sau |
+| Phụ thuộc |01 |
+| Bắt đầu/bàn giao |2026-10-22 /2026-10-31 |
+| Trạng thái |IN_REVIEW → DONE khi [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) merge vào dev; chủ repo đã yêu cầu merge khi đủ CI |
+| Theo dõi |[Tiến độ](PROGRESS.md), dòng03; [bàn giao](03-HANDOFF.md) |
 
-## Kết quả cần đạt
+## Mục tiêu và phạm vi
 
-Một đặc tả đủ rõ để viết backend và firmware độc lập: JSON hợp lệ, lifecycle, đơn vị, timestamp, lỗi/retry và tiêu chí dữ liệu đầy đủ. Nhánh này sửa tài liệu và ví dụ dưới docs; implementation/fixture executable nằm ở các nhánh sau.
+Thống nhất dữ liệu, đơn vị, thời gian, lệnh và cách xác nhận để backend04/firmware05 triển khai độc lập. Đây là **nhánh tài liệu**, chưa có broker/client MQTT chạy thực tế.
 
-## Tài liệu cần cập nhật
+Theo yêu cầu mới, Codex làm nốt phần tài liệu thay cho đọc từng file. Giữ nguyên hai schema Trung đã gõ; không tự ghi Trung đã hiểu hoặc phần cứng đã nghiệm thu.
 
-- `docs/API_CONTRACT.md`: nguồn chính cho endpoint, wire schema, version và error semantics.
-- `docs/DECISIONS.md`: lý do chọn polling session-control, file-per-batch và chính sách retry.
-- `docs/DATASET_PROTOCOL.md`: metadata đo, đơn vị và provenance.
-- Đề xuất `docs/contracts/`: JSON examples, sequence lifecycle và mapping driver -> API; các ví dụ minh hoạ không phải dữ liệu người thật.
-- Các phase 07/08 và changelog khi bổ sung acceptance criteria; không sửa code trong PR `docs/*` này.
+## File bàn giao
 
-## Checklist: mapping dữ liệu
+| File | Dùng để làm gì |
+|---|---|
+| [API](../API_CONTRACT.md) | Tra trường dữ liệu và phân biệt hiện có/dự kiến |
+| [Nhận dữ liệu](../contracts/INGESTION_V1.md) | Danh tính, thời gian, cấu hình, giới hạn, phiên, raw HTTP và lưu |
+| [MQTT](../contracts/MQTT_CONTROL.md) | Topic, lệnh, ACK, boot/kết nối, thời hạn và phục hồi |
+| [Driver](../contracts/DRIVER_MAPPING.md) | Ánh xạ trường/đơn vị và việc cần đo trên board |
+| [Ví dụ](../contracts/examples.json) |28 gói/biến thể SYNTHETIC và16 kịch bản để viết tests |
+| [Công cụ kiểm tra](../contracts/check_examples.py) | Kiểm tra mẫu, không chạy mạng/DB |
+| [Hướng dẫn](../contracts/README.md) | Thứ tự đọc và lệnh chạy |
+| [Quyết định](../DECISIONS.md) | ADR016–019, lý do chọn và giới hạn |
+| [Bộ dữ liệu](../DATASET_PROTOCOL.md) | Nguồn, đơn vị, số mẫu thiếu và xuất dữ liệu |
+| [Giai đoạn07](../phases/PHASE_07_WIFI_BACKEND.md), [08](../phases/PHASE_08_DATA_LOGGER.md), [thay đổi](../CHANGELOG.md) | Đồng bộ điều kiện nghiệm thu, không tự đánh DONE |
 
-- [ ] Giữ schema `1.0` khi ý nghĩa dữ liệu không đổi. Nếu bắt buộc breaking change, ghi version mới và lộ trình hỗ trợ/di chuyển trước khi code; không âm thầm đổi `1.0`.
-- [ ] `MAX30102Data.heartRate` -> `hr_bpm` khi có kết quả còn mới/hợp lệ; giá trị sentinel 0 phải thành `null`.
-- [ ] SpO2 để debug ở scope này vì contract v1.0 không có trường; không lén thêm field vào payload strict.
-- [ ] `rawADC` trước EMA -> `gsr.raw`; ghi rằng driver đang averaging 8 lần đọc ADC, không gọi đó là mẫu ADC đơn chưa xử lý.
-- [ ] `gsr.delta` là tỷ lệ baseline: nếu dùng `percentChange` thì chia 100; không gửi `deltaConductance_uS` trực tiếp. Baseline chưa có/không tin cậy -> `null`.
-- [ ] Raw IMU lấy `rawAx/rawAy/rawAz` chia `9.80665` để ra g; gyro lấy `rawGx_deg/rawGy_deg/rawGz_deg`.
-- [ ] `movement.score=null` trước khi có thuật toán và định nghĩa chuẩn; không gửi accel magnitude vào trường 0–1.
-- [ ] Quality là chỉ số kỹ thuật theo quy tắc có ghi rõ. Nếu chưa có quality estimator, quy định cách biểu diễn bảo thủ trong schema hiện có hoặc version cần thiết; không bịa 0.9/1.0 là chất lượng đã đo.
-- [ ] Không model -> `model_version=none`, probability null; `CALIBRATING` khi calibration cần thiết, còn chưa kết luận -> `UNCERTAIN`. Sensor `VALID` không tự thành `NORMAL`.
+## Đặc tả đã hoàn thiện
 
-## Checklist: session-control
+- [x] Telemetry/raw giữ cấu trúc1.0, control phiên bản riêng; không thêm trường debug/boot sai schema.
+- [x] HR lỗi/cũ/0 dùng null; SpO2 chỉ debug.
+- [x] GSR ADC trung bình8 trước EMA; delta=percentChange/100 khi mức nền đáng tin.
+- [x] IMU trước EMA đổi m/s² sang g, gyro degrees/s; không đảo Y/Z lần2.
+- [x] Chưa thuật toán movement dùng null; chưa ước lượng chất lượng dùng0 bảo thủ; chưa mô hình thì probabilitynull và CALIBRATING/UNCERTAIN.
+- [x] Mốc thu chung, thời gian boot ngoài phiên, tràn clock, mẫu thiếu, ranh batch cuối và giới hạn raw1.0.
+- [x] Tách tốc độ danh định/đã đo, profile simulator và cổng phần cứng05/07.
+- [x] Topic, chiều gửi, QoS, retain; presence không chứng minh mẫu mới.
+- [x] Danh tính/ACL, trường gói, ID, TLS và ngoại lệ LAN phát triển; không secret trong browser.
+- [x] Command ID/generation bền; boot/connection/request và thời hạn, không phát lại lệnh cũ.
+- [x] HTTPStartStop giữ request; lưu ý định/lệnh trước202, ACK thực thi khác PUBACK.
+- [x] Lặp lệnh/ACK, Stop thay Start, ACK muộn, reboot/restart không trộn epoch.
+- [x] Mã lỗi ứng dụng MQTT, giới hạn gói/hàng đợi/thời gian chờ và thử lại.
+- [x] Giữ HTTP simulator qua nghiệp vụ nhận chung, cập nhật tương thích ở04/06.
+- [x] Raw chỉ HTTP; kiểm tra byte trước parse, số mẫu/kiểu/dải/trục/null/thời gian/cấu hình.
+- [x] Khoá batch bất biến, JCS/SHA256, trùng202/xung đột409, đến sai thứ tự và trùng sau đóng.
+- [x] Đủ mã HTTP400/401/403/404/409/413/415/422/429/503/507; timeout thử lại cùng ID/nội dung.
+- [x] Mỗi batch một file +chỉ mục SQLite, PENDING→file tạm→lưu bền→COMPLETE→ACK; phục hồi sau lỗi và giữ JSONL cũ.
+- [x] Hàng đợi giới hạn số/byte, bỏ batch mới khi đầy và khai báo mất, không tự ghi flash.
+- [x] Tổng kết MQTT trước/sau raw HTTP; zero-batch, cutoff và thời hạn gửi nốt.
+- [x] STOPPED khác đủ dữ liệu; broker lỗi khác HTTP lỗi; không tuyên bố “đúng một lần toàn hệ thống”.
 
-- [ ] Chốt request/response của `POST /sessions/start`, `/sessions/stop` và status trả về; tách desired state với actual state.
-- [ ] Đặc tả endpoint đề xuất `GET /devices/{device_id}/session-control` cho ESP32 poll. Khác với endpoint đã tồn tại phải ghi rõ là planned API.
-- [ ] Đặc tả endpoint ACK đề xuất `POST /sessions/{session_id}/device-status` cho bắt đầu, dừng và báo reboot; chốt payload, idempotency, command generation, retry/timeout.
-- [ ] Lifecycle: STARTING -> RECORDING -> STOPPING -> STOPPED; ABORTED khi không khép phiên được. Command lặp lại không reset mốc thu hay tạo phiên mới.
-- [ ] Ràng buộc session với device + origin; chỉ một phiên active cho một device. Boot ID/command generation là metadata control, không nhét field vào raw v1.0 nếu chưa version.
-- [ ] Đặt mốc session khi firmware thực sự bắt đầu thu; timestamp tính từ đó. UTC backend chỉ phục vụ metadata wall-clock.
-- [ ] Reboot trong phiên: kết thúc/đánh dấu gián đoạn, tạo phiên mới cho clock mới; payload cũ không bị nhập nhầm vào clock mới.
-- [ ] STOPPING chốt mốc thu và final batch ID, drain giới hạn thời gian; thiếu batch phải đánh dấu incomplete. Phân biệt STOPPED với dữ liệu đầy đủ.
+## Kiểm tra local và merge
 
-## Checklist: sampling, raw, retry và lưu trữ
+- [x] Đọc đối chiếu schema/router/service/driver; ghi rõ thiếu sót hiện có và phần dự kiến.
+- [x] Công cụ mẫu đạt17 ca schema,11 mẫu control,9 biến thể sai bị từ chối; thời gian/số mẫu và16 tham chiếu kịch bản đúng.
+- [x] Backend13/AI15 tests PASS, cảnh báo/commands ghi trong bàn giao.
+- [x] Không nới kiểm tra hoặc sửa logic để mẫu đạt; ca hiện nhận nhưng đích từ chối có nhãn rõ.
+- [x] Chủ repo yêu cầu push/merge; đã commit và mở PR #12 với base dev.
+- [ ] Đủ6 CI trên head cuối, cập nhật/không xung đột rồi merge PR #12; trạng thái thực tế xem tại PR.
+- [ ] Sau khi #12 merge, tạo04 từ dev mới khi bắt đầu triển khai; không push trực tiếp nhánh bảo vệ.
 
-- [ ] Đo rate sau FIFO averaging của PPG; không suy 100 Hz đầu ra chỉ từ biến cấu hình. Ghi config và log có thể tái kiểm tra.
-- [ ] Với v1.0, mọi stream phải có sample 0 tương ứng cùng `start_timestamp_ms` và bước thời gian theo rate của nó. Nếu không căn được, cần đề xuất per-stream start/timestamps có version thay vì báo timestamp sai.
-- [ ] Chốt nominal batch window, cách xử lý batch cuối ngắn hơn, clock wrap, jitter và mẫu thiếu. Dùng null giữ vị trí khi mất mẫu; dữ liệu vẫn ghi nhận loss/gaps.
-- [ ] Giới hạn request/samples/queue dựa trên RAM board và payload đo thật. Khởi điểm thử nghiệm: cửa sổ 1 giây; dung lượng queue chưa đóng đinh trước khi tính bộ nhớ.
-- [ ] Idempotency key `(session_id, device_id, batch_id)`; hash theo representation chuẩn hoá, null/kiểu số có quy tắc nhất quán.
-- [ ] Bảng HTTP outcomes: 202 lần đầu/duplicate cùng nội dung, 409 cùng ID khác nội dung hoặc session không nhận dữ liệu, 404 session không có, 422 schema sai, 413 quá giới hạn, lỗi storage không trả accepted.
-- [ ] Phân biệt request malformed JSON với schema validation; document error body đủ để firmware quyết định retry.
-- [ ] Chốt nhận batch đến muộn trong STOPPING và out-of-order hợp lệ; manifest báo gap, export theo thời gian/ID đúng, không biến sự thiếu dữ liệu thành đủ.
-- [ ] File-per-batch + index SQLite; commit/ACK/recovery, concurrent requests và crash window được mô tả. Không tuyên bố exactly-once toàn hệ thống nếu chưa chứng minh.
-- [ ] Tách DEVICE/SYNTHETIC trong session, storage và manifest; không dựa riêng vào prefix tên.
+Các mục đã tick xác nhận **tài liệu và kiểm tra trên máy**, không xác nhận broker/board đã chạy.
 
-## Ví dụ bắt buộc và review
+## Việc còn chờ, giao nhánh sau
 
-- [ ] Telemetry khi đang calibration, có HR, mất PPG, không model, không active session.
-- [ ] Raw batch đầy đủ, chứa null, final partial batch, duplicate và payload conflict.
-- [ ] Start ACK thành công, retry command cũ, stop/drain timeout và reboot.
-- [ ] Expected status/body cho từng ví dụ; tập examples được nhánh 04/05/06 đưa vào tests.
-- [ ] Tân xác nhận GPIO, rate, đơn vị/raw-vs-filtered; ghi kết luận, không chỉ lời nhắn không lưu.
-- [ ] Có quyết định cho mọi mục ảnh hưởng wire format trước khi nhánh phụ thuộc triển khai.
+| Việc | Nơi nhận | Trạng thái |
+|---|---|---|
+| Wiring/GPIO7/board/flash/PSRAM, tuổi HR và hiệu chuẩn GSR |Tân+IT, nghiệm thu05 |PENDING_HARDWARE |
+| Rate FIFO, jitter/đồng bộ, gửi raw và RAM khi MQTT+HTTP |07 |PENDING_HARDWARE |
+| Chốt phiên bản client/broker, thử QoS1/ACL, chuyển DB/lệnh chờ |04/05 |NOT_IMPLEMENTED |
+| Lưu raw bền, JCS, đồng thời và gây lỗi có kiểm soát |06/07 |NOT_IMPLEMENTED |
+| Quan sát dashboard thật |02/10 |PENDING |
+| Response chi tiết/phân trang/xuất cho UI |08 trước09 |Chưa chặn đặc tả cốt lõi04 |
 
-## Điều kiện merge / bàn giao
+Nếu board không đáp ứng quy tắc thời gian, đổi đặc tả/phiên bản trước khi nhận dữ liệu thật. Backend04 dùng mẫu SYNTHETIC, không cần bịa số đo để hoàn tất03.
 
-- [ ] Không còn TODO mơ hồ về units, clock, ACK, duplicate, stop/drain hoặc version.
-- [ ] Ví dụ không trái schema/backend hiện tại; khác biệt planned được chỉ rõ kèm nhánh sẽ triển khai.
-- [ ] Không làm mất compatibility simulator mà thiếu phương án cập nhật.
-- [ ] Commit gợi ý: `docs: specify device ingestion and session control contract`.
+## Nhật ký
 
-## Nhật ký / quyết định thực tế
+- 2026-10-22: tạo từ dev d80cc0e sau PR #11, bắt đầu giải thích telemetry.py.
+- 2026-10-22: Trung chọn MQTT telemetry/điều khiển, giữ raw HTTP và browser HTTP/WS.
+- 2026-10-31: Trung yêu cầu hoàn thiện/bàn giao; hoàn tất đặc tả, ví dụ, kiểm tra và tài liệu liên quan, giữ thay đổi schema của Trung.
+- 2026-10-31: Trung yêu cầu push và merge vào dev; đã push commit5dd0d0e, mở PR #12 và chạy lại kiểm tra local đạt. Chỉ merge khi đủ CI trên head cuối.
 
-| Ngày / commit | Quyết định / đầu vào | Bằng chứng / người xác nhận | Kết quả / blocker |
-|---|---|---|---|
-| — | — | — | Chưa thực hiện |
-
-Nhánh kế tiếp: [04](04-backend-session-lifecycle.md); thông số phần cứng chưa đo vẫn phải ghi rõ giới hạn của chúng.
+Sau review/merge: [nhánh04 — backend MQTT và quản lý phiên](04-backend-session-lifecycle.md). Nhánh03 hoàn tất tài liệu không có nghĩa giai đoạn03 MAX30102 hoặc07/08 đã DONE.

@@ -1,6 +1,6 @@
 #pragma once
 
-// Copy locally to network_config.h (gitignored) and set the laptop LAN address.
+// Chép thành network_config.h local (Git bỏ qua), điền IP LAN laptop.
 #define WIFI_SSID "CHANGE_ME"
 #define WIFI_PASSWORD "CHANGE_ME"
 #define BACKEND_HOST "192.168.x.x"

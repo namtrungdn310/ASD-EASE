@@ -1,4 +1,4 @@
-"""Synthetic test device for development only; never represents human research data."""
+"""Thiết bị giả lập để thử phần mềm, không phải dữ liệu người thật."""
 import argparse
 import asyncio
 import json

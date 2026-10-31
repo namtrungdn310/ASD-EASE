@@ -5,8 +5,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createServer } from "vite";
 
-// Real source/components, with only the network hook replaced for UI branch tests.
-// These are not browser-layout, DOM-event or real React hook lifecycle tests.
+// Dùng mã/component thật; chỉ thay hook mạng để thử các nhánh hiển thị.
+// Không kiểm tra bố cục, sự kiện DOM hoặc vòng đời hook thật trong file này.
 let server;
 let Dashboard;
 let DeviceStatus;

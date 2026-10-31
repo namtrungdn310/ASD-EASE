@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# git grep returns 0 for matches, 1 for no matches, and >1 for an error.
-# Capture that status explicitly so a clean repository passes under set -e.
+# git grep trả 0 khi có kết quả, 1 khi không có và >1 khi lỗi.
+# Lưu mã trả về để repo sạch vẫn chạy đúng khi bật set -e.
 scan_status=0
 git grep --no-ext-grep --line-number --no-color -I --extended-regexp \
   '^(<<<<<<< .+|=======|>>>>>>> .+)[[:space:]]*$' -- . || scan_status=$?

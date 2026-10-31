@@ -1,76 +1,74 @@
-# Phase 04 — MPU6050
+# Giai đoạn 04 — MPU6050
 
-## Status
+## Trạng thái
 
 IN_PROGRESS
 
-## Owner
+## Người phụ trách
 
-AUTOMATION
+Tân — Tự động hoá
 
-## Objective
+## Mục tiêu
 
-Acquire calibrated-enough raw accelerometer and gyroscope streams.
+Thu gia tốc và vận tốc góc thô, có kiểm tra hiệu chuẩn.
 
-## Why This Phase Exists
+## Lý do
 
-Movement context is required to interpret artifacts and false alerts.
+Dùng chuyển động để phân tích nhiễu và cảnh báo sai.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 00, Phase 03
+Giai đoạn 00, Giai đoạn 03
 
-## Inputs
+## Đầu vào
 
-Verified I2C bus and MPU6050 hardware.
+Bus I2C và MPU6050 đã được kiểm chứng.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/sensors/MPU6050Sensor.cpp
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Configure ranges/rates explicitly and retain raw engineering units.
+PR #7 (`332f249`) có đọc thanh ghi trên Wire1, dò địa chỉ, đổi đơn vị, EMA và kết nối lại. Gia tốc trước EMA là m/s², gyroscope có degrees/s; raw API dùng g và degrees/s. Có driver chưa chứng minh đã hiệu chuẩn hoặc đúng hướng trục.
 
-PR #7 (`332f249`) implements register reads on `Wire1`, address probing, conversion to engineering units, EMA and reconnect logic. Raw acceleration is currently exposed in m/s² and raw gyroscope values include degrees/s; raw API v1.0 expects g and degrees/s. Driver presence is not proof of offset calibration or correct axis orientation.
+## Kiểm thử
 
-## Tests
+Build/nạp firmware; đo khi đứng yên, di chuyển/xoay từng trục và kiểm tra thời gian.
 
-Build/flash; inspect stationary gravity; move/rotate axes; check timing.
+## Điều kiện nghiệm thu
 
-## Acceptance Criteria
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+## Đầu ra
 
-## Expected Output
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-A reviewable implementation, test evidence and updated project tracking for Phase 04; no automatic work on the next phase.
+## Rủi ro
 
-## Known Risks
+Sai hướng trục, bão hòa thang đo hoặc lỗi bus.
 
-Axis orientation, range saturation or shared-bus faults.
+## Xử lý lỗi và khôi phục
 
-## Debug / Rollback Strategy
+Thử cảm biến riêng; kiểm tra địa chỉ, thang đo và dây nối.
 
-Test sensor alone; verify address/range and wiring.
+## Kết quả
 
-## Results
+Đã đọc phần triển khai từ PR #7; build trên máy đạt. Chưa có biên bản kiểm thử trên board đáp ứng các mục bên trên.
 
-Implementation reviewed from PR #7; stationary/axis/range/timing and physical calibration checks have not been recorded in this phase. Host compilation passed.
+## Bằng chứng hoàn thành
 
-## Completion Evidence
+Cần lưu board, commit, cấu hình, mẫu có thứ tự, số đo thời gian và thử ngắt cảm biến. Chưa đủ để đánh dấu DONE.
 
-No physical acceptance log available. Supply ordered samples, orientation/range settings, measured timing and disconnect behavior before marking DONE.
+## Giai đoạn tiếp theo
 
-## Next Phase
-
-Phase 05 — GSR
+Giai đoạn 05 — GSR
 
