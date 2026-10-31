@@ -77,7 +77,7 @@ Profile build ESP32-S3 là cấu hình tạm, không chứng minh board/cảm bi
 
 ## Đang ở đâu?
 
-Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12), commit752bd5d. Nhánh04 có backend MQTT/phiên và kiểm thử local, chưa commit/PR/merge. Hai hệ đánh số giai đoạn và nhánh khác nhau.
+Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12), commit752bd5d. Nhánh04 có backend MQTT/phiên đã kiểm thử và push [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13); hoàn tất khi PR merge vào dev sau đủ CI. Hai hệ đánh số giai đoạn và nhánh khác nhau.
 
 Xem [tiến độ giai đoạn](docs/PROGRESS.md), [bàn giao03](docs/integration/03-HANDOFF.md) và [mục lục](docs/README.md). Không suy hoàn thành từ file khung.
 

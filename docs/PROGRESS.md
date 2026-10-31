@@ -51,7 +51,7 @@ Các kết quả chỉ đúng phạm vi/commit đã ghi, không tự trở thàn
 
 ## Nhánh công việc hiện tại
 
-Nhánh03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d ngày2026-10-31 sau6/6 CI trên af61856. Nhánh04 feature/backend-session-lifecycle đã triển khai và kiểm thử local ngày2026-11-01, READY_FOR_REVIEW; chưa commit/push/PR/CI từ xa/merge. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
+Nhánh03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d ngày2026-10-31 sau6/6 CI trên af61856. Nhánh04 feature/backend-session-lifecycle đã triển khai, kiểm thử và push [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) ngày2026-11-01; hoàn tất khi PR merge vào dev sau đủ6 CI. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
 
 Xem [kế hoạch](integration/README.md), [tracker nhánh](integration/PROGRESS.md), [bàn giao04](integration/04-HANDOFF.md) và [cách chạy](integration/04-SETUP.md). Backend MQTT/phiên đã thử qua Mosquitto thật với dữ liệu SYNTHETIC; firmware MQTT và raw lưu bền thuộc05–07, chưa nghiệm thu phần cứng.
 

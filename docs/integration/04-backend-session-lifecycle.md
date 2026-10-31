@@ -7,7 +7,7 @@
 | Phụ thuộc |03 đã thống nhất đặc tả |
 | Ước lượng |3–4 ngày, gồm broker và kiểm thử tích hợp |
 | Tiến độ |[Dòng04](PROGRESS.md) |
-| Trạng thái |READY_FOR_REVIEW — local đã kiểm thử, chưa commit/push/PR/CI từ xa/merge |
+| Trạng thái |IN_REVIEW → DONE khi [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) merge vào dev sau6/6 CI; chủ repo đã yêu cầu merge |
 | Bàn giao |[Kết quả/file chính](04-HANDOFF.md), [cách chạy](04-SETUP.md), ngày2026-11-01 |
 
 ## Kết quả
@@ -71,7 +71,7 @@ Backend nhận telemetry MQTT, quản lý phiên theo thiết bị/nguồn và p
 - [x] Kiểm thử chuyển DB tạm, lỗi broker/restart/trùng/quyền đều đạt.
 - [x] Firmware biết cấu hình broker, QoS/retain, payload và đồng bộ; raw API do06 bàn giao.
 - [ ] Backend/AI tests và6 CI đạt, giữ nguyên tên checks. Kiểm thử broker không được bỏ qua rồi gọi PASS.
-- [ ] Commit gợi ý: `feat(backend): quản lý phiên và xác nhận thiết bị qua MQTT`.
+- [x] Commit076aa83: `feat(backend): quản lý phiên và xác nhận thiết bị qua MQTT`, push và mở PR #13 vào dev.
 
 Sao lưu trước chuyển DB, không xoá DB để sửa lỗi. Khôi phục bằng cách đã thử hoặc bản sao lưu; giữ raw riêng. Không tự đổi quyền/tường lửa toàn máy.
 
@@ -80,3 +80,4 @@ Sao lưu trước chuyển DB, không xoá DB để sửa lỗi. Khôi phục b�
 | Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
 |2026-11-01|Broker/xác thực/phiên/simulator/migration|Backend55/AI15/frontend26+build, HTTP19 frame, MQTT7 nhóm thật; xem04-HANDOFF|READY_FOR_REVIEW, chưa commit/CI từ xa/merge|
+|2026-11-01|Rà soát và push|Backend56 trên Windows/Linux, firmware/header4/Docker build/audit0; PR #13|Chờ đủ6 CI trên head cuối trước merge vào dev|

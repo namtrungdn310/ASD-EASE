@@ -4,7 +4,7 @@
 
 ### Bổ sung
 
-- Nhánh04 (2026-11-01): backend MQTT3.1.1/Paho2.1.0, Mosquitto2.0.22 có ACL; nhận telemetry chung HTTP/MQTT, registry/token/cookie, lệnh Start/Stop bền và ACK/nonce/boot, migration SQLite có sao lưu/khôi phục. Có simulator MQTT/HTTP,55 backend tests và bài tích hợp qua broker thật; chưa commit/PR/CI từ xa/merge hoặc firmware05/raw lưu bền06.
+- Nhánh04 (2026-11-01): backend MQTT3.1.1/Paho2.1.0, Mosquitto2.0.22 có ACL; nhận telemetry chung HTTP/MQTT, registry/token/cookie, lệnh Start/Stop bền và ACK/nonce/boot, migration SQLite có sao lưu/khôi phục. Có simulator MQTT/HTTP,56 backend tests trên Windows/Linux và bài tích hợp broker thật; push PR #13 vào dev, chỉ merge khi đủ6 CI. Firmware05/raw lưu bền06 chưa triển khai.
 
 - Đặc tả kết nối nhánh03: MQTT, ACK/kết nối lại, thời gian/đơn vị, raw HTTP chống trùng/lưu bền, quyền/giới hạn, ví dụ và công cụ kiểm tra. Đây là thiết kế và mẫu thử, chưa có MQTT runtime/board.
 - Kế hoạch10 nhánh tích hợp có điều kiện nghiệm thu và tracker; IT phụ trách đóng gói/mạng/bộ đệm trong mốc này.

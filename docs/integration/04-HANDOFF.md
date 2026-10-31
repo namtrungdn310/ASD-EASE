@@ -2,7 +2,7 @@
 
 Ngày2026-11-01, Asia/Saigon. Nhánh `feature/backend-session-lifecycle`, tách từ dev752bd5d sau [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12).
 
-**Đã triển khai và kiểm tra trên máy, READY_FOR_REVIEW. Chưa commit/push/PR/CI từ xa/merge.** Không tự đánh giai đoạn phần cứng DONE. Hướng dẫn chạy ở [04-SETUP](04-SETUP.md).
+**Đã triển khai, kiểm thử và push, mở [PR #13 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/13). Nhánh04 hoàn tất khi PR này merge sau đủ6 CI trên head cuối.** Chủ repo đã yêu cầu merge; trạng thái CI/merge trực tiếp xem tại PR. Không tự đánh giai đoạn phần cứng DONE. Hướng dẫn chạy ở [04-SETUP](04-SETUP.md).
 
 ## Phần đã làm
 
@@ -44,7 +44,7 @@ Hai file telemetry.py/raw_batch.py Trung đã sửa định dạng trước khi 
 
 | Mục | Kết quả | Giới hạn |
 |---|---|---|
-| Backend |56 tests PASS sau rà soát trước PR |1 cảnh báo Starlette/anyio cũ |
+| Backend |56 tests PASS trên Windows và Linux container sau rà soát trước PR |1 cảnh báo Starlette/anyio cũ |
 | AI |15 tests PASS |14 cảnh báo matplotlib/pyparsing cũ |
 | Frontend |26 tests và build PASS |Bundle>500kB là cảnh báo; không sửa UI/đã quan sát browser |
 | Mẫu03 |17 ca schema tương thích,11 mẫu control và9 biến thể sai PASS |Schema mẫu cũ khác bộ kiểm tra runtime; không phải E2E phần cứng |
@@ -52,6 +52,7 @@ Hai file telemetry.py/raw_batch.py Trung đã sửa định dạng trước khi 
 | Mosquitto thật |7 nhóm kiểm tra PASS |Container/DB/credential tạm, không phải ESP32 |
 | Compose |config --quiet PASS |Không thay dịch vụ/volume đang dùng của nhóm; TLS thực tế chưa nghiệm thu |
 | DB |Migration/backup/restore/idempotent/rollback lỗi PASS trong backend tests |Không thử mất điện máy/file system thật |
+| Build bổ sung |Docker backend, firmware và4 tổ hợp header PASS; npm audit runtime0 |Không thay nghiệm thu board hoặc TLS triển khai |
 
 7 nhóm MQTT: (1) chặn anonymous/sai password; (2) Start→MQTT→ACK→DB→WS; (3) Start lặp không đổi generation/epoch; (4) chặn publish chéo thiết bị; (5) backend restart giữ phiên/ACK; (6) broker restart và HTTP vẫn tra cứu; (7) Stop ACK đúng, raw-disabled không báo complete.
 
@@ -61,7 +62,7 @@ Lệnh chạy trong [04-SETUP](04-SETUP.md). Không chép kết quả local thà
 
 ## Phần còn lại và bàn giao05/06
 
-- Review diff, chọn các file của04 để commit theo nhóm, giữ thay đổi định dạng schema riêng; push/PR vào dev khi Trung yêu cầu. Chờ đủ6 CI trên head cuối, không xung đột rồi merge theo quyền.
+- Đã review diff, commit076aa83 và push, mở PR #13 theo yêu cầu Trung. Giữ hai thay đổi định dạng schema trên máy, không nằm trong PR. Chờ đủ6 CI trên head cuối, không xung đột, xử lý trao đổi rồi merge theo quyền.
 - 05: Tân/IT đăng ký thiết bị DEVICE và credential riêng; chọn thư viện Arduino thực sự publish QoS1, thêm ACK/nonce/LWT, đo board/rate/tuổi cache/RAM. Không dùng số demo làm nghiệm thu.
 - 06: thay JSONL bằng lưu bền/JCS/chống trùng, đối chiếu summary với raw trước/sau Stop, tính complete thật. 04 chỉ có cổng quyền/vòng đời và điểm nối, chưa nghiệm thu lưu raw.
 - TLS mẫu và cookie Secure mặc định đã có; kiểm tra chứng chỉ/listener khi triển khai ngoài LAN phát triển là việc vận hành còn phải thử. Demo hiện dùng ngoại lệ loopback/LAN được ghi rõ, không gọi TCP1883 là mã hoá.
