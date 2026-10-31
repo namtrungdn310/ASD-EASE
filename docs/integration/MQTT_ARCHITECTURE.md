@@ -1,13 +1,13 @@
 # Kiến trúc kết nối — MQTT và HTTP
 
-Cập nhật2026-10-31. Áp dụng nhánh03–10. Đây là tổng quan; quy tắc chi tiết ở [API](../API_CONTRACT.md), [nhận dữ liệu](../contracts/INGESTION_V1.md) và [MQTT](../contracts/MQTT_CONTROL.md) được ưu tiên khi tra cứu.
+Cập nhật2026-11-01. Áp dụng nhánh03–10. Đây là tổng quan; quy tắc chi tiết ở [API](../API_CONTRACT.md), [nhận dữ liệu](../contracts/INGESTION_V1.md) và [MQTT](../contracts/MQTT_CONTROL.md) được ưu tiên khi tra cứu.
 
 ## Đã thống nhất
 
 - MQTT cho telemetry và Start/Stop/ACK/đồng bộ trạng thái.
 - Raw batch giữ HTTP, không chuyển cả dữ liệu sang broker.
 - Browser giữ HTTP/WebSocket; không MQTT hoặc credential broker.
-- Đặc tả03 đã hoàn thiện và đưa lên [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12); chưa broker/client thực tế. Phiên bản thư viện/broker và số đo chốt ở04/05/07.
+- Đặc tả03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12). Backend04 dùng Mosquitto2.0.22/Paho2.1.0 đã thử broker thật với simulator, xem [bàn giao04](04-HANDOFF.md). Client Arduino, TLS triển khai và số đo phần cứng còn05/07/10.
 
 ## Luồng
 

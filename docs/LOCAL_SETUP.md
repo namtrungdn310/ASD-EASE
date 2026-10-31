@@ -10,17 +10,19 @@
 
 ## Backend trực tiếp
 
+**Từ nhánh04:** đọc [hướng dẫn MQTT/xác thực](integration/04-SETUP.md) trước. Chạy `scripts/setup_local_mqtt.py` để tạo registry và secret ngẫu nhiên, rồi nạp backend.env vào tiến trình. Mẫu .env có secret trống nên không thể chạy nguyên xi. Giữ cấu hình local cũ, không ghi đè.
+
 Chỉ sao chép khi chưa có cấu hình local; không ghi đè file đang dùng:
 
 ```powershell
 Copy-Item -LiteralPath .env.example -Destination backend/.env
 ```
 
-Settings bỏ qua khoá thừa; Vite trong file backend không cấu hình frontend. DATABASE_URL, RAW_STORAGE_DIR, CORS_ORIGINS là ba trường đang hỗ trợ; host/port truyền qua Uvicorn.
+Settings bỏ qua khoá thừa; Vite trong file backend không cấu hình frontend. Ngoài DATABASE_URL/RAW_STORAGE_DIR/CORS_ORIGINS, nhánh04 thêm registry, MQTT, token người vận hành và cookie; xem .env.example và hướng dẫn liên kết trên. Host/port HTTP truyền qua Uvicorn.
 
 ```powershell
 Push-Location backend
-..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 1
 Pop-Location
 ```
 
@@ -46,6 +48,7 @@ Vite đọc biến khi khởi động/build. Đổi cấu hình thì khởi đ�
 ## Docker Compose
 
 ```powershell
+.\.venv\Scripts\python.exe scripts/setup_local_mqtt.py
 docker compose --profile ai config --quiet
 docker compose up -d --build backend frontend
 ```
@@ -58,7 +61,7 @@ compose.yaml đặt trực tiếp đường lưu container và build.args fronte
 - Build từ root: .\.venv\Scripts\pio.exe run -d ai/edge_firmware.
 - Wi-Fi/credential local nằm trong ai/edge_firmware/include/network_config.h bị bỏ qua; file example có trong Git. Chép file này chưa làm networking hoạt động.
 - ESP32 dùng IP LAN laptop. localhost trên ESP32 là chính nó; tên service Docker không phải DNS LAN.
-- Theo thiết kế mới, broker MQTT có địa chỉ/cổng riêng; HTTP raw dùng backend8000. Hai client chưa được triển khai chỉ bằng việc thêm cấu hình.
+- Broker MQTT có địa chỉ/cổng riêng; HTTP raw dùng backend8000. Backend MQTT đã có ở04; firmware MQTT ở05, raw client/lưu bền ở06/07. Broker demo chỉ mở loopback, muốn thử LAN cần cấu hình quyền và listener theo hướng dẫn04.
 - Browser trên máy LAN khác cũng không dùng localhost để trỏ laptop; cần API/WS URL và CORS đúng.
 
 ## File IDE sinh tự động

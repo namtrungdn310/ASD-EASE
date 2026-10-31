@@ -1,13 +1,37 @@
 services:
+  broker:
+    image: eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mosquitto/local/passwords:/mosquitto/config/local/passwords:ro
+      - ./infra/mosquitto/local/acl:/mosquitto/config/local/acl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pidof mosquitto >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build: ./backend
+    env_file:
+      - path: ./infra/mosquitto/local/backend.env
+        required: false
     environment:
       DATABASE_URL: sqlite:////app/storage/asd_edge_ai.db
       RAW_STORAGE_DIR: /app/storage/raw
+      DEVICE_REGISTRY_FILE: /app/local/device-registry.json
+      MQTT_HOST: broker
+      MQTT_LOCK_FILE: /app/storage/mqtt-receiver.lock
     ports:
       - "8000:8000"
     volumes:
       - backend-storage:/app/storage
+      - ./infra/mosquitto/local:/app/local:ro
+    depends_on:
+      broker:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
       interval: 5s

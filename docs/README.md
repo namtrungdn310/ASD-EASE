@@ -17,6 +17,8 @@
 - [Báo cáo kiểm chứng](FINAL_VERIFICATION.md)
 - [Kế hoạch từng giai đoạn](phases/)
 - [Đặc tả thiết bị và ví dụ](contracts/README.md)
+- [Chạy backend MQTT, xác thực và simulator](integration/04-SETUP.md)
+- [Bàn giao nhánh04](integration/04-HANDOFF.md)
 
 Bắt đầu từ kiến trúc và tiến độ. Khi làm tính năng, đọc đặc tả và kế hoạch tương ứng. “Dự kiến” không có nghĩa đã triển khai; build thành công không thay kiểm chứng phần cứng.
 

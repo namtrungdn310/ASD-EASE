@@ -12,7 +12,7 @@ ESP32 <-- MQTT lệnh/trạng thái -- broker <-- backend <-- HTTP từ UI
 ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 ```
 
-01 và code02 đã merge;03 đã hoàn tất đặc tả, push và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12). Chủ repo yêu cầu merge khi đủ CI và không xung đột; trạng thái merge xem tại PR. Xem [bàn giao](03-HANDOFF.md) và [tracker](PROGRESS.md). MQTT chưa chạy thực tế.
+01 và code02 đã merge;03 merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d. 04 đã triển khai backend MQTT/phiên và thử broker thật bằng simulator, chưa commit/PR/merge; xem [bàn giao04](04-HANDOFF.md), [cách chạy](04-SETUP.md) và [tracker](PROGRESS.md). Firmware MQTT05 và raw lưu bền06/07 chưa triển khai.
 
 ## Điểm xuất phát
 

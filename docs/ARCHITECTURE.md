@@ -22,7 +22,7 @@ MAX30102 + MPU6050 + GSR
 
 Start/Stop và xác nhận thực thi đi MQTT; batch thô đi HTTP. Trình duyệt dùng HTTP/WebSocket, không giữ thông tin truy cập broker. Laptop không làm thay quyết định cuối trên ESP32 khi thi đấu.
 
-Đây là thiết kế cho nhánh 04–07, chưa phải đường truyền đang chạy. Xem [đặc tả API](API_CONTRACT.md), [điều khiển MQTT](contracts/MQTT_CONTROL.md), [bàn giao 03](integration/03-HANDOFF.md). Broker nhận gói chưa chứng minh thiết bị đã thực thi hoặc backend đã lưu.
+Đây là kiến trúc đích cho nhánh04–07. Backend04 đã triển khai MQTT/phiên và thử qua broker thật bằng simulator; client ESP32 và raw lưu bền còn05–07. Xem [đặc tả API](API_CONTRACT.md), [điều khiển MQTT](contracts/MQTT_CONTROL.md), [bàn giao04](integration/04-HANDOFF.md). Broker nhận gói chưa chứng minh thiết bị đã thực thi hoặc backend đã lưu.
 
 ## Khi mất mạng
 
