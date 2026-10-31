@@ -12,7 +12,7 @@ ESP32 <-- MQTT lệnh/trạng thái -- broker <-- backend <-- HTTP từ UI
 ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 ```
 
-01 và code02 đã merge;03 đặc tả đã xong local/chờ review, chưa commit/PR/merge; [bàn giao](03-HANDOFF.md). MQTT chưa chạy thực tế. Xem [tracker](PROGRESS.md), không suy từ file kế hoạch.
+01 và code02 đã merge;03 đã hoàn tất đặc tả, push và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12). Chủ repo yêu cầu merge khi đủ CI và không xung đột; trạng thái merge xem tại PR. Xem [bàn giao](03-HANDOFF.md) và [tracker](PROGRESS.md). MQTT chưa chạy thực tế.
 
 ## Điểm xuất phát
 
@@ -49,7 +49,7 @@ Thứ tự tiếp:03→04→05→06→07→08→09→10. Sau04 có thể đổi 
 
 Broker/backend MQTT ở04 để05 có bên nhận.04 nhiều việc hơn nên tách commit theo phần; muốn thêm nhánh phải báo Trung trước.
 
-## Quyết định đã ghi ở03, chờ review
+## Quyết định đã ghi ở03
 
 1. Telemetry/raw1.0 giữ cấu trúc, control phiên bản riêng; thay đổi mất tương thích có kế hoạch.
 2. Backend giữ phiên; UIHTTPStartStop→MQTTcommand→ACK, đồng bộ sau reconnect; không firmware pollHTTP song song.

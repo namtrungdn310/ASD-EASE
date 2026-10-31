@@ -6,7 +6,7 @@
 | Chủ trì | Trung — IT; Codex hoàn thiện tài liệu theo yêu cầu2026-10-31, Tân xác nhận phần cứng sau |
 | Phụ thuộc |01 |
 | Bắt đầu/bàn giao |2026-10-22 /2026-10-31 |
-| Trạng thái |READY_FOR_REVIEW — đã xong phần tài liệu trên máy, chưa commit/push/PR/merge |
+| Trạng thái |IN_REVIEW → DONE khi [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) merge vào dev; chủ repo đã yêu cầu merge khi đủ CI |
 | Theo dõi |[Tiến độ](PROGRESS.md), dòng03; [bàn giao](03-HANDOFF.md) |
 
 ## Mục tiêu và phạm vi
@@ -60,8 +60,9 @@ Theo yêu cầu mới, Codex làm nốt phần tài liệu thay cho đọc từn
 - [x] Công cụ mẫu đạt17 ca schema,11 mẫu control,9 biến thể sai bị từ chối; thời gian/số mẫu và16 tham chiếu kịch bản đúng.
 - [x] Backend13/AI15 tests PASS, cảnh báo/commands ghi trong bàn giao.
 - [x] Không nới kiểm tra hoặc sửa logic để mẫu đạt; ca hiện nhận nhưng đích từ chối có nhãn rõ.
-- [ ] Chủ repo review, commit/push, mở PRbase dev; đủ CI/cập nhật/không xung đột.
-- [ ] Merge03 rồi tạo04 từ dev mới; không tự merge hoặc push nhánh bảo vệ.
+- [x] Chủ repo yêu cầu push/merge; đã commit và mở PR #12 với base dev.
+- [ ] Đủ6 CI trên head cuối, cập nhật/không xung đột rồi merge PR #12; trạng thái thực tế xem tại PR.
+- [ ] Sau khi #12 merge, tạo04 từ dev mới khi bắt đầu triển khai; không push trực tiếp nhánh bảo vệ.
 
 Các mục đã tick xác nhận **tài liệu và kiểm tra trên máy**, không xác nhận broker/board đã chạy.
 
@@ -83,5 +84,6 @@ Nếu board không đáp ứng quy tắc thời gian, đổi đặc tả/phiên 
 - 2026-10-22: tạo từ dev d80cc0e sau PR #11, bắt đầu giải thích telemetry.py.
 - 2026-10-22: Trung chọn MQTT telemetry/điều khiển, giữ raw HTTP và browser HTTP/WS.
 - 2026-10-31: Trung yêu cầu hoàn thiện/bàn giao; hoàn tất đặc tả, ví dụ, kiểm tra và tài liệu liên quan, giữ thay đổi schema của Trung.
+- 2026-10-31: Trung yêu cầu push và merge vào dev; đã push commit5dd0d0e, mở PR #12 và chạy lại kiểm tra local đạt. Chỉ merge khi đủ CI trên head cuối.
 
 Sau review/merge: [nhánh04 — backend MQTT và quản lý phiên](04-backend-session-lifecycle.md). Nhánh03 hoàn tất tài liệu không có nghĩa giai đoạn03 MAX30102 hoặc07/08 đã DONE.

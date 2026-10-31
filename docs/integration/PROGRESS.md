@@ -7,7 +7,7 @@ Cập nhật2026-10-31, Asia/Saigon. Trung phụ trách phần triển khai. [K�
 - Kế hoạch [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) merge0bcd833.
 - Cleanup [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) merge86cd09f, CI cuối c764210 đạt6/6; chưa thay nghiệm thu phần cứng.
 - Code02 merge [PR #10](https://github.com/namtrungdn310/ASD-EASE/pull/10) tại ea959ef ngày2026-10-22 theo quyết định chủ repo. Head trước merge6/6, frontend26/transport18 đã đạt; còn thiếu ảnh/log browser độc lập.
-- Nhánh03 docs/device-ingestion-contract đã hoàn thiện đặc tả/mẫu/công cụ/ADR/quy trình, [sẵn sàng review](03-HANDOFF.md); chưa commit/push/PR/merge hoặc MQTT runtime.
+- Nhánh03 docs/device-ingestion-contract đã hoàn thiện đặc tả/mẫu/công cụ/ADR/quy trình và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12), xem [bàn giao](03-HANDOFF.md). Chủ repo yêu cầu merge sau khi đủ CI và không xung đột. MQTT runtime thuộc nhánh sau.
 - Trung đã giao Codex làm nốt03 thay từng-file walkthrough. Các nhánh code sau vẫn có thể học từng file theo yêu cầu.
 - Hướng: MQTT telemetry/lệnh/ACK/đồng bộ, rawHTTP, browserHTTP/WS. Đo wiring/rate/đồng bộ/RAM ở05/07 vẫn còn; không dùng mẫu để nghiệm thu thật.
 - Cần phối hợp Tân về board/GPIO và lịch sửa main.cpp/board_config.h.
@@ -32,7 +32,7 @@ Merge code không tự là hoàn tất giai đoạn. Chờ board thì ghi rõ, k
 |---|---|---|---|---|---|---|---|
 | 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 | DONE | 2026-10-18 | 2026-10-18 | [#9](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Đã merge86cd09f, CI6/6; dây nối chưa xác nhận. |
 | 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | BLOCKED | 2026-10-18 | — | [#10](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Code mergeea959ef, CI6/6; chỉ còn chặn nghiệm thu trực quan, không chặn03. |
-| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | READY_FOR_REVIEW | 2026-10-22 | — | — | Đặc tả/28 ví dụ/16 kịch bản đã xong local; chưa commit/PR/merge, phần cứng ở05/07 còn chờ. |
+| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | IN_REVIEW → DONE khi #12 merge | 2026-10-22 | Khi #12 merge | [#12](https://github.com/namtrungdn310/ASD-EASE/pull/12) | Đặc tả/28 ví dụ/16 kịch bản đã hoàn tất và push; chủ repo yêu cầu merge khi đủ6 CI, không xung đột. Phần cứng ở05/07 còn chờ. |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Broker, nhận MQTT chung, phiên/lệnh chờ, chuyển DB và tests. |
 | 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03/04;02 cho UI | TODO | — | — | — | Client Arduino MQTT/ACK; cần thử QoS1 và board/LAN. |
 | 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03/04 | TODO | — | — | — | Raw HTTP lưu bền/chống trùng, đối chiếu tổng kết. |
@@ -72,6 +72,7 @@ Merge code không tự là hoàn tất giai đoạn. Chờ board thì ghi rõ, k
 |2026-10-22|Kế hoạch MQTT|Đồng bộ03–10,52 link/tên nhánh/21 ca E2E kiểm tra; chưa runtime |
 |2026-10-31|Bàn giao03|17 ca schema+11 control+9 biến thể sai/thời gian/16 tham chiếu đạt; backend13/AI15 đạt; chưa broker/board/JCS thật |
 |2026-10-31|Việt hoá|Backend13/AI15/frontend26 và build đạt; ví dụ17+11/9 ca sai đạt. Logic54 file Python/13 file C++ và JS giữ nguyên;67 Markdown/164 link hợp lệ. Không đổi trạng thái hoặc lịch sử Git |
+|2026-10-31|Đưa03 lên GitHub|Commit5dd0d0e và PR #12 vào dev theo yêu cầu Trung; kiểm tra local đạt lại. Hai schema định dạng riêng giữ trên máy, không trong PR. CI/merge tra trực tiếp PR; không suy từ kết quả local. |
 
 Các số trong nhật ký là kết quả lịch sử theo phạm vi, không chép sang SHA mới như đã chạy.
 

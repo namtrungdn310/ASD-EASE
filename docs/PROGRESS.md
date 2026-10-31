@@ -51,7 +51,7 @@ Các kết quả chỉ đúng phạm vi/commit đã ghi, không tự trở thàn
 
 ## Nhánh công việc hiện tại
 
-Nhánh docs/device-ingestion-contract, dựa dev d80cc0e, đã hoàn thiện phần đặc tả/ví dụ trên máy ngày2026-10-31: READY_FOR_REVIEW, chưa commit/push/PR/merge. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
+Nhánh docs/device-ingestion-contract, dựa dev d80cc0e, đã hoàn thiện đặc tả/ví dụ và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) ngày2026-10-31. Chủ repo yêu cầu merge khi đủ6 CI và không xung đột; nhánh03 đạt DONE khi PR này merge vào dev. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
 
 Xem [kế hoạch](integration/README.md), [tracker nhánh](integration/PROGRESS.md), [bàn giao03](integration/03-HANDOFF.md). Sau review/merge03 mới tạo nhánh04 làm backend MQTT/phiên. Hướng đã chốt: MQTT telemetry/điều khiển, raw HTTP, browser HTTP/WS; chưa runtime.
 

@@ -2,7 +2,7 @@
 
 Ngày2026-10-31, múi giờ Asia/Saigon. Nhánh docs/device-ingestion-contract từ dev d80cc0e, HEAD trước bàn giao9a8401e.
 
-**Phần đặc tả/ví dụ hoàn tất trên máy, READY_FOR_REVIEW; chưa commit/push/PR/merge.** Chưa DONE theo tracker vì còn review và merge.
+**Phần đặc tả/ví dụ đã hoàn tất, push và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12).** Chủ repo yêu cầu merge sau khi đủ6 CI trên head cuối và không xung đột. Nhánh03 đạt DONE khi PR #12 merge vào dev; trạng thái trực tiếp xem tại PR.
 
 ## Nhánh này làm gì?
 
@@ -52,13 +52,13 @@ telemetry_nested_extra_gap và raw_adc_range_gap cố ý là ca hiện chấp nh
 - Broker/client MQTT, quyền/ACL/TLS, DB chuyển đổi/lệnh chờ, lưu raw đồng thời/chống lỗi và mẫu JCS chưa triển khai.
 - Tân chưa đo wiring/board/flash/PSRAM, rate/jitter/đồng bộ FIFO, hiệu chuẩn GSR và RAM đỉnh. GPIO7 là code hiện có, chưa xác nhận dây thật. Cổng này ở05/07;04 dùng giả lập trước.
 - Giai đoạn02 còn quan sát trình duyệt. Không tự đánh giai đoạn00–24 DONE.
-- Không review/merge thay chủ repo; hai schema Trung gõ vẫn là thay đổi local của Trung, không tự revert/stage vào PR tài liệu.
+- Hai schema Trung gõ vẫn là thay đổi định dạng local, không revert hoặc đưa vào PR tài liệu. Chủ repo đã yêu cầu merge PR của mình; áp dụng ngoại lệ review đã thống nhất, vẫn cần đủ CI.
 
 ## Bước tiếp
 
-1. Trung review quy tắc, giới hạn phát triển và phần quyền; không cần gõ lại docs.
-2. Khi Trung yêu cầu: commit đúng tài liệu/mẫu/công cụ, kiểm tra không lẫn định dạng schema, push và mở PRbase dev.
-3. Đủ6 CI trên head mới nhất, cập nhật/không xung đột, giải quyết trao đổi rồi merge theo quyền. READY_FOR_REVIEW chưa phải CI PASS/đã merge.
+1. Đã commit/push tài liệu, mẫu, công cụ và phần Việt hoá; không lẫn định dạng schema.
+2. PR #12 có base dev, được tạo theo yêu cầu push/merge của Trung.
+3. Đủ6 CI trên head mới nhất, cập nhật/không xung đột, giải quyết trao đổi rồi merge theo quyền. Kiểm tra local không thay CI; xem trạng thái merge tại PR.
 4. Sau merge, cập nhật dev và tạo feature/backend-session-lifecycle: broker/cấu hình → nhận chung/MQTT → phiên/lệnh chờ/chuyển DB → simulator/tests/hướng dẫn.
 5. Chỉ nghiệm thu05/07 khi có số đo; nếu clock/profile không khớp, đổi đặc tả/phiên bản trước nhận raw thật.
 
@@ -70,5 +70,5 @@ Lần Việt hoá sau bàn giao giữ ý nghĩa và trạng thái trên; không 
 - Công cụ ví dụ PASS17 ca schema,11 mẫu control và9 biến thể sai; payload, ID, khoá và kịch bản giữ nguyên.
 - AST thực thi54 file Python theo dõi trong Git không đổi khi bỏ docstring/comment;13 file C++/header/JS thay comment có token thực thi không đổi.
 - Quét67 Markdown:164 liên kết local đều tồn tại, không lỗi đóng khối code/UTF-8. Đủ25 giai đoạn và10 kế hoạch nhánh.
-- Không viết lại lịch sử Git, không commit/push/merge. Mã trạng thái, tên trường/API, cấu hình và thay đổi schema của Trung được giữ.
+- Tại lần Việt hoá chưa commit/push/merge và không viết lại lịch sử Git. Sau đó Trung yêu cầu đưa lên PR #12; mã trạng thái, tên trường/API, cấu hình và thay đổi schema của Trung vẫn được giữ.
 - Đã sửa ghi chú GPIO cũ và các mục kiểm thử/rủi ro/tiếp theo đặt nhầm ở giai đoạn00. Không thay trạng thái nghiệm thu.

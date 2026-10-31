@@ -7,7 +7,7 @@ Cập nhật2026-10-31. Áp dụng nhánh03–10. Đây là tổng quan; quy t�
 - MQTT cho telemetry và Start/Stop/ACK/đồng bộ trạng thái.
 - Raw batch giữ HTTP, không chuyển cả dữ liệu sang broker.
 - Browser giữ HTTP/WebSocket; không MQTT hoặc credential broker.
-- Đặc tả03 đã hoàn thiện local, chờ review; chưa broker/client thực tế. Phiên bản thư viện/broker và số đo chốt ở04/05/07.
+- Đặc tả03 đã hoàn thiện và đưa lên [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12); chưa broker/client thực tế. Phiên bản thư viện/broker và số đo chốt ở04/05/07.
 
 ## Luồng
 

@@ -75,7 +75,7 @@ Profile build ESP32-S3 là cấu hình tạm, không chứng minh board/cảm bi
 
 ## Đang ở đâu?
 
-Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã bàn giao phần đặc tả trên máy, chưa commit/PR/merge. Hai hệ đánh số giai đoạn và nhánh khác nhau.
+Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã hoàn tất đặc tả và được đưa lên [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12); khi PR merge vào dev thì nhánh03 hoàn tất. Hai hệ đánh số giai đoạn và nhánh khác nhau.
 
 Xem [tiến độ giai đoạn](docs/PROGRESS.md), [bàn giao03](docs/integration/03-HANDOFF.md) và [mục lục](docs/README.md). Không suy hoàn thành từ file khung.
 
