@@ -1,2 +1,2 @@
-"""Future model export interfaces (Phase 15)."""
+"""Giao diện xuất mô hình dự kiến cho giai đoạn 15."""
 

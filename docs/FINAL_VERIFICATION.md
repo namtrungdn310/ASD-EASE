@@ -1,49 +1,51 @@
-# Final Verification Report
+# Báo cáo kiểm chứng
 
-## Phase status
+## Trạng thái
 
-- Current completed phase: Phase 01 — Project Scaffold (`DONE`).
-- Active phase: Phase 02 — Mock End-to-End (`IN_PROGRESS`).
-- Phase 02 remains open only because no controllable browser was available for visual confirmation of live dashboard values and the `SYNTHETIC DATA` badge.
-- Sensor-driver and combined-loop implementations were added in PR #7 (`332f249`). Phase 03–06 physical acceptance is not documented; code availability does not mark those phases complete.
-- Cleanup branch 01 consolidates shared enums in `common_types.h` and forwards legacy pin/sampling includes to `board_config.h`. Firmware build and standalone header-combination checks pass locally; physical configuration values are unchanged. Current PR/CI status is tracked in `docs/integration/PROGRESS.md`.
+- Hoàn tất chính thức: giai đoạn01, khung dự án, DONE.
+- Đang mở:02, kiểm thử toàn luồng giả lập, IN_PROGRESS; còn xác nhận trực quan giá trị và nhãn SYNTHETIC DATA.
+- Driver/vòng đọc có từ PR #7, sau đó cập nhật PR #11;03–06 chưa có hồ sơ nghiệm thu phần cứng.
+- Cleanup01 đã gom enum/header tương thích; build không xác nhận GPIO/board thật.
+- Bàn giao đặc tả nhánh03 ngày2026-10-31 ở [đây](integration/03-HANDOFF.md). Chưa có runtime MQTT hoặc tự đổi phase DONE.
 
-## Verification
+## Kết quả đã ghi nhận
 
-| Item | Status | Evidence |
+Các mục dưới là bằng chứng của lần kiểm tra đã lưu, không phải tất cả đều chạy lại khi dịch tài liệu. Kết quả mới phải gắn đúng commit/ngày.
+
+| Mục | Kết quả | Bằng chứng/giới hạn |
 |---|---|---|
-| Required three source modules and documentation | PASS | `backend`, `frontend`, `ai`, `docs`; 25 phase files with complete template headings. |
-| Git repository | PASS | Connected to `namtrungdn310/ASD-EASE`; `dev` is the default branch and generated/private artifacts are ignored. |
-| Protected branches | PASS | `dev` and `main` require PR, six CI checks, an up-to-date conflict-free head, resolved conversations and linear history; admin enforcement blocks direct pushes. Collaborator PRs require owner approval; `namtrungdn310` has a PR-only bypass intended only for owner-authored PRs. |
-| Pull request workflow | PASS | PR #1 follows `fix/* → dev`; all six checks pass. As an owner-authored PR, it may use **Bypass rules and merge** without external approval after the final diff and conflict status are verified. |
-| Docker Compose configuration | PASS | `docker compose config` exit 0. |
-| Backend tests | PASS | 13 pytest tests passed. |
-| Synthetic/AI tests | PASS | 15 pytest tests passed. |
-| Frontend compile/build | PASS | TypeScript and Vite production build passed. |
-| Frontend dependency audit | PASS | `npm audit --omit=dev`: 0 vulnerabilities. |
-| Docker images | PASS | Backend, frontend and optional AI images built. |
-| Docker runtime | PASS | Backend healthy; frontend running; both exposed on required ports. |
-| Health and OpenAPI | PASS | `/api/v1/health` and `/openapi.json` returned HTTP 200. |
-| HTTP telemetry and validation | PASS | Synthetic payload returned HTTP 202; invalid/bounds/enum tests passed. |
-| Live WebSocket broadcast | PASS | Live client received `SIM-E2E` with `data_origin=SYNTHETIC`. |
-| Raw batches | PASS | Backend accepted batches and wrote session JSONL in the storage volume. |
-| Synthetic replay/reconnect | PASS | Ordered telemetry resumed after simulated two-second network pause. |
-| Dashboard serving | PASS | React container returned HTTP 200. |
-| Dashboard visual values/provenance badge | NOT_VERIFIED | Browser-control surface was unavailable; source/build passed, but no visual claim is made. |
-| Firmware scaffold build | PASS | PlatformIO 6.2.0 build succeeded under temporary conservative ESP32-S3 profile. |
-| Physical ESP32/sensors/battery | NOT_VERIFIED | Requires Phase 00 and later physical phases. |
+| Cấu trúc | PASS | backend/frontend/ai/docs và25 tài liệu giai đoạn |
+| Repo | PASS theo hồ sơ | namtrungdn310/ASD-EASE, mặc định dev; không xác minh quyền trực tuyến trong lượt dịch |
+| Bảo vệ dev/main | PASS theo hồ sơ | PR,6 CI, nhánh cập nhật/không xung đột, xử lý trao đổi, lịch sử tuyến tính; không push trực tiếp |
+| Quyền review | Theo quy trình | Tân cần Trung approve; Trung chỉ dùng ngoại lệ PR của mình sau kiểm tra |
+| PR #1 | PASS theo hồ sơ | fix/* →dev,6 checks đạt; không tự suy tình trạng PR hiện tại |
+| Docker Compose | PASS | docker compose config trả0 |
+| Backend | PASS | 13 pytest tests |
+| AI/giả lập | PASS | 15 pytest tests |
+| Frontend | PASS | TypeScript/Vite build; sau đó26 tests tự động được ghi trong tracker |
+| Audit production | PASS ở lần ghi nhận | npm audit --omit=dev:0 lỗ hổng |
+| Docker images/runtime | PASS | Build3 image; backend khoẻ, frontend chạy |
+| Health/OpenAPI | PASS | HTTP200 |
+| Telemetry HTTP | PASS | Mẫu giả lập202, từ chối dữ liệu sai theo tests hiện có |
+| WebSocket | PASS | Nhận SIM-E2E, nguồn SYNTHETIC |
+| Raw | PASS ở mức khung | Ghi JSONL; chưa chứng minh lưu bền/chống trùng của đặc tả mới |
+| Phát lại/ngắt nối | PASS | Sau tạm ngắt2 giây, tiếp tục timestamp đúng thứ tự |
+| Dashboard phục vụ HTTP | PASS | HTTP200 |
+| Giá trị/nhãn trực quan | NOT_VERIFIED | Chưa có trình duyệt điều khiển được; build không thay quan sát |
+| Firmware build | PASS | PlatformIO6.2.0, profile ESP32-S3 tạm |
+| Board/cảm biến/pin | NOT_VERIFIED | Cần kiểm chứng vật lý |
 
-Warnings from dependency internals were non-failing deprecations in matplotlib/Starlette. Vite reported one bundle-size warning (Recharts); this is not a build failure and premature route splitting was not added to the scaffold.
+Cảnh báo matplotlib/Starlette về API cũ và bundle Recharts lớn không làm lần build/test đã ghi nhận thất bại. Không tuyên bố số liệu khoa học từ các kiểm tra này.
 
-## Exact commands
+## Lệnh tái hiện
 
-### Docker stack
+### Docker
 
 ```powershell
 docker compose up --build
 ```
 
-### Backend tests
+### Backend
 
 ```powershell
 python -m venv .venv
@@ -53,14 +55,14 @@ Push-Location backend
 Pop-Location
 ```
 
-### Frontend build
+### Frontend
 
 ```powershell
 npm --prefix frontend install
 npm --prefix frontend run build
 ```
 
-### ai/synthetic tests and mock device
+### Giả lập và AI
 
 ```powershell
 .\.venv\Scripts\python -m pip install -r ai\requirements.txt
@@ -70,41 +72,24 @@ Pop-Location
 docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario attention_mock --duration 30 --send-raw
 ```
 
-### PlatformIO build
-
-Run from the repository root:
+### Firmware
 
 ```powershell
 .\.venv\Scripts\python.exe -m pip install platformio
 .\.venv\Scripts\pio.exe run -d ai\edge_firmware
 ```
 
-## What works now
+## Đã có và chưa có
 
-- Versioned compact telemetry and raw-batch validation, SQLite metadata skeleton, JSONL raw storage and WebSocket broadcast.
-- Responsive React dashboard source with device/state/HR/GSR/movement/quality/probability charts and a visible synthetic-data marker.
-- Reproducible multimodal generator, profiles, required scenarios, manifests, diagnostic plotting, shared preprocessing input, save/replay and disconnect/reconnect simulation.
-- Docker backend/frontend runtime and optional AI runner.
-- The PR #7 firmware contains MAX30102/MPU6050/GSR drivers, EMA and a combined Serial reporting loop. Its `esp32s3_supermini` environment compiles; physical measurements and calibrated sensor accuracy remain unverified in the repository. `HardwareProfiler` still exists but the current `setup()` does not call it.
+Đã có khung kiểm tra telemetry/raw, thông tin SQLite, JSONL và phát WebSocket; dashboard; bộ sinh/lưu/phát lại giả lập và giao diện đầu vào xử lý chung; Docker; driver và Serial.
 
-## Scaffold only
+Chưa có quy trình nghiên cứu hoàn chỉnh, xử lý/chất lượng/mức nền/đặc trưng sản phẩm, mô hình đã huấn luyện/xuất, suy luận thiết bị hoặc logic trạng thái cuối. Client ESP32 mạng và bộ đệm raw có giới hạn vẫn là việc sau. HardwareProfiler có code nhưng setup hiện chưa gọi.
 
-- Production signal processing, signal quality, personal baselines, feature extraction, rule/ML models, model export, Edge inference and temporal state logic.
-- Real ESP32 Wi-Fi client, bounded firmware telemetry/raw queues and competition behavior remain unimplemented. Physical driver implementations exist but their hardware acceptance evidence is still missing.
-- Sessions/annotations/events endpoints are structurally functional but are not a completed research workflow.
+Cần phần cứng để xác nhận chip/board, GPIO/I2C/ADC, flash/PSRAM, USB, nguồn/pin và hoạt động độc lập. Không suy từ tên ESP32-S3 Super Mini hoặc profile PlatformIO.
 
-## Requires physical hardware
+## Cây bàn giao tham khảo
 
-- Phase 00 board identity, real GPIO/I2C/ADC, flash/PSRAM, USB/power/battery, all sensor acquisition, standalone and competition tests.
-
-## Unknown ESP32-S3 Super Mini facts
-
-- Exact purchased-board pinout, flash capacity, PSRAM presence/capacity, USB implementation, regulator/charger, battery safety and usable ADC1/I2C pins.
-- The PlatformIO board profile is a build target only and must not be read as physical identification.
-
-## Complete deliverable tree
-
-Generated dependency/build/cache directories (`.venv`, `node_modules`, `dist`, `.pio`, pytest caches and test databases) are intentionally excluded.
+Cây dưới giữ ảnh chụp cấu trúc ở lần lập báo cáo, không thay git ls-files hiện tại. Không liệt kê thư viện/build/cache hoặc các file mới đã bổ sung sau đó.
 
 ```text
 ASD-EDGE-AI/
@@ -340,3 +325,5 @@ ASD-EDGE-AI/
     │   └── vite.config.ts
     └── README.md
 ```
+
+Xem [tiến độ hiện tại](PROGRESS.md), [tracker nhánh](integration/PROGRESS.md) và [bằng chứng nhánh02](integration/02-VERIFICATION.md).

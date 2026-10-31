@@ -1,4 +1,4 @@
-# Utilities
+# Hàm hỗ trợ giao diện
 
-Shared display helpers can be added here when needed.
+Đặt helper hiển thị dùng chung ở đây khi cần, không đưa nghiệp vụ backend vào frontend.
 

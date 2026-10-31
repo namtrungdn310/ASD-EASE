@@ -1,94 +1,84 @@
-# Phase 02 — Mock End-to-End
+# Giai đoạn 02 — Kiểm thử toàn luồng bằng dữ liệu giả lập
 
-## Status
+## Trạng thái
 
 IN_PROGRESS
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Verify synthetic generator/replay through HTTP, FastAPI validation, WebSocket and React dashboard.
+Kiểm tra dữ liệu giả lập đi qua HTTP, FastAPI, WebSocket và dashboard React.
 
-## Why This Phase Exists
+## Lý do
 
-De-risks integration before any sensor hardware is available.
+Phát hiện lỗi tích hợp trước khi có cảm biến thật.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 01
+Giai đoạn 01
 
-## Inputs
+## Đầu vào
 
-Running Docker stack or local backend/frontend; synthetic session.
+Backend/frontend đang chạy bằng Docker hoặc trực tiếp; một phiên dữ liệu giả lập.
 
-## Tasks
+## Công việc
 
-- [x] Generate and save reproducible multimodal synthetic sessions
-- [x] Replay compact telemetry and raw batches to FastAPI
-- [ ] Verify WebSocket delivery, dashboard values and SYNTHETIC DATA marker
+- [x] Sinh/lưu phiên giả lập đa cảm biến có thể tái lập.
+- [x] Phát lại telemetry và raw tới FastAPI.
+- [ ] Xác nhận trực quan giá trị dashboard và nhãn SYNTHETIC DATA; WebSocket tự động đã kiểm tra.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/synthetic/...; ai/simulator/mock_device.py; backend/...; frontend/...; docs/SYNTHETIC_DATA_SPEC.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use one shared contract, mark origin SYNTHETIC, send compact telemetry and optional raw batches, and test disconnect/reconnect separately from acquisition.
+Dùng chung đặc tả, ghi nguồn SYNTHETIC; tách việc ngắt đường truyền khỏi việc thu mẫu.
 
-## Tests
+## Kiểm thử
 
-Run automated contract/reproducibility/WebSocket tests; start stack; replay each scenario; observe dashboard marker and fields.
+Chạy kiểm thử đặc tả, tái lập dữ liệu và WebSocket; phát lại từng kịch bản, quan sát giá trị và nhãn trên dashboard.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [x] Required synthetic scenarios satisfy the raw contract and reproducibility tests
-- [x] Mock telemetry is accepted and broadcast through WebSocket
-- [ ] React dashboard receives fields and visibly identifies synthetic origin
+- [x] Kịch bản giả lập đáp ứng đặc tả raw và kiểm thử tái lập.
+- [x] Telemetry được nhận và phát qua WebSocket.
+- [ ] Dashboard hiển thị đúng trường và nhãn nguồn giả lập trên trình duyệt thật.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 02; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-A headless environment may verify builds but not visual runtime; transport pause may be mistaken for acquisition pause.
+Build thành công không chứng minh giao diện đúng; tạm dừng gửi không có nghĩa dừng thu.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Check backend logs, browser console, WebSocket frames and saved session timestamps.
+Đối chiếu nhật ký backend, console trình duyệt, gói WebSocket và timestamp đã lưu.
 
-## Results
+## Kết quả
 
-Generator, raw-batch replay, compact telemetry, network-pause recovery and live WebSocket broadcast were verified. Frontend compiled, served HTTP 200 and contains the synthetic marker/telemetry components. Visual browser verification could not be executed because no controllable browser was available, so this phase remains IN_PROGRESS.
+Đã kiểm tra sinh/phát lại dữ liệu, raw HTTP, WebSocket và phục hồi sau tạm ngắt gửi. Frontend build và phục vụ HTTP 200; chưa có kiểm tra trực quan bằng trình duyệt điều khiển được, nên giữ IN_PROGRESS.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-- ai/synthetic suite: 15 tests passed, including scenarios, contract, shared preprocessing, reproducibility, profiles, counts/ranges and transitions.
-- Docker mock replay sent ATTENTION telemetry and raw batches accepted by the backend.
-- Live WebSocket test received device SIM-E2E with origin SYNTHETIC after HTTP 202 ingestion.
-- Raw JSONL exists in the backend storage volume.
-- Disconnect/reconnect scenario resumed ordered timestamps after a simulated two-second transport pause.
-- Frontend production build and container start passed; http://localhost:5173 returned 200.
-- Visual field/marker inspection: NOT_VERIFIED (no browser surface available).
+- AI: 15 tests PASS về kịch bản, đặc tả, tái lập, số mẫu và chuyển tiếp.
+- Phát lại giả lập ATTENTION/raw được backend nhận; WebSocket nhận SIM-E2E/SYNTHETIC sau HTTP 202.
+- Có file JSONL trong vùng lưu; sau tạm ngắt 2 giây, timestamp tiếp tục đúng thứ tự.
+- Frontend build/container PASS, localhost:5173 trả 200; kiểm tra trực quan vẫn NOT_VERIFIED.
 
-## Verification update — 2026-10-20
+## Cập nhật kiểm tra — 2026-10-20
 
-- Frontend `npm test`: 26/26 PASS, including real React DOM hook lifecycle,
-  StrictMode replay, unmount cleanup and DOM device-selection events in jsdom.
-  WebSocket/timers in that suite are controlled doubles, not a browser connection.
-- Isolated simulator transport check: 18/18 exact payload matches over real HTTP
-  and WebSocket across normal, poor-signal and disconnect/reconnect scenarios;
-  invalid telemetry rejected, subscriber reconnect passed. No normal app DB used.
-- Current frontend/backend Docker rebuild/start succeeded; both localhost endpoints
-  returned HTTP 200. This does not establish visual behavior.
-- Browser runtime URL selection returned `No browser is available`, discovery `[]`
-  after supported troubleshooting. Visual acceptance remains BLOCKED_BROWSER and
-  Phase 02 remains IN_PROGRESS. No clinical or hardware claim is made.
-- Evidence and manual acceptance: [branch 02 verification](../integration/02-VERIFICATION.md).
+- Frontend 26/26 tests PASS bằng React DOM/jsdom: vòng đời hook, StrictMode, chọn thiết bị và dọn kết nối. Socket/đồng hồ được giả lập; chưa kiểm tra bố cục trình duyệt.
+- Kiểm tra riêng HTTP/WebSocket thật: 18/18 gói khớp nguồn, ba kịch bản, từ chối gói sai và nối lại subscriber; dùng DB tạm.
+- Backend/frontend container khởi động lại thành công, HTTP 200; chưa chứng minh hiển thị trực quan.
+- Công cụ trình duyệt trả `No browser is available`, discovery `[]`; giữ BLOCKED_BROWSER/IN_PROGRESS, không có công bố phần cứng hoặc lâm sàng.
+- Xem [bằng chứng nhánh 02](../integration/02-VERIFICATION.md).
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 03 — MAX30102
+Giai đoạn 03 — MAX30102

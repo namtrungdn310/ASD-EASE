@@ -105,7 +105,7 @@ class SyntheticGenerator:
         return SyntheticSession(metadata, streams, telemetry)
 
     def generate_dataset(self, root: str | Path) -> list[tuple[Path, Path]]:
-        """Generate configured participants/trials with distinct profiles and seeds."""
+        """Sinh người/lần đo theo cấu hình, với hồ sơ và seed khác nhau."""
         scenario_names = list(self.config.scenario_distribution)
         weights = np.array(list(self.config.scenario_distribution.values()), dtype=float)
         if not scenario_names or np.any(weights < 0) or weights.sum() <= 0:

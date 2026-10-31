@@ -1,78 +1,80 @@
-# Phase 08 — Data Logger
+# Giai đoạn 08 — Ghi dữ liệu
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Detailed Implementation Plan
+## Mục tiêu
 
-Use the [raw-ingestion plan](../integration/06-backend-raw-ingestion.md), [firmware raw-batching plan](../integration/07-firmware-raw-batching.md), [recording/export plan](../integration/08-backend-recording-export.md), [session UI plan](../integration/09-frontend-recording-control.md) and [E2E acceptance plan](../integration/10-e2e-device-ingestion.md). Track branches in [integration progress](../integration/PROGRESS.md). The detailed plan does not itself complete this phase.
+Lưu các batch raw thật có chung mốc thời gian và thông tin phiên.
 
-## Objective
+## Lý do
 
-Persist synchronized real raw batches and session metadata.
+Tạo đầu vào kiểm tra được cho bước thu thập dữ liệu.
 
-## Why This Phase Exists
+## Phụ thuộc
 
-Creates auditable input for actual dataset collection.
+Giai đoạn 07
 
-## Dependencies
+## Đầu vào
 
-Phase 07
+Luồng mẫu thật, API raw-batch và ID phiên.
 
-## Inputs
+## Công việc
 
-Real streams, raw-batch endpoint and session IDs.
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Tasks
-
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
-
-## Files Expected To Change
+## File dự kiến thay đổi
 
 backend/app/services/raw_storage.py; backend/app/api/v1/raw_data.py
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use files for high-rate data and SQLite only for metadata.
+Raw đi HTTP; điều khiển và bản tổng kết đi MQTT. Lưu file batch bất biến, SQLite lưu chỉ mục. Chỉ xác nhận sau khi file/chỉ mục nhất quán; giữ null, nguồn dữ liệu và bản ghi cũ. Xem [quy tắc nhận dữ liệu](../contracts/INGESTION_V1.md).
 
-## Tests
+## Kiểm thử
 
-Start/stop session; ingest batches; reload and verify counts/order.
+Start/Stop; retry, trùng/xung đột, đến sai thứ tự, lỗi giữa lúc ghi; tổng kết MQTT đến trước/sau raw HTTP; mất từng đường truyền, đầy bộ đệm và xuất lại đối chiếu số mẫu/hash/đơn vị/timestamp.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
+- [ ] Phân biệt STOPPED với recording_complete khi thiếu mẫu, mất batch hoặc hết thời gian chờ.
+- [ ] Có số đo tốc độ, đồng bộ, RAM và bộ đệm thật; không thay bằng kết quả giả lập.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 08; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Partial files, storage exhaustion or schema drift.
+File ghi dở, hết dung lượng hoặc lệch đặc tả.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Preserve source files; validate line-by-line and start a new session.
+Giữ file gốc; kiểm tra từng batch và dùng phiên mới khi cần.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Kế hoạch chi tiết
 
-Phase 09 — Dataset Collection
+Xem [kế hoạch tích hợp](../integration/README.md), [tiến độ](../integration/PROGRESS.md) và [đặc tả API](../API_CONTRACT.md). Tài liệu không thay đổi trạng thái nghiệm thu.
+
+## Giai đoạn tiếp theo
+
+Giai đoạn 09 — Thu thập bộ dữ liệu
 

@@ -3,7 +3,7 @@
 
 /**
  * =============================================================================
- * EMA (Exponential Moving Average) Filter
+ * EMA — bộ lọc trung bình động hàm mũ
  * Bộ lọc thông thấp làm mịn tín hiệu theo phương pháp trung bình động hàm mũ
  * =============================================================================
  *
@@ -16,11 +16,11 @@
  *   - alpha càng lớn (gần 1): Lọc nhẹ hơn, đáp ứng nhanh tức thời theo tín hiệu.
  *   - alpha = 1.0: Không lọc (y[n] = x[n]).
  *
- * Tính năng nổi bật:
- *   - Khởi tạo mượt tự động (Auto-initialization): Mẫu hợp lệ đầu tiên được gán
- *     trực tiếp làm giá trị gốc, tránh hiện tượng trũng tín hiệu từ 0 (cold start).
- *   - Bảo vệ chống lỗi NaN / Infinity khi đọc lỗi cảm biến.
- *   - Hỗ trợ functor operator() và cast sang float trực tiếp.
+ * Cách hoạt động:
+ *   - Khởi tạo tự động: Mẫu hợp lệ đầu tiên được gán
+ *     trực tiếp làm giá trị gốc, tránh kéo giá trị đầu về 0.
+ *   - Bỏ qua NaN/Infinity ở đầu vào update(), giữ giá trị trước.
+ *   - Có operator() và phép chuyển sang float để đọc/gọi ngắn.
  */
 
 class EMA {

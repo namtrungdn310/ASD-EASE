@@ -1,102 +1,97 @@
-# Tiến độ IT — Device ingestion và recording
+# Tiến độ nhánh tích hợp thiết bị
 
-Kế hoạch: [README.md](README.md). Baseline: `332f249`. Chủ phần triển khai: Trung (IT).
+Cập nhật2026-10-31, Asia/Saigon. Trung phụ trách phần triển khai. [Kế hoạch](README.md), [kiến trúc](MQTT_ARCHITECTURE.md). Mốc lập kế hoạch332f249; bắt đầu03 trên d80cc0e.
 
-Ngày cập nhật: 2026-10-22 (Asia/Saigon).
+## Hiện tại
 
-## Công việc hiện tại
+- Kế hoạch [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) merge0bcd833.
+- Cleanup [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) merge86cd09f, CI cuối c764210 đạt6/6; chưa thay nghiệm thu phần cứng.
+- Code02 merge [PR #10](https://github.com/namtrungdn310/ASD-EASE/pull/10) tại ea959ef ngày2026-10-22 theo quyết định chủ repo. Head trước merge6/6, frontend26/transport18 đã đạt; còn thiếu ảnh/log browser độc lập.
+- Nhánh03 docs/device-ingestion-contract đã hoàn thiện đặc tả/mẫu/công cụ/ADR/quy trình, [sẵn sàng review](03-HANDOFF.md); chưa commit/push/PR/merge hoặc MQTT runtime.
+- Trung đã giao Codex làm nốt03 thay từng-file walkthrough. Các nhánh code sau vẫn có thể học từng file theo yêu cầu.
+- Hướng: MQTT telemetry/lệnh/ACK/đồng bộ, rawHTTP, browserHTTP/WS. Đo wiring/rate/đồng bộ/RAM ở05/07 vẫn còn; không dùng mẫu để nghiệm thu thật.
+- Cần phối hợp Tân về board/GPIO và lịch sửa main.cpp/board_config.h.
 
-- **Lập kế hoạch:** [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) đã merge vào dev tại `0bcd833`.
-- **Implementation:** [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) đã merge vào dev tại `86cd09f`; sáu required checks PASS trên commit PR cuối `c764210`. Phần cleanup phần mềm đã hoàn tất, không thay thế xác nhận wiring vật lý.
-- **Nhánh 02 đã tích hợp:** PR #10 merged vào dev tại `ea959ef` theo yêu cầu chủ repo ngày 2026-10-22 (Asia/Saigon), CI PR head trước merge 6/6 PASS. Frontend 26 tests và transport 18/18 gói PASS trước đó. Chưa có ảnh/log nghiệm thu browser độc lập, nên không tự đóng Phase 02; việc merge không biến visual test thành PASS.
-- **Nhánh đang làm:** `docs/device-ingestion-contract`, baseline `dev d80cc0e` sau PR #11 cập nhật firmware. Nhánh 03 chỉ sửa đặc tả/ví dụ dưới docs, chưa implementation. Đang hướng dẫn đọc file đầu `backend/app/schemas/telemetry.py`; chờ Trung đọc xong trước file kế.
-- **Chế độ học:** Codex xử lý Git/tài liệu/cấu hình hỗ trợ; Trung viết từng source file cốt lõi, kiểm tra xong mới qua file tiếp.
-- **Việc phối hợp đầu tiên:** lấy xác nhận GPIO GSR, board/flash và lịch sửa `main.cpp`/`board_config.h` từ Tân.
+## Mã trạng thái
 
-## Quy ước trạng thái
-
-| Trạng thái | Ý nghĩa |
+| Mã | Ý nghĩa |
 |---|---|
-| `TODO` | Chưa bắt đầu; xem phụ thuộc trước khi tạo nhánh |
-| `IN_PROGRESS` | Đang triển khai và cập nhật checklist |
-| `WAITING_HARDWARE` | Phần mềm đã có thể kiểm thử, thiếu bằng chứng thiết bị thật |
-| `BLOCKED` | Có blocker cụ thể, ghi đầu vào/người phụ trách/hành động tiếp |
-| `IN_REVIEW` | Có PR, đang chờ checks hoặc review |
-| `DONE` | Đã merge, đủ tiêu chí nghiệm thu của nhánh, có bằng chứng |
+| TODO |Chưa bắt đầu, xem phụ thuộc trước |
+| IN_PROGRESS |Đang làm |
+| READY_FOR_REVIEW |Local đã kiểm tra, chờ review/commit/push/PR |
+| IN_REVIEW |Có PR, chờ CI/review |
+| WAITING_HARDWARE |Phần mềm có thể thử, thiếu bằng chứng board |
+| BLOCKED |Có việc cụ thể đang chặn |
+| DONE |Đã merge và đủ nghiệm thu của nhánh |
 
-Một PR phần mềm có thể merge trước test board nếu ghi rõ giới hạn. Khi đó ghi trạng thái `WAITING_HARDWARE` thay vì mặc định `DONE` cho toàn nhánh. Không đồng nhất trạng thái merge với hoàn thành phase.
+Merge code không tự là hoàn tất giai đoạn. Chờ board thì ghi rõ, không mặc định DONE.
 
-## Bảng theo dõi duy nhất theo nhánh
+## Bảng nhánh
 
-| ID | Kế hoạch / tên nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Bằng chứng / blocker |
+| ID | Kế hoạch/nhánh | Phụ thuộc | Trạng thái | Bắt đầu | Kết thúc | PR | Kết quả/việc chờ |
 |---|---|---|---|---|---|---|---|
-| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 đã merge | DONE | 2026-10-18 | 2026-10-18 | [#9 merged](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Software cleanup xong, CI cuối 6/6 PASS; wiring vẫn pending ngoài nghiệm thu cleanup |
-| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 đã merge | BLOCKED | 2026-10-18 | — | [#10 merged](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Code merged ea959ef; CI PR head6/6 PASS, owner cho phép merge. BLOCKED chỉ phần visual acceptance chưa có bằng chứng độc lập; không chặn bắt đầu03 |
-| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | IN_PROGRESS | 2026-10-22 | — | — | Baseline d80cc0e; đọc telemetry.py từng file trước chốt docs. Cần xác nhận output/rate/units mới từ Tân; chưa đổi source |
-| 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Chưa triển khai |
-| 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03,04; 02 cho UI | TODO | — | — | — | Cần ESP32 + LAN để nghiệm thu |
-| 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03,04 | TODO | — | — | — | Chưa triển khai |
-| 07 | [feature/firmware-raw-batching](07-firmware-raw-batching.md) | 05,06 + sampling | TODO | — | — | — | Cần log tốc độ mẫu thực tế |
-| 08 | [feature/backend-recording-export](08-backend-recording-export.md) | 06;07 cho board | TODO | — | — | — | Chưa triển khai |
-| 09 | [feature/frontend-recording-control](09-frontend-recording-control.md) | 02,04,08 | TODO | — | — | — | Chưa triển khai |
-| 10 | [chore/e2e-device-ingestion](10-e2e-device-ingestion.md) | 01–09 + board | TODO | — | — | — | Không đóng bằng simulator-only |
+| 01 | [chore/repository-integration-cleanup](01-repository-integration-cleanup.md) | PR #8 | DONE | 2026-10-18 | 2026-10-18 | [#9](https://github.com/namtrungdn310/ASD-EASE/pull/9) | Đã merge86cd09f, CI6/6; dây nối chưa xác nhận. |
+| 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | BLOCKED | 2026-10-18 | — | [#10](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Code mergeea959ef, CI6/6; chỉ còn chặn nghiệm thu trực quan, không chặn03. |
+| 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | READY_FOR_REVIEW | 2026-10-22 | — | — | Đặc tả/28 ví dụ/16 kịch bản đã xong local; chưa commit/PR/merge, phần cứng ở05/07 còn chờ. |
+| 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | TODO | — | — | — | Broker, nhận MQTT chung, phiên/lệnh chờ, chuyển DB và tests. |
+| 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03/04;02 cho UI | TODO | — | — | — | Client Arduino MQTT/ACK; cần thử QoS1 và board/LAN. |
+| 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03/04 | TODO | — | — | — | Raw HTTP lưu bền/chống trùng, đối chiếu tổng kết. |
+| 07 | [feature/firmware-raw-batching](07-firmware-raw-batching.md) | 05/06 và số đo mẫu | TODO | — | — | — | Raw HTTP song song MQTT, đo rate/RAM/gap. |
+| 08 | [feature/backend-recording-export](08-backend-recording-export.md) | 06;07 trước nghiệm thu thật | TODO | — | — | — | Đọc/xuất/bản mô tả, không cần broker online. |
+| 09 | [feature/frontend-recording-control](09-frontend-recording-control.md) | 02/04/08 | TODO | — | — | — | UI HTTP/WS, không browser MQTT. |
+| 10 | [chore/e2e-device-ingestion](10-e2e-device-ingestion.md) | 01–09 và board | TODO | — | — | — | E01–E21, có broker/ACL/lỗi từng kênh, không chỉ giả lập. |
 
-## Blocker và quyết định cần theo dõi
+## Việc cần phối hợp
 
-Các mục dưới đây là đầu vào còn thiếu/việc cần chốt, chưa có nghĩa mọi nhánh đều bị chặn.
+| ID | Việc | Người | Ảnh hưởng/hành động |
+|---|---|---|---|
+| B01 |GSR code hiện GPIO7 sau PR #11; chưa wiring/board/flash |Tân |05 thật; đã sửa ghi chú4 cũ, cần ảnh/log |
+| B02 |PPG FIFO thực, mất mẫu/timestamp/đồng bộ |Tân+IT |05/07 thật; nominal50/50/20 chưa là số đo,04 dùng mẫu trước |
+| B03 |Lệnh/ACK/đồng bộ, Stop/gửi nốt, thứ tự raw |IT |Đặc tả03 đã có;04–07 triển khai/tests |
+| B04 |JSONSerial khác API |IT |05 cần bộ đóng gói riêng |
+| B05 |Browser/board cho nghiệm thu |Trung+Tân |02 trực quan,05/07/10 thật;2026-10-20 discovery=[]/No browser is available, cần kiểm tra tay hoặc công cụ |
+| B06 |Tương thích broker/Python/Arduino, quyền/TLS/bộ nhớ |IT+Tân |04/05/10; pin phiên bản và thử gửiQoS1, chưa coi broker đang chạy |
 
-| ID | Đầu vào / quyết định | Người phối hợp | Chặn nhánh nào | Kết quả / hành động tiếp |
-|---|---|---|---|---|
-| B01 | GPIO GSR cấu hình=4, comment đã sửa khớp; board/flash chưa có log trong docs | Tân | Thay giá trị GPIO, 05 nghiệm thu | Cleanup giữ nguyên giá trị; lấy wiring + log board trước khi đổi hoặc xác nhận vật lý |
-| B02 | PPG rate sau FIFO averaging, mất mẫu và timestamp các stream | Tân + IT | 03 raw timing, 07 | Đo số mẫu nhận được theo thời gian, ghi config |
-| B03 | Session-control handshake, stop/drain, reboot | IT | 04–09 | Chốt ở 03, triển khai ở 04/05/07 |
-| B04 | Firmware JSON debug khác API v1.0 | IT | 05 | Viết serializer riêng theo contract |
-| B05 | Browser/board sẵn sàng cho test | IT + Tân | 02 visual, 05/07/10 physical | 2026-10-20: browser runtime chọn localhost lỗi No browser is available, discovery [] sau troubleshooting. Stack localhost đang chạy, cần Trung kiểm tra tay/cung cấp ảnh hoặc kết nối browser. Board acceptance vẫn riêng |
+## Nhật ký chính
 
-## Checklist cập nhật sau mỗi buổi
+| Ngày | Việc | Bằng chứng và giới hạn |
+|---|---|---|
+|2026-10-18|Lập10 nhánh|10 tên hợp CI,230 mục mở,62 link;25 tài liệu giai đoạn, chỉ kế hoạch |
+|2026-10-18|Cleanup hỗ trợ|Quét conflict đúng mã0/1/128, env/Compose/ignore đạt;4 file local giữ hash |
+|2026-10-18|5 header Trung viết|Firmware/4 tổ hợp header/frontend/Compose đạt; chuẩn bị PR #9 |
+|2026-10-18|Rebase sau PR #8|3 commit lên0bcd833, tree giống nhau;4 file giữ hash, CI7ff18516/6 trước rebase |
+|2026-10-18|Tạo02 từ86cd09f|Code cleanup đã review,4 file IDE local giữ; bắt đầu connection.ts |
+|2026-10-18|connection.ts/validation.ts|TypeScript đạt, validation29 phép kiểm tra |
+|2026-10-18|parseTelemetry.ts|TypeScript/137 phép kiểm tra đạt |
+|2026-10-18|telemetryStream.ts|TypeScript/563 phép kiểm tra, có vòng lặp bộ đệm |
+|2026-10-18|useLiveTelemetry.ts|Build/89 phép kiểm tra mô phỏng Node; chưa browser, bundle>500kB chỉ cảnh báo |
+|2026-10-20|DeviceStatus.tsx|Build/74 phép kiểm tra render server; chưa bố cục/trình đọc màn hình |
+|2026-10-20|Dashboard.tsx|16 tests Node/Vite đạt, hook mạng thay bằng mẫu; chưa browser |
+|2026-10-20|Vòng đời và đường truyền|Frontend26, backend13, AI15, audit0, header4/4, transport18/18 đạt; React/jsdom dùng socket/timer giả, mạng riêng thật; browser discovery=[] |
+|2026-10-22|Bắt đầu03|PR10/11 đã merge, devd80cc0e, chỉ chuẩn bị đặc tả |
+|2026-10-22|Kế hoạch MQTT|Đồng bộ03–10,52 link/tên nhánh/21 ca E2E kiểm tra; chưa runtime |
+|2026-10-31|Bàn giao03|17 ca schema+11 control+9 biến thể sai/thời gian/16 tham chiếu đạt; backend13/AI15 đạt; chưa broker/board/JCS thật |
+|2026-10-31|Việt hoá|Backend13/AI15/frontend26 và build đạt; ví dụ17+11/9 ca sai đạt. Logic54 file Python/13 file C++ và JS giữ nguyên;67 Markdown/164 link hợp lệ. Không đổi trạng thái hoặc lịch sử Git |
 
-- [ ] Tick các task đã làm trong đúng file kế hoạch nhánh.
-- [ ] Ghi command, kết quả thật, link log/ảnh/test report và commit tương ứng.
-- [ ] Cập nhật trạng thái, PR và blocker trong bảng trên.
-- [ ] Ghi quyết định mới ảnh hưởng contract/phân công vào tài liệu nguồn.
-- [ ] Cập nhật `docs/PROGRESS.md` khi tiến độ phase thực sự thay đổi.
-- [ ] Nếu PR đã merge, chuẩn bị nhánh tiếp từ `dev` mới nhất.
+Các số trong nhật ký là kết quả lịch sử theo phạm vi, không chép sang SHA mới như đã chạy.
 
-## Nhật ký công việc
+## Sau mỗi buổi
 
-| Ngày | Nhánh / commit | Đã làm | Kiểm tra / bằng chứng | Bước tiếp theo |
-|---|---|---|---|---|
-| 2026-10-18 | docs/it-device-integration-plan | Lập 10 kế hoạch nhánh và tracker; chuyển networking/serializer/raw batching sang IT | Kiểm tra 10 tên nhánh hợp CI, 230 checklist mở, 62 liên kết local tồn tại; giữ 25 phase files và chỉ thay Markdown. Chưa triển khai tính năng | Merge kế hoạch, bắt đầu 01 |
-| 2026-10-18 | chore/repository-integration-cleanup | Dọn tài liệu/env/IDE/CI; giữ nguyên core source để Trung code tay | Scanner: fail khi có marker, pass sau dọn, propagate Git error; env Settings/Compose/ignore/diff check pass, 4 local generated files giữ nguyên | Trung tự viết common_types.h, rồi lần lượt các headers theo kế hoạch 01 |
-| 2026-10-18 | chore/repository-integration-cleanup / PR #9 | Trung hoàn tất 5 core headers; Codex kiểm tra và mở draft PR | Firmware build, 4 tổ hợp header, frontend build, Compose và conflict scan PASS; CI theo trạng thái GitHub | Merge PR #8 trước; cập nhật ancestry của cleanup sau squash merge, chờ CI/review rồi mới tạo nhánh 02 |
-| 2026-10-18 | chore/repository-integration-cleanup / sau PR #8 | Rebase ba commit cleanup lên dev `0bcd833`, không đưa lại commit kế hoạch vào PR #9 | So sánh tree trước/sau rebase: giống nhau; bốn file IDE local giữ nguyên hash; CI 6/6 đã pass tại `7ff1851` trước rebase | Review/merge PR #9 sau khi CI commit mới pass; nhánh 02 chỉ bắt đầu sau khi #9 merge |
-| 2026-10-18 | fix/frontend-live-connection-status | Xác nhận PR #9 merge tại 86cd09f, cập nhật dev và tạo nhánh 02 | Tree dev sau squash merge giống cleanup đã review; 4 local generated files giữ nguyên; CI PR cuối c764210 đã 6/6 PASS | Trung tự tạo frontend/src/types/connection.ts; kiểm tra xong file mới sang bước tiếp |
+- [ ] Tick việc đã làm trong đúng kế hoạch.
+- [ ] Ghi lệnh/kết quả/ảnh/log và commit tương ứng.
+- [ ] Cập nhật trạng thái/PR/việc chặn.
+- [ ] Quyết định đổi quy ước ghi tài liệu nguồn.
+- [ ] Chỉ cập nhật giai đoạn khi có bằng chứng thật.
+- [ ] Nhánh đã merge thì cập nhật dev rồi tạo nhánh mới.
 
-| 2026-10-18 | fix/frontend-live-connection-status / connection.ts | Trung hoàn tất kiểu ConnectionStatus cho UI | TypeScript `--noEmit` PASS; chưa thay wire contract hoặc hook | Viết utils/validation.ts từng file, rồi module parse telemetry |
+## Trước PRdev→main
 
-| 2026-10-18 | fix/frontend-live-connection-status / validation.ts | Trung hoàn tất ba helper kiểm tra dữ liệu runtime | TypeScript PASS; 29 runtime assertions PASS | Viết parseTelemetry.ts, sau đó kiểm tra payload hợp lệ/lỗi trước khi nối hook |
+- [ ] MốcM1–M4 có bằng chứng, xử lý việc chặn.
+- [ ] Telemetry/raw thật qua LAN, nguồn/thời gian đúng.
+- [ ] Retry/nối lại/Stop/restart không nhân đôi hoặc báo đủ sai.
+- [ ] Có thử broker/client/quyền/lệnh cũ và lỗi từng giao thức; PUBACK khác ACK thực thi/lưu.
+- [ ] Xuất/đọc lại được, khai mất mẫu, không thay raw bằng EMA.
+- [ ] CI đạt, không xung đột, docs khớp code.
+- [ ] Chủ repo review cuối và mở PR.
 
-| 2026-10-18 | fix/frontend-live-connection-status / parseTelemetry.ts | Trung hoàn tất guard full telemetry và parser JSON | TypeScript PASS; 137 runtime assertions PASS | Viết telemetryStream.ts để quản lý lịch sử, freshness và status |
-
-| 2026-10-18 | fix/frontend-live-connection-status / telemetryStream.ts | Trung hoàn tất stream/chart helper và connection status | TypeScript PASS; 563 runtime assertions PASS, gồm kiểm tra từng bước rolling buffer, reset và stale boundary | Viết useLiveTelemetry.ts để nối helpers, chọn thiết bị và xử lý WebSocket lifecycle |
-
-| 2026-10-18 | fix/frontend-live-connection-status / useLiveTelemetry.ts | Trung hoàn tất hook nhận telemetry qua WebSocket; Codex kiểm tra và giải thích luồng | TypeScript/build PASS; 89 assertions trong harness Node mô phỏng state/effect, WebSocket, timer PASS (không phải React/browser). Bundle >500 kB là warning; test suite repo/CI còn TODO | Tiếp DeviceStatus.tsx, rồi Dashboard; cần nhãn stale cho dữ liệu giữ lại, selector và visual test trước khi đóng nhánh |
-
-| 2026-10-20 | fix/frontend-live-connection-status / DeviceStatus.tsx | Trung hoàn tất component bốn trạng thái; Codex kiểm tra text/icon/accessibility theo ui-ux-pro-max | TypeScript/build PASS; 74 assertions bằng React server rendering PASS; chưa kiểm thử browser/layout/screen reader; bundle >500 kB là warning | Trung viết Dashboard.tsx: nối status, chọn thiết bị, phiên mới nhất, nhãn dữ liệu cũ và không hiển thị dự đoán cũ như hiện tại |
-
-| 2026-10-20 | fix/frontend-live-connection-status / Dashboard.tsx | Trung hoàn tất core Dashboard; Codex thêm test suite lưu trong repo, npm script và CI step | npm run build PASS; npm test 16/16 PASS: render bốn trạng thái/null/synthetic, selector callback/chart props, parser/stream helpers; hook UI được mock, chưa phải browser/lifecycle test | Codex tiếp phần kiểm thử hỗ trợ hook và browser/simulator; chưa cần core file mới nếu không có lỗi; không đánh dấu Phase 02 DONE |
-
-| 2026-10-20 | fix/frontend-live-connection-status / lifecycle + transport | Codex thêm tests hỗ trợ, không sửa core source; build và bật Docker stack | Frontend 26/26, backend 13, AI 15, audit0, headers4/4, transport18/18 PASS. React DOM/jsdom dùng fake socket/timers; backend transport thật dùng DB tạm. Browser discovery[] | BLOCKED_BROWSER cho visual; theo 02-VERIFICATION.md để Trung quan sát hoặc kết nối browser, không tự merge/đóng Phase 02 |
-
-| 2026-10-22 | docs/device-ingestion-contract / chuẩn bị nhánh | Xác nhận PR #10 đã merge, đồng bộ dev sau PR #11; bắt đầu nhánh03 đúng tên trên d80cc0e | git fetch cho thấy HEAD không chậm hơn origin/dev; working tree sạch, chỉ sửa Markdown chuẩn bị; không kiểm thử/triển khai code mới | Trung đọc backend/app/schemas/telemetry.py, Codex chờ xác nhận rồi mới hướng dẫn file kế |
-
-## Điều kiện mở PR dev -> main
-
-- [ ] Mốc M1–M4 trong README có bằng chứng và blocker còn lại được xử lý.
-- [ ] Telemetry/raw thật qua LAN; provenance và timestamp đúng.
-- [ ] Retry, reconnect, stop/drain và restart không tạo bản ghi trùng hoặc báo sai dữ liệu đầy đủ.
-- [ ] Export tải lại được, gaps/loss được khai báo; raw không bị thay bằng EMA.
-- [ ] Required CI pass, không conflict, docs khớp implementation.
-- [ ] Chủ repo thực hiện review cuối và mở PR `dev -> main`.
-
-Hoàn thành ingestion không tự động có nghĩa toàn dự án đã sẵn sàng thi đấu hoặc đã có model được kiểm chứng.
+Hoàn tất nhận/ghi dữ liệu không tự nghĩa có mô hình đã kiểm chứng hoặc sẵn sàng thi đấu.

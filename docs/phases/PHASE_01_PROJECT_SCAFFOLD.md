@@ -1,80 +1,78 @@
-# Phase 01 — Project Scaffold
+# Giai đoạn 01 — Khung dự án
 
-## Status
+## Trạng thái
 
 DONE
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Create the three source modules, documentation, containers, contracts, tests, firmware skeleton and synthetic interfaces.
+Tạo ba thư mục mã nguồn, tài liệu, container, đặc tả, kiểm thử và khung firmware.
 
-## Why This Phase Exists
+## Lý do
 
-All later work depends on a reproducible, understandable repository.
+Các bước sau cần một dự án dễ hiểu và chạy lại được.
 
-## Dependencies
+## Phụ thuộc
 
-None
+Không.
 
-## Inputs
+## Đầu vào
 
-Docker, Python, Node; physical hardware is not required.
+Docker, Python và Node; chưa cần phần cứng.
 
-## Tasks
+## Công việc
 
-- [x] Create required repository and documentation structure
-- [x] Implement buildable backend/frontend/ai/firmware scaffolds
-- [x] Validate Docker, contracts and tests
+- [x] Tạo đủ cấu trúc mã nguồn và tài liệu.
+- [x] Tạo khung backend/frontend/AI/firmware build được.
+- [x] Kiểm tra Docker, đặc tả và tests.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
-backend/...; frontend/...; ai/...; docs/...; root configuration
+backend/...; frontend/...; ai/...; docs/...; cấu hình tại thư mục gốc
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Keep one source tree; centralize versioned contracts; build only explicit placeholders for later work.
+Dùng một bộ mã nguồn và đặc tả có phiên bản; phần chưa làm phải ghi rõ là khung dự kiến.
 
-## Tests
+## Kiểm thử
 
-Run `docker compose config`, backend/AI pytest, frontend build, Docker builds and structural checks.
+Chạy `docker compose config`, pytest backend/AI, build frontend/container và kiểm tra cấu trúc.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [x] Exactly three source modules and all required docs exist
-- [x] Backend and AI tests pass; frontend and containers build
-- [x] Firmware skeleton is conservative, credential-free and does not require PSRAM
+- [x] Đủ ba thư mục mã nguồn và tài liệu yêu cầu.
+- [x] Backend/AI tests và frontend/container build đạt.
+- [x] Khung firmware không có thông tin truy cập thật, không giả định PSRAM.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 01; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Dependency/version or cross-platform path issues can prevent reproducibility.
+Khác biệt phiên bản thư viện hoặc đường dẫn giữa các hệ điều hành.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Inspect build logs and contract tests; revert only the failing focused change.
+Đọc nhật ký build và kiểm thử đặc tả; chỉ hoàn tác thay đổi gây lỗi.
 
-## Results
+## Kết quả
 
-Completed within the scaffold scope. Firmware compilation passed under the temporary conservative profile; physical hardware behavior remains unverified.
+Đã hoàn tất phần khung dự án. Firmware build được bằng cấu hình tạm; chưa kiểm chứng hoạt động trên phần cứng.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-- docker compose config: PASS.
-- Backend: 13 pytest tests passed.
-- ai/synthetic: 15 pytest tests passed.
-- Frontend: TypeScript and Vite production build passed; npm production audit found 0 vulnerabilities.
-- Backend, frontend and optional AI Docker images built.
-- docker compose up -d --build --wait: backend healthy and frontend running.
-- Structural check found all 25 phase files and the required three source modules.
-- PlatformIO 6.2.0 host build: PASS for the conservative ESP32-S3 profile. This is not physical board evidence.
+- `docker compose config`: PASS.
+- Backend: 13 tests PASS; AI: 15 tests PASS.
+- TypeScript/Vite build PASS; kiểm tra thư viện production ghi nhận 0 lỗ hổng ở lần kiểm tra đó.
+- Ba image Docker build được; backend khỏe, frontend chạy sau `docker compose up -d --build --wait`.
+- Đủ 25 tài liệu giai đoạn và ba thư mục mã nguồn.
+- PlatformIO 6.2.0 build PASS với cấu hình ESP32-S3 tạm, không phải bằng chứng phần cứng.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 02 — Mock End-to-End
+Giai đoạn 02 — Kiểm thử toàn luồng bằng dữ liệu giả lập

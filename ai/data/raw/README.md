@@ -1,4 +1,4 @@
-# Real raw data
+# Dữ liệu thô thật
 
-Reserved for pseudonymous measurements collected under an approved protocol. Never mix with `data/synthetic` or commit participant data.
+Dành cho phép đo dùng ID giả danh theo quy trình đã duyệt. Không trộn với data/synthetic hoặc đưa dữ liệu người tham gia lên Git.
 

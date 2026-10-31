@@ -1,74 +1,74 @@
-# Phase 13 — ML Experiments
+# Giai đoạn 13 — Thử nghiệm học máy
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Run small-model experiments with explicit data provenance.
+Thử các mô hình nhỏ và ghi rõ nguồn dữ liệu.
 
-## Why This Phase Exists
+## Lý do
 
-Tests whether limited ML improves engineering criteria over rules.
+Kiểm tra học máy có cải thiện so với quy tắc hay không.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 12
+Giai đoạn 12
 
-## Inputs
+## Đầu vào
 
-Leakage-safe splits and feature definitions.
+Đặc trưng và cách chia tập tránh lộ dữ liệu.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/training/...; ai/models/experiments/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Logistic regression, decision tree and small random forest; mark synthetic-only models `SYNTHETIC_ONLY`.
+Thử hồi quy logistic, cây quyết định và rừng ngẫu nhiên nhỏ. Mô hình chỉ học dữ liệu giả lập phải ghi SYNTHETIC_ONLY.
 
-## Tests
+## Kiểm thử
 
-Reproducible pipeline smoke test; split audit; measured evaluations by origin.
+Kiểm tra chạy lại, rà soát chia tập và đánh giá riêng từng nguồn.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 13; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Generated data may make labels trivially separable or bias selection.
+Dữ liệu giả lập có thể làm nhãn dễ đoán hoặc khiến chọn mô hình thiên lệch.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Remove revealing fields, increase overlap and retain real holdout.
+Bỏ cột lộ đáp án; tăng sự chồng lấp kịch bản và giữ tập đánh giá thật riêng.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 14 — Model Selection
+Giai đoạn 14 — Chọn mô hình
 

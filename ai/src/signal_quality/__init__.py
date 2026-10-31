@@ -1,2 +1,2 @@
-"""Future production signal-quality interfaces (Phase 10)."""
+"""Giao diện chất lượng tín hiệu dự kiến cho giai đoạn 10."""
 

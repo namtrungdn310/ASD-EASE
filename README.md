@@ -1,101 +1,84 @@
-# Vòng tay thông minh ứng dụng Edge AI hỗ trợ nhận diện sớm trạng thái lo âu ở học sinh ASD trong môi trường giáo dục
+# Vòng tay Edge AI hỗ trợ nghiên cứu trạng thái cần chú ý ở học sinh ASD
 
-Đây là nguyên mẫu nghiên cứu kỹ thuật sinh viên về wearable Edge AI, IoT mạng cục bộ và cảm biến đa phương thức. Hệ thống **không phải thiết bị y tế**, không chẩn đoán lo âu, ASD, stress, meltdown hoặc bất kỳ tình trạng y khoa/tâm thần nào. `ATTENTION` chỉ nghĩa là mẫu cảm biến thỏa tiêu chí kỹ thuật hiện tại cần chú ý.
+Đây là nguyên mẫu nghiên cứu kỹ thuật, **không phải thiết bị y tế**; không chẩn đoán lo âu, ASD hoặc tình trạng y khoa/tâm thần. ATTENTION chỉ mô tả kết quả theo tiêu chí kỹ thuật.
 
-## Architecture summary
+## Hệ thống mục tiêu
 
-Ở chế độ thi đấu, ESP32-S3 Super Mini chạy preprocessing, kiểm tra chất lượng, baseline, feature extraction, Edge AI và logic trạng thái. Laptop chỉ nhận/lưu telemetry và hiển thị dashboard qua LAN cục bộ. Hệ thống không cần Internet hoặc cáp USB; mất mạng không được làm dừng sensing/inference trên wearable.
+ESP32-S3 Super Mini tự xử lý tín hiệu, kiểm tra chất lượng, tạo mức nền/đặc trưng, chạy mô hình và quyết định trạng thái. Laptop chỉ nhận/lưu và hiển thị trên LAN; không cần Internet hoặc USB truyền dữ liệu khi thi đấu.
 
-```text
-Sensors -> ESP32 Edge pipeline -> NORMAL/ATTENTION/UNCERTAIN -> local Wi-Fi -> FastAPI -> WebSocket -> React
-```
+MQTT dùng cho telemetry/điều khiển, HTTP cho raw, WebSocket cho trình duyệt. Phần MQTT mới có đặc tả, chưa được triển khai.
 
-## Repository structure
+## Cấu trúc
 
-- `backend/`: FastAPI, SQLite metadata, raw-file receiver và WebSocket.
-- `frontend/`: React/TypeScript/Vite/Tailwind/Recharts dashboard.
-- `ai/`: synthetic data, simulator, future research interfaces và firmware tại `ai/edge_firmware/`.
-- `docs/`: kiến trúc, hợp đồng, protocol và phase tracking; không phải source module.
+- backend/: FastAPI, SQLite, nhận file raw và WebSocket.
+- frontend/: dashboard React/TypeScript/Vite/Tailwind/Recharts.
+- ai/: giả lập, nghiên cứu và firmware tại ai/edge_firmware/.
+- docs/: đặc tả, kiến trúc, kế hoạch và tiến độ.
 
-Ba source module duy nhất là `backend`, `frontend`, `ai`.
+Chỉ có ba thư mục mã nguồn backend, frontend, ai. Công nghệ chính: Python3.12, FastAPI/Pydantic/SQLAlchemy, React/TypeScript, NumPy/matplotlib, Arduino/PlatformIO và Docker Compose.
 
-## Technology stack
+## Làm việc
 
-Python 3.12, FastAPI, Pydantic, SQLAlchemy/SQLite, React, TypeScript, Vite, Tailwind CSS, Recharts, NumPy, matplotlib, Arduino/PlatformIO và Docker Compose.
+USB dùng khi phát triển/nạp/xem log. Thu nghiên cứu gửi raw để xử lý trên máy. Khi thi đấu, ESP32 dùng pin và tự suy luận.
 
-## Development modes
+Mỗi việc có nhánh feature/*, fix/*, docs/* hoặc chore/* → PR vào dev. Bản ổn định dùng PRdev → main. Không push trực tiếp; Tân cần Trung review, PR của Trung chỉ dùng ngoại lệ sau đủ CI, cập nhật và không xung đột.
 
-- Mode A — Development: USB chỉ để flash/debug firmware.
-- Mode B — R&D/Data collection: ESP32 gửi raw batches để xử lý và nghiên cứu offline trên laptop.
-- Mode C — Competition/Edge: battery-powered ESP32 tự quyết định trạng thái rồi gửi compact telemetry qua LAN.
+Xem [Git/GitHub](docs/GIT_WORKFLOW.md), [10 nhánh tích hợp](docs/integration/README.md), [tiến độ nhánh](docs/integration/PROGRESS.md).
 
-## Git workflow
+## Chạy thử
 
-Daily work uses short-lived `feature/*`, `fix/*`, `docs/*` or `chore/*` branches and pull requests into protected `dev`. Stable promotions use a pull request from `dev` into protected `main`. Direct pushes are prohibited. Collaborator PRs require the owner's approval; owner-authored PRs may merge without another approval only after all required CI checks pass and the PR is up to date and conflict-free. See [Git/GitHub Workflow](docs/GIT_WORKFLOW.md).
-
-Kế hoạch công việc IT tiếp theo, bao gồm chuẩn hoá dữ liệu và firmware kết nối backend: [kế hoạch chi tiết theo 10 nhánh](docs/integration/README.md) và [bảng theo dõi tiến độ](docs/integration/PROGRESS.md).
-
-## Prerequisites
-
-For environment-file locations, native/Docker differences and local IDE configuration, see [Local setup](docs/LOCAL_SETUP.md).
-
-Docker Desktop với Compose là đường chạy nhanh nhất. Phát triển trực tiếp cần Python 3.12+, Node 22+ và PlatformIO CLI cho firmware skeleton.
-
-## Start backend and frontend
+Đọc [cài đặt local](docs/LOCAL_SETUP.md). Cần Docker Desktop/Compose; chạy trực tiếp cần Python3.12+, Node22+ và PlatformIO.
 
 ```bash
 docker compose up --build
 ```
 
-- Dashboard: <http://localhost:5173>
-- API health: <http://localhost:8000/api/v1/health>
-- OpenAPI: <http://localhost:8000/docs>
+Dashboard: <http://localhost:5173>. API health: <http://localhost:8000/api/v1/health>. OpenAPI: <http://localhost:8000/docs>.
 
-ESP32 thật về sau phải gửi tới `http://<LAPTOP_LAN_IP>:8000`, không dùng `localhost`.
+ESP32 dùng IP LAN laptop, không dùng localhost. Broker MQTT và backend HTTP là hai địa chỉ/cổng cấu hình riêng trong phần triển khai tới.
 
-## Run synthetic mock device
+## Chạy thiết bị giả lập
 
-Sau khi stack chạy:
+Sau khi backend/frontend đã chạy:
 
 ```bash
 docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario normal --duration 30
 docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario attention_mock --send-raw --speed 5
 ```
 
-Mọi output simulator là **SYNTHETIC TEST DATA**, không phải dữ liệu ASD hoặc bằng chứng khoa học. Xem [Synthetic Data Specification](docs/SYNTHETIC_DATA_SPEC.md).
+Đầu ra luôn là SYNTHETIC TEST DATA, không phải dữ liệu người thật/bằng chứng khoa học. Xem [đặc tả giả lập](docs/SYNTHETIC_DATA_SPEC.md).
 
-## Tests and builds
+## Kiểm tra
 
-```bash
-python -m pip install -r backend/requirements.txt
-python -m pytest backend/tests
-python -m pip install -r ai/requirements.txt
-$env:PYTHONPATH="ai"; python -m pytest ai/tests
-npm --prefix frontend install
+PowerShell tại thư mục gốc, sau khi đã có .venv và dependencies:
+
+```powershell
+Push-Location backend
+..\.venv\Scripts\python.exe -m pytest -q
+Pop-Location
+Push-Location ai
+..\.venv\Scripts\python.exe -m pytest -q
+Pop-Location
+npm --prefix frontend test
 npm --prefix frontend run build
-docker compose config
-docker compose build
+docker compose config --quiet
+.\.venv\Scripts\python.exe docs/contracts/check_examples.py
 ```
 
-## PlatformIO
+Firmware build trên máy, không trong Docker:
 
-Firmware dùng profile build ESP32-S3 bảo thủ tạm thời; profile này không xác nhận board vật lý. Từ `ai/edge_firmware`:
-
-```bash
-pio run
-pio device monitor -b 115200
+```powershell
+.\.venv\Scripts\pio.exe run -d ai/edge_firmware
 ```
 
-PlatformIO không được chạy trong Docker và việc build không chứng minh sensor/hardware hoạt động.
+Profile build ESP32-S3 là cấu hình tạm, không chứng minh board/cảm biến hoạt động.
 
-## Documentation
+## Đang ở đâu?
 
-Bắt đầu tại [Documentation Index](docs/README.md), [Architecture](docs/ARCHITECTURE.md), [API Contract](docs/API_CONTRACT.md), [Dataset Protocol](docs/DATASET_PROTOCOL.md) và [Project Progress](docs/PROGRESS.md).
+Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã bàn giao phần đặc tả trên máy, chưa commit/PR/merge. Hai hệ đánh số giai đoạn và nhánh khác nhau.
 
-## Current phase
+Xem [tiến độ giai đoạn](docs/PROGRESS.md), [bàn giao03](docs/integration/03-HANDOFF.md) và [mục lục](docs/README.md). Không suy hoàn thành từ file khung.
 
-Phase 01 — Project Scaffold: DONE. Phase 02 — Mock End-to-End: IN_PROGRESS vì kiểm tra trực quan live dashboard chưa được thực hiện; HTTP/raw/WebSocket đã xác minh. Không bắt đầu Phase 03 nếu chưa có chỉ dẫn rõ ràng.
+## Riêng tư
 
-## Privacy and safety
-
-Không lưu tên học sinh, Wi-Fi credentials, dữ liệu người tham gia hoặc annotation riêng tư trong Git. Chỉ dùng ID giả danh. Không diễn giải HR, GSR hoặc chuyển động như chẩn đoán lo âu.
+Chỉ dùng ID giả danh. Không đưa tên học sinh, dữ liệu người tham gia, chú thích riêng tư hoặc thông tin Wi-Fi/token lên Git. Không diễn giải HR/GSR/chuyển động như chẩn đoán lo âu.

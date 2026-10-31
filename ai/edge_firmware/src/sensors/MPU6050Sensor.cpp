@@ -49,7 +49,7 @@ Availability MPU6050Sensor::begin(TwoWire* wirePort) {
   status_ = IMUStatus::DISCONNECTED;
   lastRetryMs_ = millis();
 
-  // 1. Dò tìm địa chỉ I2C của MPU6050: 0x68 (AD0=GND), 0x69 (AD0=VCC hoặc để hở)
+  // 1. Dò tìm địa chỉ I2C của MPU6050: 0x68 (AD0=GND), 0x69 (kiểm tra cách nối AD0 theo mô-đun)
   const uint8_t candidateAddresses[] = { I2C_ADDR_MPU6050, 0x69 };
   uint8_t foundAddr = 0;
 
@@ -73,7 +73,7 @@ Availability MPU6050Sensor::begin(TwoWire* wirePort) {
   delay(50);
 
   // 3. Đánh thức chip và chọn nguồn xung nhịp PLL với trục X gyro (0x01)
-  // CLKSEL=1 ổn định hơn rất nhiều so với dao động nội RC 8MHz (0x00)
+  // Dùng CLKSEL=1 thay nguồn RC nội; độ ổn định thực tế cần đo
   if (!writeRegister(REG_PWR_MGMT_1, 0x01)) {
     status_ = IMUStatus::ERROR;
     return Availability::ERROR;
@@ -84,7 +84,7 @@ Availability MPU6050Sensor::begin(TwoWire* wirePort) {
   uint8_t id = 0;
   if (readRegisters(REG_WHO_AM_I, &id, 1)) {
     whoAmI_ = id;
-    // Chấp nhận các chip tương thích họ InvenSense:
+    // Driver hiện chấp nhận các mã WHO_AM_I sau; chưa chứng minh mọi mô-đun đều tương thích:
     // 0x68: MPU-6050, 0x70: MPU-6500, 0x71/0x73: MPU-9250, 0x72, 0x98...
     Serial.printf("[MPU6050] Phát hiện thiết bị tại 0x%02X (WHO_AM_I = 0x%02X)\n", i2cAddr_, whoAmI_);
   } else {

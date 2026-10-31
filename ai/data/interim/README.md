@@ -1,4 +1,4 @@
-# Interim real-data artifacts
+# Dữ liệu thật đang xử lý
 
-Derived real-data artifacts remain separate from synthetic outputs.
+Giữ sản phẩm trung gian của dữ liệu thật riêng khỏi dữ liệu giả lập.
 

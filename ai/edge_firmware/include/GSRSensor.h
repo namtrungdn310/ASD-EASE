@@ -3,7 +3,7 @@
 #include "EMA.h"
 
 // =============================================================================
-// GSR Sensor — Galvanic Skin Response (Electrodermal Activity - EDA)
+// GSR — đọc ADC mô-đun điện da
 // =============================================================================
 
 struct GSRData {
@@ -38,7 +38,7 @@ class GSRSensor {
   int           pin_                 = PIN_GSR_ADC;
   GSRStatus     status_              = GSRStatus::DISCONNECTED;
 
-  // Session Baseline Calibration
+  // Thiết lập mức nền cho lần đo
   bool          isCalibrating_       = false;
   unsigned long calibrationStartMs_  = 0;
   uint64_t      calibMvSum_          = 0;

@@ -1,4 +1,4 @@
-# Processed real data
+# Dữ liệu thật đã xử lý
 
-Reserved for processed real sessions; do not commit participant data.
+Dành cho phiên thật sau xử lý. Không đưa dữ liệu người tham gia lên Git.
 

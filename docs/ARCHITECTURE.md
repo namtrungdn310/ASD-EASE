@@ -1,50 +1,44 @@
-# System Architecture
+# Kiến trúc hệ thống
 
-## Boundaries
+## Phạm vi
 
-The project is an engineering research prototype, not a medical device, clinical diagnostic or treatment system. Deployment-facing states are `NORMAL`, `ATTENTION`, `UNCERTAIN`, plus operational `CALIBRATING`, `DISCONNECTED`, and `ERROR`. `ATTENTION` is an engineering criterion, not an anxiety diagnosis.
+Đây là nguyên mẫu nghiên cứu kỹ thuật, không phải thiết bị y tế hay công cụ chẩn đoán/điều trị. NORMAL, ATTENTION, UNCERTAIN và CALIBRATING là trạng thái kỹ thuật. DISCONNECTED/ERROR mô tả tình trạng vận hành, không tự là giá trị enum dự đoán. ATTENTION không phải chẩn đoán lo âu.
 
-## Three modes
+## Ba chế độ
 
-1. Development: host USB may flash and debug the ESP32.
-2. R&D/data collection: the ESP32 sends synchronized raw batches through Wi-Fi for offline software/model development.
-3. Competition/Edge: battery-powered ESP32 performs the final signal pipeline and state decision; laptop receives compact telemetry and serves the dashboard on the same offline-capable LAN.
+1. Phát triển: USB để nạp firmware và xem nhật ký.
+2. Nghiên cứu/thu dữ liệu: ESP32 gửi mẫu thô qua Wi-Fi để lưu, xử lý trên máy.
+3. Thi đấu: ESP32 dùng pin, tự xử lý tín hiệu và quyết định trạng thái. Laptop chỉ nhận/lưu/hiển thị trên cùng LAN, không cần Internet.
 
-## Locked competition flow
+## Luồng mục tiêu
 
 ```text
 MAX30102 + MPU6050 + GSR
-  -> acquisition and preprocessing
-  -> signal quality (bad quality may yield UNCERTAIN)
-  -> personal baseline
-  -> shared feature definitions
-  -> Edge model
-  -> temporal state logic
-  -> bounded telemetry queue
-  -> local Wi-Fi/LAN
-  -> FastAPI receiver -> SQLite metadata/raw files -> WebSocket -> React dashboard
+  -> thu mẫu -> xử lý tín hiệu -> kiểm tra chất lượng
+  -> mức nền cá nhân -> đặc trưng -> mô hình trên ESP32
+  -> logic trạng thái theo thời gian -> telemetry mới nhất
+  -> Wi-Fi/LAN -> broker MQTT -> backend -> WebSocket -> dashboard React
 ```
 
-The laptop never performs final competition feature extraction, inference, temporal decision or alert decision. No Internet or USB data link is required in competition mode.
+Start/Stop và xác nhận thực thi đi MQTT; batch thô đi HTTP. Trình duyệt dùng HTTP/WebSocket, không giữ thông tin truy cập broker. Laptop không làm thay quyết định cuối trên ESP32 khi thi đấu.
 
-## Network resilience design
+Đây là thiết kế cho nhánh 04–07, chưa phải đường truyền đang chạy. Xem [đặc tả API](API_CONTRACT.md), [điều khiển MQTT](contracts/MQTT_CONTROL.md), [bàn giao 03](integration/03-HANDOFF.md). Broker nhận gói chưa chứng minh thiết bị đã thực thi hoặc backend đã lưu.
 
-Acquisition, processing, inference and state updates run independently of network sending. Telemetry enters a bounded queue. If Wi-Fi is unavailable, the firmware drops or limits telemetry and retries later without blocking acquisition or inference. Detailed implementation is gated to Phase 21.
+## Khi mất mạng
 
-## Storage
+Thu mẫu/suy luận không chờ mạng. Hàng đợi và thời gian thử lại có giới hạn; telemetry chỉ giữ bản mới nhất, không phát dữ liệu cũ như trực tiếp. Kiểm thử chi tiết trên hệ thống thi đấu thuộc giai đoạn 21.
 
-SQLite stores device/session/annotation/event and useful low-rate metadata. High-rate raw sensor batches use research files (JSONL in V1), never one SQLite row per sample.
+## Lưu trữ
 
-## Synthetic development path
+SQLite lưu thiết bị, phiên, chú thích, sự kiện và chỉ mục. Hiện raw được thêm vào JSONL. Mục tiêu nhánh 06 là mỗi batch một file bất biến, có chỉ mục và xác nhận sau khi lưu nhất quán; vẫn đọc được dữ liệu cũ. Không tạo một hàng SQLite cho từng mẫu tốc độ cao.
 
-The synthetic generator models shared scenario variables, creates raw streams under the same API schema, passes them through the same preprocessing entry point and can be replayed by the mock device. It is R&D infrastructure only and does not change competition architecture or verify physical sensors.
+STOPPED chưa có nghĩa đủ dữ liệu: còn phải đối chiếu tổng kết, số mẫu, thứ tự và hash. Đổi cách lưu không tự đổi JSON raw 1.0.
 
-## Future AI path
+## Dữ liệu giả lập và AI
 
-```text
-raw -> preprocessing -> quality -> baseline -> rolling windows -> features
-    -> simple rules / small models -> probability -> temporal state machine
-```
+Bộ sinh dùng chung đặc tả/giao diện xử lý với dữ liệu thật, giữ nhãn SYNTHETIC. Nó giúp thử phần mềm, không chứng minh cảm biến hoặc kết quả sinh lý.
 
-Python and C++ will eventually share definitions and golden test vectors. No production model or parity claim exists in the scaffold.
+Luồng AI dự kiến: raw → xử lý → chất lượng → mức nền → cửa sổ trượt → đặc trưng → quy tắc/mô hình nhỏ → điểm dự đoán → logic trạng thái.
+
+Python/C++ sẽ dùng chung định nghĩa và mẫu kiểm tra. Chưa có mô hình sản phẩm hoặc bằng chứng hai bản cho kết quả khớp nhau.
 

@@ -89,12 +89,12 @@ GSRData GSRSensor::read() {
     return data;
   }
 
-  // 3. Lọc EMA làm mịn điện áp: triệt tiêu nhiễu ADC, gai điện áp nguồn và rung giật
+  // 3. Lọc EMA làm mượt điện áp; hiệu quả với từng loại nhiễu cần đo
   data.voltage = voltageFilter_.update(rawVoltage);
   data.voltage_mV = static_cast<uint32_t>(data.voltage * 1000.0f + 0.5f);
 
   // 4. Tính toán trở kháng da R_skin và độ dẫn Conductance G (µS)
-  // Theo mạch Grove GSR v1.2: ngõ ra op-amp tỉ lệ thuận với độ dẫn da.
+  // Công thức dưới giả định mạch tương tự Grove GSR v1.2; cần xác nhận mô-đun và hiệu chuẩn.
   // R_skin = 25000 * (3.3 - V) / (V - 0.10)
   const float vSpan = data.voltage - 0.10f;
   if (vSpan > 0.01f && data.voltage < 3.28f) {
@@ -153,7 +153,7 @@ GSRData GSRSensor::read() {
     data.percentChange = (data.deltaConductance_uS / baselineConductance_) * 100.0f;
   }
 
-  // Cảnh báo vượt ngưỡng kích thích giao cảm (SCR Event: tăng > 2 µS so với baseline)
+  // Cờ kỹ thuật khi độ dẫn ước tính tăng > 2 µS so với mức nền; chưa xác nhận SCR sinh lý
   data.thresholdExceeded = (data.deltaConductance_uS > 2.0f);
   data.valid = true;
   return data;

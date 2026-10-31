@@ -10,13 +10,13 @@
 #include "EMA.h"
 
 // =============================================================================
-// Global sensor instances
+// Các đối tượng cảm biến dùng chung
 // =============================================================================
 static MAX30102Sensor ppgSensor;
 static MPU6050Sensor  imuSensor;
 static GSRSensor      gsrSensor;
 
-// Per-sensor sub-sampling timers
+// Mốc đọc riêng cho từng cảm biến
 static unsigned long lastPpgReadMs = 0;
 static unsigned long lastImuReadMs = 0;
 static unsigned long lastGsrReadMs = 0;
@@ -30,7 +30,7 @@ static constexpr unsigned long kOutputIntervalMs = DEFAULT_OUTPUT_INTERVAL_MS;
 static OutputFormat outputFormat = DEFAULT_OUTPUT_FORMAT;
 
 // =============================================================================
-// I2C bus scanner & diagnostic
+// Quét và chẩn đoán bus I2C
 // =============================================================================
 static void scanI2CBuses() {
   Serial.println(F("\n--- I2C Bus 0 (SDA=GPIO8, SCL=GPIO9) ---"));
