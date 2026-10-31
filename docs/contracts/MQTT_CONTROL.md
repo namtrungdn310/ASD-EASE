@@ -1,6 +1,8 @@
-# Điều khiển MQTT 1.0 — đặc tả, chưa triển khai
+# Điều khiển MQTT 1.0 — đặc tả
 
 Ngày 2026-10-31. Dùng cùng [quy tắc nhận dữ liệu](INGESTION_V1.md) và [đặc tả API](../API_CONTRACT.md).
+
+Backend04 đã triển khai và thử broker thật ngày2026-11-01, xem [bàn giao](../integration/04-HANDOFF.md). Firmware05/raw06–07 vẫn cần triển khai/đo riêng; các mục dưới là quy tắc đích, không tự là bằng chứng đã nghiệm thu toàn hệ thống.
 
 Chọn MQTT3.1.1 và Mosquitto cục bộ. Nhánh04/05 chốt phiên bản broker/thư viện sau kiểm tra tương thích. Firmware hiện dùng Arduino: phải chứng minh thư viện **gửi được QoS1**, không chỉ nhận QoS1; kiểm tra build, TLS, kích thước gói và bộ nhớ. Không coi API ESP-IDF dùng được ngay với mọi thư viện Arduino.
 

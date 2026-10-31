@@ -6,7 +6,7 @@
 
 ESP32-S3 Super Mini tự xử lý tín hiệu, kiểm tra chất lượng, tạo mức nền/đặc trưng, chạy mô hình và quyết định trạng thái. Laptop chỉ nhận/lưu và hiển thị trên LAN; không cần Internet hoặc USB truyền dữ liệu khi thi đấu.
 
-MQTT dùng cho telemetry/điều khiển, HTTP cho raw, WebSocket cho trình duyệt. Phần MQTT mới có đặc tả, chưa được triển khai.
+MQTT dùng cho telemetry/điều khiển, HTTP cho raw, WebSocket cho trình duyệt. Nhánh04 đã triển khai backend MQTT và thử bằng thiết bị giả qua broker thật; client ESP32 thuộc nhánh05.
 
 ## Cấu trúc
 
@@ -30,23 +30,23 @@ Xem [Git/GitHub](docs/GIT_WORKFLOW.md), [10 nhánh tích hợp](docs/integration
 Đọc [cài đặt local](docs/LOCAL_SETUP.md). Cần Docker Desktop/Compose; chạy trực tiếp cần Python3.12+, Node22+ và PlatformIO.
 
 ```bash
+python scripts/setup_local_mqtt.py
 docker compose up --build
 ```
 
 Dashboard: <http://localhost:5173>. API health: <http://localhost:8000/api/v1/health>. OpenAPI: <http://localhost:8000/docs>.
 
-ESP32 dùng IP LAN laptop, không dùng localhost. Broker MQTT và backend HTTP là hai địa chỉ/cổng cấu hình riêng trong phần triển khai tới.
+Lần đầu cần tạo credential local, đăng nhập trước khi Dashboard nhận dữ liệu. Xem [hướng dẫn nhánh04](docs/integration/04-SETUP.md). ESP32 dùng IP LAN laptop, không dùng localhost; broker demo mặc định chỉ mở loopback.
 
 ## Chạy thiết bị giả lập
 
-Sau khi backend/frontend đã chạy:
+Sau khi backend/frontend đã chạy, thiết bị giả MQTT:
 
 ```bash
-docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario normal --duration 30
-docker compose --profile ai run --rm ai python -m simulator.mock_device --scenario attention_mock --send-raw --speed 5
+python -m ai.simulator.mqtt_device --credentials infra/mosquitto/local/simulator.json
 ```
 
-Đầu ra luôn là SYNTHETIC TEST DATA, không phải dữ liệu người thật/bằng chứng khoa học. Xem [đặc tả giả lập](docs/SYNTHETIC_DATA_SPEC.md).
+Đầu ra luôn là SYNTHETIC TEST DATA, không phải dữ liệu người thật/bằng chứng khoa học. Simulator HTTP cũ cần registry transport=http và token theo [hướng dẫn](docs/integration/04-SETUP.md). Xem [đặc tả giả lập](docs/SYNTHETIC_DATA_SPEC.md).
 
 ## Kiểm tra
 
@@ -63,6 +63,8 @@ npm --prefix frontend test
 npm --prefix frontend run build
 docker compose config --quiet
 .\.venv\Scripts\python.exe docs/contracts/check_examples.py
+.\.venv\Scripts\python.exe .github/scripts/check-mock-transport.py
+.\.venv\Scripts\python.exe scripts/check_mqtt_integration.py
 ```
 
 Firmware build trên máy, không trong Docker:
@@ -75,7 +77,7 @@ Profile build ESP32-S3 là cấu hình tạm, không chứng minh board/cảm bi
 
 ## Đang ở đâu?
 
-Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã hoàn tất đặc tả và được đưa lên [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12); khi PR merge vào dev thì nhánh03 hoàn tất. Hai hệ đánh số giai đoạn và nhánh khác nhau.
+Giai đoạn01 đã DONE;02 còn thiếu nghiệm thu trực quan. Driver03–06 có code nhưng thiếu phép đo. Nhánh tích hợp03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12), commit752bd5d. Nhánh04 có backend MQTT/phiên đã kiểm thử và push [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13); hoàn tất khi PR merge vào dev sau đủ CI. Hai hệ đánh số giai đoạn và nhánh khác nhau.
 
 Xem [tiến độ giai đoạn](docs/PROGRESS.md), [bàn giao03](docs/integration/03-HANDOFF.md) và [mục lục](docs/README.md). Không suy hoàn thành từ file khung.
 

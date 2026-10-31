@@ -51,9 +51,9 @@ Các kết quả chỉ đúng phạm vi/commit đã ghi, không tự trở thàn
 
 ## Nhánh công việc hiện tại
 
-Nhánh docs/device-ingestion-contract, dựa dev d80cc0e, đã hoàn thiện đặc tả/ví dụ và mở [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) ngày2026-10-31. Chủ repo yêu cầu merge khi đủ6 CI và không xung đột; nhánh03 đạt DONE khi PR này merge vào dev. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
+Nhánh03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d ngày2026-10-31 sau6/6 CI trên af61856. Nhánh04 feature/backend-session-lifecycle đã triển khai, kiểm thử và push [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) ngày2026-11-01; hoàn tất khi PR merge vào dev sau đủ6 CI. Code nhánh01 và02 đã merge trước đó;02 vẫn thiếu nghiệm thu trực quan.
 
-Xem [kế hoạch](integration/README.md), [tracker nhánh](integration/PROGRESS.md), [bàn giao03](integration/03-HANDOFF.md). Sau review/merge03 mới tạo nhánh04 làm backend MQTT/phiên. Hướng đã chốt: MQTT telemetry/điều khiển, raw HTTP, browser HTTP/WS; chưa runtime.
+Xem [kế hoạch](integration/README.md), [tracker nhánh](integration/PROGRESS.md), [bàn giao04](integration/04-HANDOFF.md) và [cách chạy](integration/04-SETUP.md). Backend MQTT/phiên đã thử qua Mosquitto thật với dữ liệu SYNTHETIC; firmware MQTT và raw lưu bền thuộc05–07, chưa nghiệm thu phần cứng.
 
 **Số nhánh khác số giai đoạn**: nhánh03 là đặc tả, giai đoạn03 là MAX30102. Đo thiết bị ở05/07 nhánh tích hợp vẫn là cổng trước nghiệm thu giai đoạn07/08.
 

@@ -1,6 +1,6 @@
 # Quy tắc nhận dữ liệu 1.0 — nhánh 04–07
 
-Thiết kế ghi ngày 2026-10-31, **chưa có mã chạy thực tế**. [API](../API_CONTRACT.md) là mục tra cứu; file này quy định nguồn, thời gian, phiên và lưu raw. [Điều khiển MQTT](MQTT_CONTROL.md) quy định lệnh/xác nhận. Mẫu đi kèm là SYNTHETIC, không phải số đo board.
+Thiết kế ghi ngày2026-10-31. Backend04 đã triển khai quyền/telemetry/phiên và thử broker thật ngày2026-11-01, xem [bàn giao](../integration/04-HANDOFF.md). Lưu raw bền/JCS/đối chiếu ở06, firmware ở05/07 chưa nghiệm thu. [API](../API_CONTRACT.md) là mục tra cứu; file này quy định nguồn, thời gian, phiên và lưu raw. [Điều khiển MQTT](MQTT_CONTROL.md) quy định lệnh/xác nhận. Mẫu đi kèm là SYNTHETIC, không phải số đo board.
 
 ## Định danh, phiên bản và kiểm tra đầu vào
 

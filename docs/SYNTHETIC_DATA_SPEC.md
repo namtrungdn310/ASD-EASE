@@ -43,6 +43,8 @@ Cùng cấu hình/hồ sơ/seed tạo lại cùng mảng tín hiệu; created_at
 
 ## Chạy thử
 
+Từ nhánh04, replay qua HTTP cần registry transport=http, DEVICE_HTTP_TOKEN/OPERATOR_TOKEN và phiên mới; tool tự handshake Start/ACK/Stop. Simulator MQTT độc lập dùng credential local. Xem [hướng dẫn04](integration/04-SETUP.md). Sinh file offline bằng --generate-dataset không cần backend/token.
+
 Các lệnh dưới dùng PowerShell từ thư mục gốc, sau khi cài dependencies:
 
 ```powershell
@@ -53,4 +55,4 @@ python -m simulator.mock_device --replay ai/data/synthetic/raw/SYN-SESSION001.js
 python -m pytest ai/tests
 ```
 
-Trong Docker, dùng tiền tố docker compose --profile ai run --rm ai. Thử huấn luyện bằng giả lập thuộc giai đoạn ML sau; mô hình phải ghi SYNTHETIC_ONLY và không tự được chọn triển khai thật.
+Trong Docker, --generate-dataset dùng profile ai như trước. Replay cần truyền cấu hình/token local vào tiến trình AI, không đặt credential trong Compose theo dõi Git. Thử huấn luyện bằng giả lập thuộc giai đoạn ML sau; mô hình phải ghi SYNTHETIC_ONLY và không tự được chọn triển khai thật.

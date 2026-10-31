@@ -1,6 +1,8 @@
 # Đặc tả API và dữ liệu thiết bị
 
-Cập nhật: 2026-10-31. Đây là điểm tra cứu chung cho firmware, backend, simulator, frontend và bộ dữ liệu. Phần **dự kiến** là quy tắc phải triển khai ở nhánh sau, không phải chức năng đã chạy.
+Cập nhật: 2026-11-01. Đây là điểm tra cứu chung cho firmware, backend, simulator, frontend và bộ dữ liệu. Phần **dự kiến** là quy tắc phải triển khai ở nhánh sau, không phải chức năng đã chạy.
+
+**Triển khai nhánh04, 2026-11-01:** đã có Mosquitto2.0.22/Paho2.1.0, xác thực, nhận telemetry chung HTTP/MQTT, Start/Stop202, lệnh bền/ACK/nonce/đồng bộ và migration SQLite1. Xem [cách chạy](integration/04-SETUP.md), [bàn giao](integration/04-HANDOFF.md). Bảng dưới mô tả mốc d80cc0e trước triển khai; raw lưu bền/JCS/đối chiếu đủ dữ liệu vẫn thuộc06, firmware MQTT thuộc05.
 
 ## Hiện có và dự kiến
 
@@ -17,6 +19,17 @@ Quy tắc đích nằm trong [nhận dữ liệu](contracts/INGESTION_V1.md) và
 Giữ URL /api/v1 và schema_version=1.0 cho telemetry/raw. Control có phiên bản riêng. Đổi giao thức không tự đổi phiên bản; thay đổi làm mất tương thích phải có kế hoạch cập nhật các bên.
 
 JSON dùng UTF-8. Hiện model chỉ cấm trường lạ ở cấp gốc telemetry/raw, chưa cấm đầy đủ ở cấp lồng nhau hoặc chặn mọi trường hợp ép kiểu/sai giới hạn mẫu.
+
+Hai schema telemetry.py/raw_batch.py giữ làm tương thích. Runtime telemetry04 dùng `schemas/ingestion.py`: ID allowlist, nguồn khai rõ, số nguyên JSON chặt, số đo không ép chuỗi/bool, cấm trường lạ mọi cấp và không nhận NaN/Infinity/khoá lặp. Raw mới thêm quyền/phiên/giới hạn byte; kiểm tra mẫu chặt ở06.
+
+## Xác thực ở nhánh04
+
+- Thiết bị HTTP: Bearer token riêng, nguồn/ID từ registry. Mỗi identity chọn transport=http hoặc mqtt; không nhận hai transport cho cùng luồng telemetry.
+- Người vận hành: Bearer token riêng hoặc cookie HttpOnly từ POST `/api/v1/auth/login` với body `{ "token": "<nhập từ file local>" }`. Không đưa token vào VITE_*, URL hoặc localStorage. POST cookie/WS kiểm tra Origin; cookie hết hạn1 giờ.
+- GET `/health` công khai; GET `/health/mqtt` và API dữ liệu/điều khiển cần quyền người vận hành. WS `/ws/live` dùng cookie hoặc header Bearer cho công cụ kiểm thử.
+- Simulator HTTP thêm POST `/devices/sync` (STATE_REQUEST→STATE_RESPONSE), POST `/devices/ack` (ACK→accepted), cùng token thiết bị. Firmware MQTT dùng topic, không poll các đường HTTP này.
+- Start/Stop giữ body đã chốt; trả202 khi đang chờ, lặp trả cùng phiên/lệnh; trả200 khi đã giải quyết. Response có vòng đời/mốc giờ/cutoff/đủ dữ liệu như INGESTION_V1. `started_at` có thể null trước STARTED ACK.
+- `recording_complete` không được suy từ STOPPED. Simulator telemetry-only báo RAW_RECORDING_DISABLED. Raw có summary nhưng chưa đối chiếu sẽ chờ drain rồi incomplete ở04.
 
 ## Thời gian
 

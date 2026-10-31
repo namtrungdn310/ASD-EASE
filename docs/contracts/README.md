@@ -1,5 +1,7 @@
 # Đặc tả kết nối thiết bị — bàn giao nhánh 03
 
+Nhánh03 đã merge PR #12 tại752bd5d. Nhánh04 có bộ kiểm tra runtime/control và backend MQTT, xem [bàn giao04](../integration/04-HANDOFF.md). check_examples.py vẫn kiểm tra schema tương thích ban đầu; tests runtime ở backend/tests kiểm tra chặt hơn, không sửa payload mẫu chỉ để đạt.
+
 Ngày2026-10-31. JSON ở đây là mẫu SYNTHETIC để thử phần mềm, không dữ liệu người thật hoặc bằng chứng MQTT/board đã hoạt động.
 
 ## Thứ tự đọc

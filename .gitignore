@@ -25,3 +25,7 @@ ai/data/synthetic/manifests/*
 ai/.generated/
 .pio/
 .vscode/
+infra/mosquitto/local/
+backend/storage/local/
+*.db.*.bak
+backend/storage/mqtt-receiver.lock

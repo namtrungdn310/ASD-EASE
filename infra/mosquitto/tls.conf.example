@@ -1,0 +1,15 @@
+# Thay listener TCP bằng listener TLS; mount CA/cert/key chỉ trên máy vận hành.
+listener 8883
+certfile /mosquitto/certs/server.crt
+keyfile /mosquitto/certs/server.key
+tls_version tlsv1.2
+allow_anonymous false
+password_file /mosquitto/config/local/passwords
+acl_file /mosquitto/config/local/acl
+persistence false
+message_size_limit 4096
+max_packet_size 4608
+max_inflight_messages 8
+max_queued_messages 8
+max_queued_bytes 32768
+log_dest stdout
