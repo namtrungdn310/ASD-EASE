@@ -1,13 +1,44 @@
 services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/config:/mosquitto/config
+      - mqtt-data:/mosquitto/data
+    ports:
+      - "1883:1883"
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -h localhost -p 1883 -u $$MQTT_HEALTH_USER -P $$MQTT_HEALTH_PASS -t '$$SYS/broker/uptime' -C 1 -W 3 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      MQTT_HEALTH_USER: ${MQTT_USERNAME:-asd_backend}
+      MQTT_HEALTH_PASS: ${MQTT_PASSWORD:-changeme}
+    command: >
+      sh -c "
+        if [ ! -f /mosquitto/config/password.txt ]; then
+          mosquitto_passwd -b -c /mosquitto/config/password.txt $$MQTT_HEALTH_USER $$MQTT_HEALTH_PASS;
+        fi;
+        exec /docker-entrypoint.sh mosquitto -c /mosquitto/config/mosquitto.conf
+      "
+
   backend:
     build: ./backend
     environment:
       DATABASE_URL: sqlite:////app/storage/asd_edge_ai.db
       RAW_STORAGE_DIR: /app/storage/raw
+      MQTT_BROKER_HOST: mqtt-broker
+      MQTT_BROKER_PORT: "1883"
+      MQTT_USERNAME: ${MQTT_USERNAME:-asd_backend}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-changeme}
     ports:
       - "8000:8000"
     volumes:
       - backend-storage:/app/storage
+    depends_on:
+      mqtt-broker:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
       interval: 5s
@@ -36,4 +67,4 @@ services:
 
 volumes:
   backend-storage:
-
+  mqtt-data:

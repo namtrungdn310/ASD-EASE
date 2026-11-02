@@ -8,6 +8,8 @@
 #include "MPU6050Sensor.h"
 #include "GSRSensor.h"
 #include "EMA.h"
+#include "communication/mqtt_transport.h"
+#include "communication/telemetry_serializer.h"
 
 // =============================================================================
 // Global sensor instances
@@ -33,7 +35,8 @@ static OutputFormat outputFormat = DEFAULT_OUTPUT_FORMAT;
 // I2C bus scanner & diagnostic
 // =============================================================================
 static void scanI2CBuses() {
-  Serial.println(F("\n--- I2C Bus 0 (SDA=GPIO8, SCL=GPIO9) ---"));
+  Serial.printf("\n--- I2C Bus 0 (SDA=GPIO%d, SCL=GPIO%d) ---\n",
+                PIN_MAX30102_SDA, PIN_MAX30102_SCL);
   uint8_t found0 = 0;
   for (uint8_t addr = 1; addr < 127; ++addr) {
     Wire.beginTransmission(addr);
@@ -46,7 +49,8 @@ static void scanI2CBuses() {
   }
   Serial.printf("  Tổng: %u thiết bị\n", found0);
 
-  Serial.println(F("\n--- I2C Bus 1 (SDA=GPIO10, SCL=GPIO11) ---"));
+  Serial.printf("\n--- I2C Bus 1 (SDA=GPIO%d, SCL=GPIO%d) ---\n",
+                PIN_MPU6050_SDA, PIN_MPU6050_SCL);
   uint8_t found1 = 0;
   for (uint8_t addr = 1; addr < 127; ++addr) {
     Wire1.beginTransmission(addr);
@@ -280,6 +284,9 @@ void setup() {
 
   const unsigned long now = millis();
   lastPpgReadMs = lastImuReadMs = lastGsrReadMs = lastOutputMs = now;
+
+  // ── MQTT transport ──────────────────────────────────────────────────────────
+  mqttTransportSetup();
 }
 
 // =============================================================================
@@ -321,8 +328,20 @@ void loop() {
   // Xuất gói dữ liệu định kỳ
   if (now - lastOutputMs >= kOutputIntervalMs) {
     emitOutput(latestPpg, latestImu, latestGsr, now);
+    
+    String ppgJson = buildPpgJson(latestPpg, now, nullptr);
+    String gsrJson = buildGsrJson(latestGsr, now, nullptr);
+    String imuJson = buildImuJson(latestImu, now, nullptr);
+
+    mqttEnqueueSensor(ppgJson, ASD_DEVICE_ID, "ppg");
+    mqttEnqueueSensor(gsrJson, ASD_DEVICE_ID, "gsr");
+    mqttEnqueueSensor(imuJson, ASD_DEVICE_ID, "imu");
+
     lastOutputMs = now;
   }
+
+  // Service MQTT connection / publish (non-blocking)
+  mqttTransportLoop();
 
   // Điều phối nhịp loop chính
   const unsigned long elapsed = millis() - now;

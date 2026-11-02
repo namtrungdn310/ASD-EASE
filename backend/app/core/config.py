@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./storage/asd_edge_ai.db"
     raw_storage_dir: str = "./storage/raw"
     cors_origins: str = "http://localhost:5173"
+    mqtt_broker_host: str = "localhost"
+    mqtt_broker_port: int = 1883
+    mqtt_username: str = "asd_backend"
+    mqtt_password: str = "changeme"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

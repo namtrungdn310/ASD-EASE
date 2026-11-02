@@ -20,7 +20,7 @@ The current `esp32s3_supermini` build environment uses `board = esp32-s3-devkitc
 | Setting | Current executable source | Verification state |
 |---|---|---|
 | MAX30102 bus | `Wire`, SDA=8, SCL=9 | Wiring/rate evidence required |
-| MPU6050 bus | `Wire1`, SDA=10, SCL=11 | Wiring/rate evidence required |
+| MPU6050 bus | `Wire1`, SDA=5, SCL=11 | Wiring/rate evidence required |
 | GSR ADC | `PIN_GSR_ADC=4` in `board_config.h` | Comment now matches configured GPIO4; Tân must confirm actual wiring before the constant is changed |
 | Sampling schedules | PPG=100 Hz, IMU=50 Hz, GSR=20 Hz | Configured call rates; effective sample rates, FIFO averaging and losses must be measured |
 | Compatibility pin/sampling headers | Both `pins.h` and `sensor_config.h` forward to `board_config.h` | Independent/repeated/mixed header compilation passes; configured GPIO and rates are unchanged |

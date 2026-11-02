@@ -32,7 +32,7 @@ Một đặc tả đủ rõ để viết backend và firmware độc lập: JSON
 - [ ] Quality là chỉ số kỹ thuật theo quy tắc có ghi rõ. Nếu chưa có quality estimator, quy định cách biểu diễn bảo thủ trong schema hiện có hoặc version cần thiết; không bịa 0.9/1.0 là chất lượng đã đo.
 - [ ] Không model -> `model_version=none`, probability null; `CALIBRATING` khi calibration cần thiết, còn chưa kết luận -> `UNCERTAIN`. Sensor `VALID` không tự thành `NORMAL`.
 
-## Checklist: session-control
+    ## Checklist: session-control
 
 - [ ] Chốt request/response của `POST /sessions/start`, `/sessions/stop` và status trả về; tách desired state với actual state.
 - [ ] Đặc tả endpoint đề xuất `GET /devices/{device_id}/session-control` cho ESP32 poll. Khác với endpoint đã tồn tại phải ghi rõ là planned API.
