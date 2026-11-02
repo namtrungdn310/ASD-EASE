@@ -8,18 +8,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import annotations, auth, device_control, devices, events, health, raw_data, sessions, telemetry, websocket
 from app.core.config import get_settings
-<<<<<<< HEAD
-from app.db.database import Base, engine
-from app.services.mqtt_subscriber import mqtt_subscriber
-
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    await mqtt_subscriber.start()
-    yield
-    await mqtt_subscriber.stop()
-=======
 from app.db.database import SessionLocal, engine
 from app.db.migrations import upgrade
 from app.core.security import Registry
@@ -48,7 +36,6 @@ async def lifespan(application: FastAPI):
     finally:
         await runtime.stop()
         engine.dispose()
->>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
 
 
 settings = get_settings()

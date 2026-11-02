@@ -32,9 +32,6 @@ Theo yêu cầu mới, Codex làm nốt phần tài liệu thay cho đọc từn
 
 ## Đặc tả đã hoàn thiện
 
-<<<<<<< HEAD
-    ## Checklist: session-control
-=======
 - [x] Telemetry/raw giữ cấu trúc1.0, control phiên bản riêng; không thêm trường debug/boot sai schema.
 - [x] HR lỗi/cũ/0 dùng null; SpO2 chỉ debug.
 - [x] GSR ADC trung bình8 trước EMA; delta=percentChange/100 khi mức nền đáng tin.
@@ -56,7 +53,6 @@ Theo yêu cầu mới, Codex làm nốt phần tài liệu thay cho đọc từn
 - [x] Hàng đợi giới hạn số/byte, bỏ batch mới khi đầy và khai báo mất, không tự ghi flash.
 - [x] Tổng kết MQTT trước/sau raw HTTP; zero-batch, cutoff và thời hạn gửi nốt.
 - [x] STOPPED khác đủ dữ liệu; broker lỗi khác HTTP lỗi; không tuyên bố “đúng một lần toàn hệ thống”.
->>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
 
 ## Kiểm tra local và merge
 

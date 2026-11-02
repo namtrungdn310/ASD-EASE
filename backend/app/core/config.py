@@ -9,12 +9,6 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./storage/asd_edge_ai.db"
     raw_storage_dir: str = "./storage/raw"
     cors_origins: str = "http://localhost:5173"
-<<<<<<< HEAD
-    mqtt_broker_host: str = "localhost"
-    mqtt_broker_port: int = 1883
-    mqtt_username: str = "asd_backend"
-    mqtt_password: str = "changeme"
-=======
     device_registry_file: Path = Path("./storage/local/device-registry.json")
     operator_token: SecretStr = SecretStr("")
     cookie_secret: SecretStr = SecretStr("")
@@ -32,7 +26,6 @@ class Settings(BaseSettings):
     command_timeout_seconds: int = Field(default=30, ge=1, le=30)
     drain_timeout_seconds: int = Field(default=30, ge=1, le=30)
     mqtt_lock_file: Path = Path("./storage/mqtt-receiver.lock")
->>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
 
     @model_validator(mode="after")
     def credentials_and_tls(self):
@@ -60,4 +53,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

@@ -218,7 +218,7 @@ const MqttStats& mqttGetStats() {
 }
 
 #else
----------------------------------------------------------------
+// ----------------------------------------------------------------------------
 static MqttStats _stubStats;
 
 bool mqttTransportSetup() {

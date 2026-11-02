@@ -27,12 +27,9 @@ ai/data/synthetic/manifests/*
 ai/.generated/
 .pio/
 .vscode/
-<<<<<<< HEAD
 mosquitto/config/password.txt
 mosquitto/data/
-=======
 infra/mosquitto/local/
 backend/storage/local/
 *.db.*.bak
 backend/storage/mqtt-receiver.lock
->>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
