@@ -1,9 +1,10 @@
-# Development Workflow
+# Quy trình phát triển
 
-`main` is the stable release-quality branch; `dev` is the daily integration branch. Both are protected against direct pushes. All work uses focused branches such as `feature/backend-*`, `feature/frontend-*`, `feature/firmware-*`, `feature/ai-*`, `fix/*`, `docs/*` and `chore/*`. Work branches open reviewed PRs into `dev`; only `dev` opens promotion PRs into `main`. See [GIT_WORKFLOW.md](GIT_WORKFLOW.md) for the exact two-person process.
+- main là bản ổn định; dev là nơi tích hợp hằng ngày. Không push trực tiếp vào hai nhánh này.
+- Mỗi nhánh ngắn tập trung một mục tiêu: feature/*, fix/*, docs/* hoặc chore/*. Mở PR vào dev; chỉ dev mở PR lên main.
+- Trước merge: build và kiểm thử liên quan đạt, không xung đột, tài liệu/tiến độ khớp phần đã làm. Thiết kế thay đổi ghi DECISIONS.md; sản phẩm thay đổi ghi CHANGELOG.md.
+- Đổi quy ước dữ liệu phải cập nhật đặc tả cùng backend Pydantic, TypeScript, C++ và simulator liên quan; không âm thầm đổi payload.
+- Kết thúc giai đoạn: đối chiếu nghiệm thu, lưu bằng chứng, ghi việc còn chặn và cập nhật tiến độ. Phần cứng cần phép đo thật; AI cần thí nghiệm thật.
+- “Dự kiến” không có nghĩa tính năng đã chạy. Không ghi PASS cho kiểm thử chưa thực hiện.
 
-Before merge: code builds, relevant tests pass, API remains compatible, the active phase document and `PROGRESS.md` are updated. Code changes update `CHANGELOG.md`; architecture changes update `DECISIONS.md`.
-
-Any wire-contract change must update backend Pydantic, frontend TypeScript, firmware C++ and `API_CONTRACT.md` together. No silent changes.
-
-At each phase boundary: run tests, evaluate every acceptance criterion, record only real evidence, report blockers, update progress and stop. Future placeholders do not complete a phase. Physical phases require physical evidence and scientific phases require actual experiments.
+Xem [Git/GitHub](GIT_WORKFLOW.md) và [tiến độ tích hợp](integration/PROGRESS.md).

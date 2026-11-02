@@ -1,10 +1,11 @@
 import pytest
 from app.core.enums import EngineeringState
+from conftest import OP_HEADERS
 
 
 def payload():
     return {
-        "schema_version": "1.0", "device_id": "SIM-001", "session_id": "SYN-SESSION001",
+        "schema_version": "1.0", "device_id": "SIM-001", "session_id": None,
         "timestamp_ms": 1000, "data_origin": "SYNTHETIC", "hr_bpm": 78.4,
         "gsr": {"raw": 1810, "delta": 0.04}, "movement": {"score": 0.2},
         "signal_quality": {"ppg": 0.9, "gsr": 0.85, "imu": 1.0},
@@ -39,7 +40,7 @@ def test_unknown_state_rejected(client):
 
 
 def test_websocket_broadcast(client):
-    with client.websocket_connect("/api/v1/ws/live") as socket:
+    with client.websocket_connect("/api/v1/ws/live", headers=OP_HEADERS) as socket:
         response = client.post("/api/v1/telemetry", json=payload())
         assert response.status_code == 202
         assert socket.receive_json()["data_origin"] == "SYNTHETIC"

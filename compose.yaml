@@ -1,4 +1,5 @@
 services:
+<<<<<<< HEAD
   mqtt-broker:
     image: eclipse-mosquitto:2
     volumes:
@@ -22,22 +23,52 @@ services:
         fi;
         exec /docker-entrypoint.sh mosquitto -c /mosquitto/config/mosquitto.conf
       "
+=======
+  broker:
+    image: eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c
+    ports:
+      - "127.0.0.1:1883:1883"
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mosquitto/local/passwords:/mosquitto/config/local/passwords:ro
+      - ./infra/mosquitto/local/acl:/mosquitto/config/local/acl:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pidof mosquitto >/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+>>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
 
   backend:
     build: ./backend
+    env_file:
+      - path: ./infra/mosquitto/local/backend.env
+        required: false
     environment:
       DATABASE_URL: sqlite:////app/storage/asd_edge_ai.db
       RAW_STORAGE_DIR: /app/storage/raw
+<<<<<<< HEAD
       MQTT_BROKER_HOST: mqtt-broker
       MQTT_BROKER_PORT: "1883"
       MQTT_USERNAME: ${MQTT_USERNAME:-asd_backend}
       MQTT_PASSWORD: ${MQTT_PASSWORD:-changeme}
+=======
+      DEVICE_REGISTRY_FILE: /app/local/device-registry.json
+      MQTT_HOST: broker
+      MQTT_LOCK_FILE: /app/storage/mqtt-receiver.lock
+>>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
     ports:
       - "8000:8000"
     volumes:
       - backend-storage:/app/storage
+<<<<<<< HEAD
     depends_on:
       mqtt-broker:
+=======
+      - ./infra/mosquitto/local:/app/local:ro
+    depends_on:
+      broker:
+>>>>>>> 7ff5a2c8b679380864b028f20539a300bb787ee3
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]

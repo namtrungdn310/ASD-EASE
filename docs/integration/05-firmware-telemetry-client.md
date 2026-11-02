@@ -1,77 +1,74 @@
-# 05 — IT triển khai firmware gửi telemetry qua LAN
+# 05 — Firmware gửi telemetry và nhận lệnh MQTT
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `feature/firmware-telemetry-client` |
-| Chủ trì | Trung — IT; Tân hỗ trợ board/driver |
-| Phụ thuộc | 03, 04; 02 trước nghiệm thu dashboard |
-| Ước lượng | 1,5–3 ngày, chưa tính chờ phần cứng |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 05 |
+| Phụ trách | Trung — IT, Tân hỗ trợ board/driver |
+| Phụ thuộc |03/04;02 trước nghiệm thu dashboard |
+| Ước lượng |2–4 ngày, chưa tính chờ phần cứng |
+| Tiến độ |[Dòng05](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Kết quả
 
-ESP32 nhận lệnh phiên, đóng gói telemetry chuẩn v1.0 và POST tới FastAPI bằng Wi-Fi LAN. Sensing tiếp tục trong lúc mạng chậm/mất. USB chỉ dùng flash/debug, không dùng làm transport chính hay bridge laptop thay thế networking.
+ESP32 gửi telemetry1.0 qua broker LAN, nhận Start/Stop và trả ACK/đồng bộ. Mất/chậm mạng không dừng lấy mẫu. Raw HTTP làm ở07; USB chỉ nạp/chẩn đoán, không thay đường truyền. Theo [kiến trúc](MQTT_ARCHITECTURE.md), broker/backend04 đã có để thử.
 
-## File dự kiến / ranh giới với driver
+## Phạm vi
 
-- Module mới `include/communication/`, `src/communication/` cho config, Wi-Fi, session-control, HTTP và serializer.
-- Thay tối thiểu `src/main.cpp` để đưa snapshot cảm biến vào transport.
-- `include/network_config.example.h` có placeholder; file local `network_config.h` vẫn gitignored.
-- Firmware tests (host serializer khi khả thi, test transport/fake backend); `docs/phases/PHASE_07_WIFI_BACKEND.md` và LAN runbook.
-- Không chỉnh thuật toán HR/GSR/IMU chỉ để payload đẹp. Mâu thuẫn driver hoặc clock ghi issue/blocker để phối hợp Tân.
+Mô-đun Wi-Fi, MQTT, topic, lệnh và đóng JSON trong include/communication/ và src/communication/. Thay tối thiểu main.cpp; phối hợp Tân trước sửa chung. network_config.example.h dùng mẫu, network_config.h local bị bỏ qua. Thêm tests C++/Pydantic, hướng dẫn LAN và giai đoạn07; không đổi thuật toán cảm biến chỉ để payload đẹp.
 
-## Checklist serializer
+## Đóng gói dữ liệu
 
-- [ ] Viết serializer riêng, không tái dùng Pretty JSON tiếng Việt; Serial debug vẫn là kênh diagnostic.
-- [ ] Mapping đúng contract 03: null khi invalid/stale, schema/device/session/version, data_origin DEVICE cho board thật.
-- [ ] GSR delta đúng tỷ lệ, movement chưa có thuật toán để null; không tự tính prediction giả trên laptop.
-- [ ] Không có model -> probability null, model_version none; state/quality theo quy tắc đã chốt, không biến sensor VALID thành NORMAL.
-- [ ] Sensor snapshot cần validity + tuổi dữ liệu; lỗi kết nối không gửi lại số cũ như một mẫu mới hợp lệ.
-- [ ] Tạo snapshot nhất quán khi data đọc và network task khác nhau; copy giá trị, không giữ pointer vào buffer bị sửa.
-- [ ] Capture JSON do C++ tạo bằng fixtures; kiểm tra qua Pydantic trong tests, không chỉ eyeball JSON trên Serial.
+- [ ] Dùng bộ đóng JSON riêng, không gửi nguyên Pretty JSON chẩn đoán.
+- [ ] Theo mapping03: null khi lỗi/cũ, đúng phiên/thiết bị/phiên bản và DEVICE khi cảm biến thật.
+- [ ] GSR delta đúng tỷ lệ; movement chưa thuật toán dùng null, không tính dự đoán giả trên laptop.
+- [ ] Chưa mô hình: probabilitynull, modelnone và trạng thái/chất lượng đúng quy ước; VALID không tự NORMAL.
+- [ ] Có trạng thái và tuổi mẫu; không gửi cache như số đo mới.
+- [ ] Chụp dữ liệu nhất quán giữa task; copy giá trị, không giữ con trỏ vùng đang thay.
+- [ ] Kiểm tra JSON do C++ tạo bằng Pydantic, không chỉ nhìn Serial.
 
-## Checklist networking và session
+## Mạng và phiên
 
-- [ ] Build CI không cần credential thật: template/default tắt networking hoặc config placeholder có kiểm soát; thiếu file local không làm compilation fail.
-- [ ] SSID/password local, backend host là IP LAN laptop + port 8000; `localhost` trên ESP32 không phải laptop, tên service Docker không phải DNS LAN.
-- [ ] Kiểm tra health từ một máy/thiết bị trong cùng LAN; ghi cấu hình cần mở port 8000 theo phạm vi cần thiết, không tự tắt firewall.
-- [ ] Wi-Fi reconnect có backoff và giới hạn log; không while-loop chờ kết nối làm dừng sensing.
-- [ ] HTTP/poll có timeout hữu hạn và retry; chạy trong task riêng/transport state machine để timeout không chặn loop lấy mẫu. Tính RAM/stack, tránh cấp phát vô hạn.
-- [ ] Không chờ POST trong vòng đọc 10 ms; đo ảnh hưởng của transport/Serial output đến sensing.
-- [ ] Poll session-control, ACK start đúng command và thiết lập epoch thu một lần; retry ACK không reset clock.
-- [ ] `timestamp_ms` tính theo session epoch; xử lý rollover `millis()` và boot ID theo contract.
-- [ ] Chưa có raw queue ở nhánh này: telemetry có thể giữ snapshot mới nhất, không cần gửi backlog vô hạn; báo dữ liệu mất theo policy và không chặn nhánh 07.
-- [ ] Stop làm theo state machine; không tuyên bố đã drain raw trước khi nhánh 07 triển khai. Ghi rõ giới hạn hiện tại trong runbook.
-- [ ] Retry timeout/5xx/connection error có giới hạn; 4xx do contract không retry mù. Parse status/body đủ để phân biệt và log lý do.
-- [ ] Log thiết bị, version, HTTP status, counters/timing; không in Wi-Fi password.
-- [ ] Ghi board/firmware/commit/network setup và kết quả thực vào Phase 07, giữ trạng thái chưa xong raw/khả năng khác.
+- [ ] Chọn/pin thư viện Arduino sau thử gửiQoS1, subscribe/LWT/TLS, giới hạn packet/hàng chờ; không chỉ dựa khả năng nhậnQoS1.
+- [ ] CI build không cần credential thật; thiếu file local không làm compile lỗi, mặc định networking tắt/cấu hình mẫu có kiểm soát.
+- [ ] Broker host/port/clientID/credential/TLS riêng với HTTP backend cho07; dùng IP/DNS LAN, không localhost hoặc service Docker.
+- [ ] Thử broker/health trong LAN,1883 dev hoặc8883 TLS theo quy tắc; không public broker hoặc tắt tường lửa.
+- [ ] Wi-Fi nối lại có thời gian chờ tăng và log giới hạn, không vòng chờ làm dừng cảm biến.
+- [ ] MQTT có timeout, task/hàng đợi hữu hạn; callback không chờ DB/HTTP. Tính RAM/stack, không mặc định publish không chặn.
+- [ ] Không chờ broker/PUBACK trong loop10 ms; đo ảnh hưởng MQTT/Serial, để tài nguyên HTTPraw07.
+- [ ] Topic/nguồn/quyền đúng; lệnh/telemetry không retained, LWT không biến dữ liệu cũ thành live.
+- [ ] Subscribe xong mới đồng bộ boot/nonce; chỉ chạy lệnh đúng phiên/generation/thời hạn, ACK sau thực thi. Mốc thu chỉ đặt một lần.
+- [ ] Timestamp theo epoch, xử lý rollover millis()/reboot theo đặc tả.
+- [ ] Nhịp gửi thử1000 ms độc lập sensing; chỉ bản mới nhất, không gửi dồn dữ liệu cũ; raw không đi topictelemetry.
+- [ ] Stop theo máy trạng thái; chưa có07 thì không tuyên bố gửi nốt raw xong.
+- [ ] Phân biệt Wi-Fi/broker lỗi, backend chưa nhận và ứng dụng từ chối; PUBACK không là xác nhận nghiệp vụ. Retry đúng ID/thời hạn, không thử gói sai vô hạn.
+- [ ] Log thiết bị/boot/lệnh/phiên bản/số đếm/thời gian, không secret. Broker còn nhưng backend mất không nghĩa đã bắt đầu thu.
+- [ ] Ghi commit, cấu hình, board và kết quả thật trong giai đoạn07; nêu phần raw/chức năng còn thiếu.
 
-## Ma trận kiểm thử
+## Kiểm thử
 
-| Tình huống | Kết quả mong đợi |
+| Tình huống | Cần thấy |
 |---|---|
-| Serializer fixture hợp lệ/invalid/null | Pydantic chấp nhận đúng, không có extra field debug |
-| Build không có network_config.h thật | CI compile pass, không credential trong image/source |
-| ESP32 + backend cùng LAN | POST 202, DB metadata đúng, WebSocket/dashboard hiển thị DEVICE |
-| Wi-Fi sai/mất; backend treo/chậm | Sensing không bị dừng theo thời gian HTTP; reconnect hữu hạn |
-| Backend 422 / 409 / 500 | Xử lý khác nhau, không retry payload sai vô hạn |
-| Start ACK lặp, stop, reboot | Không reset timestamp hoặc nhập nhầm phiên |
-| Mất cảm biến trong lúc mạng vẫn tốt | Không gửi HR/GSR cũ như valid; null/state đúng |
+| JSON hợp lệ/sai/null | Pydantic kiểm tra đúng, không trường debug |
+| Build không có file local | CI đạt, không secret trong nguồn/image |
+| ESP32+broker+backend LAN | Backend nhận/kiểm tra, DB/WS/dashboard đúng DEVICE |
+| Wi-Fi/broker sai/mất/restart | Lấy mẫu tiếp, nối lại/hàng đợi hữu hạn, đồng bộ trước lệnh |
+| Broker còn/backend mất | Không coi PUBACK là ACK đang thu |
+| Sai quyền/payload/quá gói | Lý do rõ, không retry mù hoặc thành công giả |
+| Lệnh/ACK lặp, Stop, reboot, lệnh cũ | Không reset epoch, nhầm phiên hoặc tự Start |
+| Cảm biến mất khi mạng tốt | Null/trạng thái đúng, không số cũ hợp lệ |
 
-## Điều kiện merge / nghiệm thu
+## Nghiệm thu và khôi phục
 
-- [ ] Firmware build trên Windows/Linux, serializer contract test và required checks pass.
-- [ ] Có log sensing trước/sau bật network và đo gaps/rate; không chỉ ghi 'non-blocking' trong comment.
-- [ ] Nếu chưa có board: có thể merge phần mềm với `WAITING_HARDWARE`, tuyệt đối không đóng Phase 07.
-- [ ] Khi có board: ghi request 202 + frame WebSocket + ảnh dashboard + commit/điều kiện đo.
-- [ ] Commit gợi ý: `feat(firmware): send contract telemetry over local Wi-Fi`.
+- [ ] Build Windows/Linux, JSON fixtures và CI đạt.
+- [ ] Có log so rate/gap trước/sau mạng, không chỉ comment “non-blocking”.
+- [ ] Chưa board: có thể bàn giao phần mềm với WAITING_HARDWARE, không đóng giai đoạn07.
+- [ ] Có board: giữ log MQTT/application ACK, DB/WS, ảnh dashboard, commit/cấu hình; không lấy PUBACK làm bằng chứng raw.
+- [ ] Commit gợi ý: `feat(firmware): gửi telemetry MQTT và xác nhận lệnh phiên`.
 
-## Rollback
+Giữ chế độ Serial-only để chẩn đoán, không xoá driver của Tân. Nếu ảnh hưởng lấy mẫu, tắt transport bằng cấu hình và giữ log để sửa lịch chạy.
 
-Giữ chế độ Serial-only để debug, chọn qua config build/runtime rõ ràng. Không xoá driver của Tân. Nếu transport ảnh hưởng sampling, tắt transport và giữ log để sửa riêng scheduling.
+## Nhật ký
 
-## Nhật ký / kết quả thực hiện
-
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
+| Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+|—|—|—|Chưa thực hiện|

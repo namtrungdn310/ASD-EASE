@@ -1,74 +1,74 @@
-# Phase 20 — Competition Wireless
+# Giai đoạn 20 — Trình diễn không dây
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Demonstrate battery ESP32 plus laptop dashboard on offline local Wi-Fi.
+Trình diễn ESP32 dùng pin cùng dashboard laptop trên Wi-Fi cục bộ không Internet.
 
-## Why This Phase Exists
+## Lý do
 
-Validates the competition topology.
+Kiểm chứng mô hình kết nối dùng khi thi đấu.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 19, Phase 07
+Giai đoạn 19, Giai đoạn 07
 
-## Inputs
+## Đầu vào
 
-Portable router/LAN, battery device and laptop stack.
+Router/LAN cục bộ, thiết bị dùng pin và phần mềm trên laptop.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 docs/COMPETITION_MODE_TEST.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Disable Internet and USB; laptop remains display/receiver only.
+Ngắt Internet và USB; laptop chỉ nhận/lưu/hiển thị, không suy luận cuối.
 
-## Tests
+## Kiểm thử
 
-Execute applicable competition checklist end-to-end.
+Thực hiện các mục phù hợp của danh sách kiểm tra thi đấu.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 20; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Firewall, router isolation, IP changes or hidden USB dependence.
+Tường lửa, chặn các máy trong router, IP đổi hoặc phụ thuộc USB.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Use fixed demo LAN plan and component-by-component checks.
+Dùng cấu hình LAN trình diễn đã ghi và kiểm tra từng thành phần.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 21 — Network Resilience
+Giai đoạn 21 — Khả năng phục hồi kết nối
 

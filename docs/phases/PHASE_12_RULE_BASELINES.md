@@ -1,74 +1,74 @@
-# Phase 12 — Rule Baselines
+# Giai đoạn 12 — Phương pháp đối chứng theo quy tắc
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Implement transparent HR, HR+GSR and HR+GSR+IMU engineering baselines.
+Tạo các phương pháp đối chứng rõ ràng: HR, HR+GSR và HR+GSR+IMU.
 
-## Why This Phase Exists
+## Lý do
 
-Provides honest comparators before ML.
+Có mốc so sánh trung thực trước khi dùng học máy.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 11
+Giai đoạn 11
 
-## Inputs
+## Đầu vào
 
-Feature tables with split/provenance metadata.
+Bảng đặc trưng kèm nguồn và cách chia tập.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/training/...; ai/src/evaluation/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Tune only on training data and quality-gate invalid windows.
+Chỉ chỉnh ngưỡng từ dữ liệu huấn luyện; loại/gắn cờ cửa sổ không đạt chất lượng theo quy tắc đã ghi.
 
-## Tests
+## Kiểm thử
 
-Participant/session split evaluation on available real data; report measured metrics only.
+Đánh giá trên dữ liệu thật sẵn có, tách theo người/phiên; chỉ báo cáo chỉ số đã đo.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 12; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Threshold leakage, overfitting or clinical overstatement.
+Chọn ngưỡng từ tập đánh giá, học quá khớp hoặc diễn giải thành kết luận y khoa.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Re-run from frozen split and inspect confusion cases.
+Chạy lại với cách chia tập đã cố định và xem các trường hợp nhầm.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 13 — ML Experiments
+Giai đoạn 13 — Thử nghiệm học máy
 

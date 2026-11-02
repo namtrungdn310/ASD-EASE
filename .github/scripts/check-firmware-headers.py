@@ -1,4 +1,4 @@
-"""Compile header combinations that the normal firmware entry point may not use."""
+"""Biên dịch các tổ hợp header mà main firmware có thể chưa dùng."""
 
 import json
 from pathlib import Path
@@ -44,7 +44,7 @@ def main() -> int:
     )
     for headers in combinations:
         source = "\n".join(f'#include "{header}"' for header in headers)
-        # Check aliases and type availability without hardcoding hardware values.
+        # Kiểm tra alias và kiểu dữ liệu, không gán cứng giá trị phần cứng.
         source += """
 static_assert(PIN_I2C_SDA == PIN_MAX30102_SDA, "SDA alias mismatch");
 static_assert(PIN_I2C_SCL == PIN_MAX30102_SCL, "SCL alias mismatch");

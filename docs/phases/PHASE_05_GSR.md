@@ -1,76 +1,74 @@
-# Phase 05 — GSR
+# Giai đoạn 05 — GSR
 
-## Status
+## Trạng thái
 
 IN_PROGRESS
 
-## Owner
+## Người phụ trách
 
-AUTOMATION
+Tân — Tự động hoá
 
-## Objective
+## Mục tiêu
 
-Acquire raw GSR module ADC counts safely.
+Thu số đếm ADC của cảm biến GSR đúng cách và an toàn.
 
-## Why This Phase Exists
+## Lý do
 
-Adds electrodermal input while preserving calibration limits.
+Bổ sung tín hiệu điện da, nhưng không coi số đo chưa hiệu chuẩn là độ dẫn chính xác.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 00
+Giai đoạn 00
 
-## Inputs
+## Đầu vào
 
-Verified ADC1-capable pin, module voltage and wiring.
+Chân ADC1, điện áp mô-đun và dây nối đã kiểm chứng.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/sensors/GSRSensor.cpp
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Measure raw ADC only; document attenuation/range and never invent conductance units.
+Driver có lấy trung bình ADC, đổi điện áp, EMA, mức nền 5 giây và công thức độ dẫn dựa trên giả thiết mạch. Công thức chưa được nghiệm thu bằng phép đo tham chiếu. Cấu hình hiện tại sau PR #11 là GPIO7, không còn GPIO4; vẫn cần Tân xác nhận dây nối thực.
 
-PR #7 (`332f249`) implements ADC averaging, voltage conversion, EMA, a five-second baseline and a conductance formula based on an assumed module circuit. These derived values are provisional until module identification and reference measurements validate the conversion. `board_config.h` configures GPIO4; its comment has been corrected to match that configuration. Physical wiring still needs confirmation before changing a source constant.
+## Kiểm thử
 
-## Tests
+Build/nạp; kiểm tra hở mạch, chập qua điều kiện thử an toàn và tín hiệu tham chiếu; đo dải giá trị và nhiễu.
 
-Build/flash; open/short/reference checks; range/noise capture.
+## Điều kiện nghiệm thu
 
-## Acceptance Criteria
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+## Đầu ra
 
-## Expected Output
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-A reviewable implementation, test evidence and updated project tracking for Phase 05; no automatic work on the next phase.
+## Rủi ro
 
-## Known Risks
+Điện áp không an toàn, ADC phi tuyến, ảnh hưởng Wi-Fi hoặc tiếp xúc không ổn định.
 
-Unsafe voltage, ADC nonlinearity, Wi-Fi interaction or contact instability.
+## Xử lý lỗi và khôi phục
 
-## Debug / Rollback Strategy
+Ngắt mô-đun; đối chiếu điện áp và chân ADC bằng nguồn tham chiếu.
 
-Disconnect module; validate voltage and ADC pin with references.
+## Kết quả
 
-## Results
+Đã đọc phần triển khai từ PR #7; build trên máy đạt. Chưa có biên bản kiểm thử trên board đáp ứng các mục bên trên.
 
-Implementation reviewed from PR #7; physical open/short/reference, input range/noise and conductance-calibration checks are not recorded. Host compilation passed.
+## Bằng chứng hoàn thành
 
-## Completion Evidence
+Cần lưu board, commit, cấu hình, mẫu có thứ tự, số đo thời gian và thử ngắt cảm biến. Chưa đủ để đánh dấu DONE.
 
-No physical acceptance log available. Preserve raw ADC/reference voltages, actual GPIO/module configuration and calibration limitations before marking DONE.
+## Giai đoạn tiếp theo
 
-## Next Phase
-
-Phase 06 — Sensor Integration
+Giai đoạn 06 — Tích hợp cảm biến
 

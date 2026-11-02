@@ -1,73 +1,73 @@
-# Phase 14 — Model Selection
+# Giai đoạn 14 — Chọn mô hình
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Select or reject candidates using measured accuracy and deployment constraints.
+Chọn hoặc loại mô hình dựa trên kết quả đo và giới hạn triển khai.
 
-## Why This Phase Exists
+## Lý do
 
-The most complex or highest-F1 model may not be competition-suitable.
+Mô hình phức tạp nhất hoặc F1 cao nhất chưa chắc phù hợp trên thiết bị.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 13
+Giai đoạn 13
 
-## Inputs
+## Đầu vào
 
-Rule/ML results, size, latency and interpretability evidence.
+Kết quả đối chứng/ML, dung lượng, độ trễ và mức dễ giải thích.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/evaluation/...; docs/PROGRESS.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Compare precision, recall, F1, false alerts, size, latency, memory and stability when measured. Synthetic-only performance can validate software behavior but cannot select or validate the final real-world research model.
+So precision, recall, F1, cảnh báo sai, dung lượng, độ trễ, bộ nhớ và ổn định khi có phép đo. Kết quả chỉ từ giả lập không đủ chọn mô hình cuối cho dữ liệu thật.
 
-## Tests
+## Kiểm thử
 
-Reproduce evaluation on held-out real data and review failure modes; audit participant/session/trial split boundaries and training-data provenance.
+Chạy lại trên tập thật giữ riêng; rà soát lỗi, cách tách người/phiên/lần đo và nguồn huấn luyện.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 14; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Metric cherry-picking or synthetic-only selection.
+Chỉ chọn chỉ số đẹp hoặc chọn mô hình hoàn toàn từ giả lập.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Return to experiment registry and predefined criteria.
+Quay lại danh sách thử nghiệm và tiêu chí đã đặt trước.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 15 — Model Export
+Giai đoạn 15 — Xuất mô hình

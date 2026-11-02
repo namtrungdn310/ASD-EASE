@@ -2,11 +2,11 @@
 #include "board_config.h"
 #include "EMA.h"
 
-// Forward-declare the SparkFun library class to keep this header lightweight.
+// Khai báo trước lớp SparkFun để header không nạp toàn bộ thư viện.
 class MAX30105;
 
 // =============================================================================
-// MAX30102 Sensor — Heart-Rate / SpO2 PPG
+// MAX30102 — PPG, ước tính nhịp tim/SpO2
 // =============================================================================
 
 struct MAX30102Data {
@@ -20,7 +20,7 @@ struct MAX30102Data {
   float     pulseAmplitude  = 0.0f;                      // Biên độ AC đỉnh-đáy (counts)
   PPGStatus status          = PPGStatus::DISCONNECTED;   // Trạng thái tiếp xúc & đo đạc
   bool      fingerDetected  = false;                     // Đã đặt ngón tay hay chưa
-  bool      valid           = false;                     // Dữ liệu nhịp tim và SpO2 đã ổn định
+  bool      valid           = false;                     // Cờ hợp lệ theo điều kiện nhịp tim của driver
 };
 
 class MAX30102Sensor {
@@ -51,7 +51,7 @@ class MAX30102Sensor {
   float         redDc_        = 0.0f;
 
   // Bộ lọc thông thấp Butterworth bậc 2 (fc = 2.5 Hz, fs = 50 Hz)
-  // Triệt tiêu hoàn toàn dicrotic notch (> 3.5 Hz) và rung giật nhiễu vi động
+  // Giảm thành phần cao tần; hiệu quả trên tín hiệu thật cần kiểm chứng
   float         biquadX1_     = 0.0f;
   float         biquadX2_     = 0.0f;
   float         biquadY1_     = 0.0f;

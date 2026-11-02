@@ -1,83 +1,81 @@
-# 07 — IT triển khai raw buffer và gửi batch trên ESP32
+# 07 — Bộ đệm raw và gửi batch trên ESP32
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `feature/firmware-raw-batching` |
-| Chủ trì | Trung — IT; Tân xác nhận sampling/driver |
-| Phụ thuộc | 05, 06 và đo được rate/timestamp từ cảm biến |
-| Ước lượng | 1,5–3 ngày, chưa tính chờ phần cứng |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 07 |
+| Phụ trách | Trung — IT; Tân xác nhận driver/tốc độ |
+| Phụ thuộc |05/06 và có số đo rate/timestamp |
+| Ước lượng |1,5–3 ngày, chưa tính chờ board |
+| Tiến độ |[Dòng07](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Kết quả và phạm vi
 
-ESP32 lưu được chuỗi mẫu trước EMA, gửi batch đúng raw contract, retry không làm biến đổi batch và sensing tiếp tục khi mạng tạm mất. Queue có giới hạn và mọi phần mất dữ liệu được khai báo.
+Thu chuỗi trước EMA, gửi raw HTTP đúng đặc tả, giữ batch bất biến khi retry và tiếp tục lấy mẫu khi mạng mất. MQTT telemetry/lệnh vẫn từ05, không đưa raw vào broker. Theo [kiến trúc](MQTT_ARCHITECTURE.md).
 
-## File / phạm vi
+Thêm bộ đệm/đóng batch/JSON và HTTP uploader trong include/, src/acquisition/ hoặc src/communication/. Tích hợp tối thiểu sensor/main, ưu tiên đường lấy mẫu riêng thay đổi thuật toán đo. Tách cấu hình HTTP/broker, thêm bộ đếm và tests/giai đoạn07–08. USB/parse Pretty JSON trên laptop không thay raw thật.
 
-- Module raw buffer/batcher/serializer mới dưới `ai/edge_firmware/include/` và `src/communication/` hoặc thư mục `src/acquisition/` rõ ràng.
-- Hook dữ liệu từ sensor layer và `main.cpp`; ưu tiên thêm interface drain samples thay vì sửa thuật toán đo.
-- Config queue/window/timeouts, counter sampling/loss và tests.
-- Metadata cấu hình đo, Phase 07/08 và runbook mất mạng.
-- Không truyền USB làm đường thu chính; không lưu dataset trên laptop bằng cách parse Pretty JSON để thay thế raw stream.
+## Phải kiểm tra trước
 
-## Cổng đầu vào: phải giải quyết trước khi viết batcher
+- [ ] Đo số mẫu từng luồng theo clock; tách rate chip PPG khỏi FIFO sau trung bình.
+- [ ] Driver PPG trả snapshot cuối chưa đủ; expose từng cặp red/IR có thứ tự, không nhân bản cùng giá trị100 lần.
+- [ ] Chỉ thêm khi có sample mới; lỡ mẫu dùng null/gap theo đặc tả.
+- [ ] IMU trước EMA đúng g/degrees/s; GSR ADC sau trung bình nhưng trước EMA, ghi rõ phép xử lý.
+- [ ] Đo rate/jitter/loss và căn mẫu0 chung. Không đáp ứng clock1.0 thì đề xuất version mới, không giả alignment.
 
-- [ ] Tân/IT đo số mẫu thực nhận mỗi stream theo clock; phân biệt PPG sample rate chip với rate FIFO sau averaging.
-- [ ] Driver MAX30102 hiện dùng FIFO nội bộ tính HR nhưng `read()` chỉ trả một snapshot cuối. Bổ sung đường lấy từng cặp red/IR có thứ tự, không chỉ gọi snapshot 100 lần rồi nhân bản giá trị cũ.
-- [ ] Không lấy mẫu PPG chỉ vì loop timer tới hạn; chỉ thêm khi thật có sample mới, theo contract về null/gap khi bỏ lỡ.
-- [ ] Raw IMU dùng trước EMA, đơn vị g và degrees/s; GSR dùng ADC đã averaging ở driver nhưng trước EMA, metadata nêu rõ processing này.
-- [ ] Ghi measurement rate/jitter/loss và cách căn sample 0 cho cả ba stream. Nếu không đáp ứng clock model v1.0, quay lại contract với đề xuất version; không làm giả alignment.
+## Bộ đệm và mạng
 
-## Checklist thiết kế buffer
+- [ ] Một epoch/phiên, ID tăng; chỉ reset khi phiên mới, không khi Wi-Fi nối lại.
+- [ ] Vị trí mẫu theo clock/rate; thiếu giữ null, không dồn thời gian.
+- [ ] Cửa sổ thử1 s; tính số mẫu, byte JSON, RAM đỉnh và độ sâu hàng đợi trước chốt.
+- [ ] Không giả có PSRAM; hàng đợi có hạn, tránh copy lớn/cấp phát vô hạn.
+- [ ] Quyền sở hữu buffer rõ, task mạng không sửa vùng đang thu.
+- [ ] Batch đóng giữ nguyên ID/timestamp/nội dung trong mọi retry.
+- [ ] Chỉ HTTP ACK đúng batch đã lưu mới release; response lỗi, PUBACK hay ACKStop không đủ.
+- [ ] Khi đầy: drop policy/bộ đếm/gap đúng đặc tả, không chờ mạng trong loop hoặc xoá mẫu âm thầm.
+- [ ] Mất mạng lâu vẫn giữ timeline; số mẫu/batch bị bỏ không đếm đôi do retry.
+- [ ] Reboot không giả queueRAM còn; ghi phần mất/chưa ACK, phiên mới khi đổi epoch; không tự thêm ghi flash.
+- [ ] Lệnh/telemetry được xử lý kịp nhưng raw không bị bỏ đói; đo số gửi thành công/retry/drop/thời gian.
+- [ ] HTTP chậm không chặn MQTT keepalive/Stop hoặc sensing; tính tổng stack/heap/TLS và RAM khi hai kênh lỗi.
+- [ ] Broker mất/HTTP còn vẫn gửi raw của phiên hợp lệ; HTTP mất/MQTT còn phải báo thiếu dù chart chạy. Không đổi phiên khi một kênh nối lại.
 
-- [ ] Một session epoch dùng chung, reset batch ID có chủ đích khi session mới, không reset khi reconnect Wi-Fi.
-- [ ] Định nghĩa slot/index theo timestamp và rate; missing sample giữ null, không nén trục thời gian.
-- [ ] Batch window ban đầu 1 giây là giả thuyết dev; tính số mẫu, JSON bytes, RAM peak và queue depth theo rate đã đo trước khi chọn cấu hình cuối.
-- [ ] Không phụ thuộc PSRAM chưa xác minh; bounded queue, tránh copy toàn bộ lớn/cấp phát heap vô hạn.
-- [ ] Dùng double buffer/ring buffer hoặc handoff có quyền sở hữu rõ; network task không sửa vùng sampling đang ghi.
-- [ ] Batch đã đóng có payload bất biến: timestamp, samples, ID không thay trong mọi lần retry.
-- [ ] Network task nhận ACK đúng ID mới giải phóng queue; response HTTP lỗi/không parse được không coi là accepted.
-- [ ] Khi queue đầy, chốt drop policy/counter/gap theo contract; không đợi mạng trong sampling loop và không xoá mẫu âm thầm.
-- [ ] Overflow trong outage dài vẫn giữ đúng timeline, ghi rõ batch/mẫu đã bỏ; duplicate không được làm tăng loss counter.
-- [ ] Chính sách reboot không giả định RAM queue còn tồn tại. Báo phần chưa ACK đã mất và tạo phiên mới khi epoch đổi; không thêm flash spool khi chưa có thiết kế riêng.
-- [ ] Ưu tiên telemetry/control hợp lý nhưng raw không bị starvation; lưu counters gửi thành công/retry/drop và thời gian gửi.
+## Stop và gửi nốt
 
-## Checklist stop/drain
+- [ ] Chốt cutoff, đóng batch cuối ngắn theo số mẫu thật, không chèn0.
+- [ ] MQTT ACKStop/tổng kết có finalID/mất mẫu; lặp không tạo batch cuối lần2.
+- [ ] Tổng kết có thể trước/sau rawHTTP; backend đối chiếu độc lập thứ tự.
+- [ ] Gửi backlog trong hạn hữu hạn, không đợi Wi-Fi mãi.
+- [ ] Chỉ báo đủ sau raw ACK/đối chiếu; timeout phải thiếu.
+- [ ] Thử phiên mới khi phiên cũ đang gửi nốt, không nhầm epoch/ID/buffer, giữ quy tắc một phiên hoạt động.
 
-- [ ] Stop command chốt cutoff thu; đóng final partial batch với sample count thực, không padding bằng 0.
-- [ ] ACK stop gửi final batch ID và loss counters theo contract; command lặp không tạo batch cuối lần hai.
-- [ ] Drain backlog trong deadline hữu hạn; không yêu cầu Wi-Fi mãi mới được ngừng một phiên.
-- [ ] Backend hoàn tất khi đủ batch hoặc đánh incomplete khi thiếu/timeout; firmware không báo full success trước raw ACK.
-- [ ] Test mở phiên mới khi phiên trước còn drain: không nhầm ID/epoch/buffer; tuân thủ policy một session active.
+## Kiểm thử
 
-## Kiểm thử bắt buộc
-
-| Tình huống | Đối chiếu cần có |
+| Ca | Cần đối chiếu |
 |---|---|
-| Mẫu số thứ tự có thể dự đoán trong host test | Mọi stream đúng count/order/units, batch không duplicate boundary |
-| Final partial batch | Timestamp và độ dài đúng, không lấp bằng 0 |
-| Mất ACK sau backend đã ghi | Cùng payload retry, backend trả duplicate, queue được giải phóng đúng |
-| Wi-Fi mất ngắn trong sức chứa queue | Gửi bù đúng thứ tự/policy, không trùng |
-| Wi-Fi mất dài quá queue capacity | Drop/gap có số liệu, RAM hữu hạn, sensing tiếp tục |
-| Thiết bị thật có mạng / không mạng | Đo rate/jitter/heap/queue để so ảnh hưởng transport |
-| Mất cảm biến / reboot / stop timeout | Null/gap/aborted đúng, không biến số cũ thành mẫu mới |
+| Mẫu có thứ tự biết trước | Số mẫu, thứ tự, đơn vị và ranh batch không trùng |
+| Batch cuối ngắn | Timestamp/count đúng, không padding0 |
+| Backend đã ghi nhưng mất ACK | Retry cùng payload, ACKtrùng, release đúng |
+| Mất Wi-Fi ngắn | Gửi bù đúng, không trùng |
+| Mất lâu/quá queue | RAM hữu hạn, có gap/loss, vẫn lấy mẫu |
+| Có/không mạng trên board | Rate/jitter/heap/queue thực |
+| Cảm biến lỗi/reboot/timeoutStop | Null/gap/ABORTED, không biến cache thành mẫu mới |
+| Lỗi riêng MQTT/HTTP | Không báo đủ giả |
+| HTTP chậm khi Stop tới | Xử lý Stop hữu hạn, batch cuối bất biến |
+| MQTT+HTTP+sensing đồng thời | Có số đo tài nguyên, không chỉ build |
 
-Không dùng raw waveform synthetic chạy trên ESP32 rồi gắn nhãn DEVICE như dữ liệu cảm biến. Test pattern phải được lưu riêng là fixture/synthetic; DEVICE chỉ dùng khi nguồn là cảm biến thật.
+Sóng giả chạy trên board vẫn là SYNTHETIC. DEVICE chỉ dành dữ liệu cảm biến thật.
 
-## Điều kiện merge / nghiệm thu
+## Nghiệm thu và khôi phục
 
-- [ ] Serializer raw fixture pass schema tests; firmware build và required checks pass.
-- [ ] Có bảng cấu hình rate/window/queue/RAM và test retry/overflow.
-- [ ] Log board đối chiếu raw lưu được với counter firmware, có kiểm chứng stop/drain.
-- [ ] Thiếu board/rate evidence -> `WAITING_HARDWARE`, không đóng Phase 08.
-- [ ] Commit gợi ý: `feat(firmware): buffer and upload ordered raw sensor batches`.
+- [ ] JSON raw qua schema, build và CI đạt.
+- [ ] Có bảng rate/window/queue/RAM, retry/overflow tests.
+- [ ] Log board đối chiếu với file lưu, có Stop/gửi nốt.
+- [ ] Thiếu board/rate thì WAITING_HARDWARE, không đóng giai đoạn08.
+- [ ] Commit gợi ý: `feat(firmware): đệm và gửi batch raw đúng thứ tự`.
 
-## Rollback
+Có thể tắt raw upload để giữ telemetry/Serial; giữ bản ghi/log. Không reset ID giữa phiên để né lỗi server.
 
-Có thể tắt raw upload để giữ telemetry/Serial debug. Giữ recording đã lưu để đối chiếu; không reset sequence giữa phiên để chữa lỗi server.
+## Nhật ký
 
-## Nhật ký / kết quả thực hiện
-
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
+| Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|
-| — | — | — | Chưa thực hiện |
+|—|—|—|Chưa thực hiện|

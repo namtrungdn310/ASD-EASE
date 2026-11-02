@@ -1,199 +1,156 @@
-# Architecture Decisions
+# Quyết định thiết kế
 
-Each accepted entry has no invented date (`Date: -`).
+Các mục cũ chưa rõ ngày giữ “-”, không điền ngày giả. Đã thống nhất thiết kế không có nghĩa đã triển khai hoặc nghiệm thu.
 
-## ADR-001 — Three source modules
-Status: ACCEPTED
+## ADR-001 — Ba thư mục mã nguồn
 
-Context: The student team needs clear ownership.
+Trạng thái: ACCEPTED.
 
-Decision: Source modules are exactly `backend`, `frontend`, and `ai`; `docs` is documentation.
+Dùng backend, frontend, ai; docs chỉ chứa tài liệu. Giữ ít cấu trúc để nhóm hai người dễ bảo trì, không tạo mã nguồn riêng cho mỗi giai đoạn.
 
-Reason: Minimize maintenance overhead.
+Ngày: -.
 
-Consequences: No phase-specific duplicate source trees.
+## ADR-002 — Vị trí firmware
 
-Date: -
+Trạng thái: ACCEPTED.
 
-## ADR-002 — Firmware location
-Status: ACCEPTED
+Firmware nằm tại ai/edge_firmware; thao tác PlatformIO từ thư mục này, không tạo mô-đun mã nguồn thứ tư.
 
-Context: Firmware is part of Edge AI delivery.
+Ngày: -.
 
-Decision: Firmware lives at `ai/edge_firmware`.
+## ADR-003 — Vi điều khiển chính
 
-Reason: Avoid a fourth source module.
+Trạng thái: ACCEPTED.
 
-Consequences: Host PlatformIO operations use this directory.
+Chọn họ ESP32-S3 Super Mini. Biến thể board, chân và bộ nhớ vẫn phải kiểm chứng trên hàng thật.
 
-Date: -
+Ngày: -.
 
-## ADR-003 — Main MCU
-Status: ACCEPTED
+## ADR-004 — Suy luận cuối trên thiết bị
 
-Context: The selected MCU family is ESP32-S3.
+Trạng thái: ACCEPTED.
 
-Decision: ESP32-S3 Super Mini is the main MCU.
+ESP32-S3 tự trích đặc trưng, chạy AI, chuyển trạng thái và quyết định cảnh báo. Suy luận trên laptop chỉ dùng khi phát triển.
 
-Reason: Project hardware selection.
+Ngày: -.
 
-Consequences: Exact variant still requires physical verification.
+## ADR-005 — Vai trò laptop
 
-Date: -
+Trạng thái: ACCEPTED.
 
-## ADR-004 — Final inference on wearable
-Status: ACCEPTED
+Laptop nhận/lưu tuỳ chọn và hiển thị khi thi đấu, không tính lại để thay trạng thái thiết bị.
 
-Context: Competition architecture is Edge-first.
+Ngày: -.
 
-Decision: Final feature extraction, AI, temporal and alert decisions run on ESP32-S3.
+## ADR-006 — Wi-Fi cục bộ
 
-Reason: Standalone, low-dependency behavior.
+Trạng thái: ACCEPTED.
 
-Consequences: Laptop inference is development-only.
+Thiết bị và laptop cùng LAN để không cần USB truyền dữ liệu. Backend lắng nghe địa chỉ phù hợp; ESP32 dùng IP LAN laptop.
 
-Date: -
+Ngày: -.
 
-## ADR-005 — Laptop role
-Status: ACCEPTED
+## ADR-007 — Không phụ thuộc Internet
 
-Context: Judges need local visualization.
+Trạng thái: ACCEPTED.
 
-Decision: Laptop is receiver, optional logger and dashboard during competition.
+Luồng thi đấu chạy không cần dịch vụ đám mây; giúp trình diễn lặp lại khi mạng Internet không ổn định.
 
-Reason: Separate display from decision-making.
+Ngày: -.
 
-Consequences: Dashboard cannot redefine state.
+## ADR-008 — Pin và USB khi thi đấu
 
-Date: -
+Trạng thái: ACCEPTED.
 
-## ADR-006 — Local Wi-Fi/LAN
-Status: ACCEPTED
+ESP32 dùng pin và ngắt USB. Nguồn/sạc/an toàn phải kiểm chứng phần cứng, không suy từ tên board.
 
-Context: Competition telemetry must be wireless.
+Ngày: -.
 
-Decision: Wearable and laptop share a local LAN.
+## ADR-009 — FastAPI và React
 
-Reason: Removes USB data dependency.
+Trạng thái: ACCEPTED.
 
-Consequences: Backend binds `0.0.0.0`; wearable uses laptop LAN IP.
+Dùng FastAPI nhận dữ liệu, React hiển thị, HTTP/WebSocket làm giao diện trình duyệt. Hai người dễ đọc và bảo trì.
 
-Date: -
+Ngày: -.
 
-## ADR-007 — No Internet dependency
-Status: ACCEPTED
+## ADR-010 — Tách thông tin và mẫu thô
 
-Context: Venue Internet is unreliable/unnecessary.
+Trạng thái: ACCEPTED.
 
-Decision: Competition system runs without Internet.
+SQLite giữ thông tin/chỉ mục; file giữ batch mẫu tốc độ cao. Sao lưu phải gồm cả DB và file.
 
-Reason: Repeatability.
+Ngày: -.
 
-Consequences: No cloud services in the critical path.
+## ADR-011 — Chất lượng kém có thể UNCERTAIN
 
-Date: -
+Trạng thái: ACCEPTED.
 
-## ADR-008 — Battery and no competition USB
-Status: ACCEPTED
+Không ép mô hình kết luận từ tín hiệu kém. Cho phép giá trị cảm biến/điểm dự đoán null và trạng thái chưa đủ tin cậy.
 
-Context: The device is wearable.
+Ngày: -.
 
-Decision: ESP32 is battery-powered and USB-disconnected in competition.
+## ADR-012 — So với phương pháp đơn giản
 
-Reason: Validate true standalone operation.
+Trạng thái: ACCEPTED.
 
-Consequences: Power design requires later physical verification.
+So mô hình với quy tắc HR, HR+GSR, HR+GSR+IMU. Không mặc định mô hình phức tạp sẽ tốt hơn.
 
-Date: -
+Ngày: -.
 
-## ADR-009 — FastAPI and React
-Status: ACCEPTED
+## ADR-013 — Thông số phần cứng cần bằng chứng
 
-Context: Two students need an understandable local stack.
+Trạng thái: ACCEPTED.
 
-Decision: FastAPI receiver plus React dashboard.
+Chưa chốt GPIO/flash/PSRAM theo suy đoán. Profile build không thay nhận dạng và phép đo board thật.
 
-Reason: Typed contracts and simple development.
+Ngày: -.
 
-Consequences: HTTP/WebSocket form the local interface.
+## ADR-014 — Mạng không chặn xử lý trên thiết bị
 
-Date: -
+Trạng thái: ACCEPTED.
 
-## ADR-010 — Split metadata and raw storage
-Status: ACCEPTED
+Thu mẫu/suy luận tiếp tục khi Wi-Fi lỗi. Giới hạn hàng đợi và thời gian thử lại; kiểm tra hệ thống thi đấu ở giai đoạn21.
 
-Context: High-rate samples are unsuitable as one SQLite row each.
+Ngày: -.
 
-Decision: SQLite stores metadata; files store raw batches.
+## ADR-015 — Nguồn giả lập và giao diện dùng chung
 
-Reason: Simple research storage with manageable write load.
+Trạng thái: ACCEPTED.
 
-Consequences: Backups must cover both.
+Giả lập dùng cùng đặc tả raw và đầu vào xử lý, giữ nguồn SYNTHETIC và nơi lưu riêng. Kết quả chỉ từ giả lập không xác nhận hiệu quả thật hoặc tự cho phép triển khai mô hình.
 
-Date: -
+Ngày: -.
 
-## ADR-011 — Quality can yield UNCERTAIN
-Status: ACCEPTED
+## ADR-016 — MQTT cho telemetry/điều khiển, HTTP cho raw
 
-Context: Forced predictions from bad signals are misleading.
+Trạng thái: ACCEPTED — thống nhất thiết kế; triển khai còn ở nhánh04–08.
 
-Decision: Quality gates may emit `UNCERTAIN`.
+MQTT3.1.1/Mosquitto cục bộ cho telemetry, lệnh, ACK và đồng bộ; raw HTTP, browser HTTP/WS. TelemetryQoS0 chỉ bản mới, controlQoS1 không retained; presence retained chỉ là gợi ý kết nối. Dùng phiên MQTT sạch, DB giữ lệnh bền. Nhánh04 có backend trước05 client; tốc độ cảm biến độc lập nhịp gửi. PUBACK không là ACK thực thi/lưu. Client Arduino phải được thử khả năng gửiQoS1, TLS, bộ nhớ; phiên bản cụ thể chốt ở04/05.
 
-Reason: Quality before classification.
+Ngày: 2026-10-31 (ghi thành văn bản; hướng giao thức thống nhất 2026-10-22).
 
-Consequences: Nullable sensor/probability fields are supported.
+## ADR-017 — Phiên bản control và mốc thu khi nối lại
 
-Date: -
+Trạng thái: ACCEPTED — thống nhất thiết kế; triển khai còn ở nhánh04–08.
 
-## ADR-012 — Compare simple baselines
-Status: ACCEPTED
+Giữ telemetry/raw1.0 và /api/v1; control1.0 độc lập. Lưu ý định/lệnh trước HTTP202; chỉ ACK ứng dụng mới xác nhận RECORDING. Lệnh ràng buộc boot, kết nối, request nonce, generation bền và thời hạn theo đồng hồ tăng đơn điệu, không cần giả UTC đồng bộ. Reboot gián đoạn phiên; reconnect không reset epoch. Xem [control](contracts/MQTT_CONTROL.md). Nếu raw không đáp ứng lưới thời gian, đổi phiên bản thay vì bịa alignment. Đo board là cổng05/07.
 
-Context: Model complexity must be justified.
+Ngày: 2026-10-31.
 
-Decision: Compare ML against HR, HR+GSR and HR+GSR+IMU rules.
+## ADR-018 — Xác nhận lưu raw và giới hạn mất dữ liệu
 
-Reason: Interpretability and honest evaluation.
+Trạng thái: ACCEPTED — thống nhất thiết kế; triển khai còn ở nhánh04–08.
 
-Consequences: No model is assumed to win.
+File batch bất biến +SQLite index, khoá phiên/thiết bị/batch và SHA256/JCS. PENDING → file tạm → công bố nguyên tử/lưu bền → COMPLETE →202. Trùng đúng202, xung đột409; đối chiếu sau lỗi, giữ JSONL cũ. Tổng kết MQTT có thể trước/sau raw HTTP, STOPPED khác đủ dữ liệu. Bộ đệm giới hạn số/byte, đầy thì bỏ batch mới đóng và ghi mất. Xem [nhận dữ liệu](contracts/INGESTION_V1.md). Chưa tuyên bố toàn hệ thống đúng một lần; cần kiểm thử JCS/lỗi/concurrency. Không tự ghi flash hoặc chuyển đổi xoá dữ liệu.
 
-Date: -
+Ngày: 2026-10-31.
 
-## ADR-013 — Hardware facts require verification
-Status: ACCEPTED
+## ADR-019 — Danh tính, nguồn và phạm vi bàn giao03
 
-Context: Super Mini variants differ.
+Trạng thái: ACCEPTED — thống nhất thiết kế; triển khai còn ở nhánh04–08.
 
-Decision: No final GPIO/flash/PSRAM configuration before physical verification.
+Tài khoản gắn device/origin; MQTT ACL theo thiết bị, HTTP bearer theo danh tính. Body/tiền tố không tự chứng minh DEVICE. Không ẩn danh; TLS ngoài ngoại lệ LAN phát triển đã ghi rủi ro; không secret trong Git/VITE/log. Chưa ước lượng chất lượng thì0 bảo thủ; chưa mô hình thì probabilitynull và CALIBRATING/UNCERTAIN. Simulator cũ phải được cập nhật xác thực/vòng đời, không bỏ quyền DEVICE để test xanh. Nhánh03 chỉ hoàn thiện tài liệu/mẫu/công cụ kiểm tra, chưa runtime, phần cứng, thu người thật hoặc merge nhánh bảo vệ.
 
-Reason: Prevent damaging or invalid assumptions.
-
-Consequences: Conservative build profile and unset pins.
-
-Date: -
-
-## ADR-014 — Network cannot block Edge pipeline
-Status: ACCEPTED
-
-Context: Wi-Fi can fail.
-
-Decision: Acquisition/inference continue with bounded telemetry behavior.
-
-Reason: Reliability.
-
-Consequences: Detailed queue/retry work is Phase 21.
-
-Date: -
-
-## ADR-015 — Synthetic provenance and shared pipeline
-Status: ACCEPTED
-
-Context: Software needs test data before real collection.
-
-Decision: Synthetic signals use the same raw contract/preprocessing interface, separate storage and mandatory `SYNTHETIC` provenance.
-
-Reason: Avoid incompatible test pipelines and misleading provenance.
-
-Consequences: Synthetic-only results cannot validate real performance or auto-deploy a model.
-
-Date: -
+Ngày: 2026-10-31.
 

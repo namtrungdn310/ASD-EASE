@@ -294,7 +294,7 @@ MAX30102Data MAX30102Sensor::read() {
     return data;
   }
 
-  // 1. Lấy dữ liệu FIFO KHÔNG NGHẼN BUS (Non-blocking FIFO polling)
+  // 1. Đọc FIFO theo polling; cần đo thời gian I2C thực tế
   sensor_->check();
 
   uint32_t irSamples[kFifoBufferSize];

@@ -1,74 +1,74 @@
-# Phase 17 — Parity Test
+# Giai đoạn 17 — Đối chiếu Python và C++
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Prove Python/C++ feature and prediction parity within defined tolerances.
+Đối chiếu đặc trưng và dự đoán Python/C++ trong sai số cho phép.
 
-## Why This Phase Exists
+## Lý do
 
-Edge results must match research implementation.
+Kết quả trên thiết bị phải khớp bản nghiên cứu.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 16
+Giai đoạn 16
 
-## Inputs
+## Đầu vào
 
-Golden raw/features and both implementations.
+Mẫu raw/đặc trưng chuẩn và hai bản triển khai.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/tests/...; ai/edge_firmware/test/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Version golden vectors and tolerances; compare intermediate values.
+Lưu phiên bản mẫu chuẩn và dung sai; so cả giá trị trung gian.
 
-## Tests
+## Kiểm thử
 
-Automated golden-vector tests on Python and C++/device.
+Kiểm thử tự động bằng cùng mẫu chuẩn trên Python và C++/board.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 17; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Floating-point, window or ordering differences.
+Khác số thực, cửa sổ hoặc thứ tự dữ liệu.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Bisect pipeline by intermediate vector.
+Khoanh vùng sai lệch bằng cách so từng bước xử lý.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 18 — Temporal Logic
+Giai đoạn 18 — Logic trạng thái theo thời gian
 

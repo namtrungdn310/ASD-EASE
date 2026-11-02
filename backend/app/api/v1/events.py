@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Event
 from app.schemas.event import EventResponse
+from app.core.security import operator_auth
 
-router = APIRouter(tags=["events"])
+router = APIRouter(tags=["events"], dependencies=[Depends(operator_auth)])
 
 
 @router.get("/events", response_model=list[EventResponse])

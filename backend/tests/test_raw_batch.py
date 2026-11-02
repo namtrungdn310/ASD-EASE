@@ -8,7 +8,7 @@ def raw_payload():
     }
 
 
-def test_raw_batch_schema(client):
+def test_raw_batch_schema(client, recording):
     response = client.post("/api/v1/raw-batch", json=raw_payload())
     assert response.status_code == 202
 

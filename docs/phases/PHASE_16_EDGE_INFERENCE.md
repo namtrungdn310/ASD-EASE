@@ -1,74 +1,74 @@
-# Phase 16 — Edge Inference
+# Giai đoạn 16 — Suy luận trên thiết bị
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Run the exported model on ESP32 without laptop decisions.
+Chạy mô hình trên ESP32; laptop không quyết định trạng thái.
 
-## Why This Phase Exists
+## Lý do
 
-Implements the locked Edge-first architecture.
+Thực hiện kiến trúc xử lý tại thiết bị đã thống nhất.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 15, Phase 00
+Giai đoạn 15, Giai đoạn 00
 
-## Inputs
+## Đầu vào
 
-Verified board limits, export and C++ features.
+Giới hạn board đã xác minh, mô hình xuất và đặc trưng C++.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/inference/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use bounded memory; quality gate; no PSRAM assumption until verified.
+Giới hạn bộ nhớ, kiểm tra chất lượng; không giả định có PSRAM khi chưa đo.
 
-## Tests
+## Kiểm thử
 
-Host/firmware build, on-board fixed vectors, memory/latency measurements.
+Build; chạy đầu vào cố định trên board; đo bộ nhớ và độ trễ.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 16; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-RAM/flash limits, numeric drift or watchdog resets.
+Thiếu RAM/flash, sai lệch số hoặc watchdog khởi động lại.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Disable model path and inspect fixed-vector stages.
+Tắt nhánh mô hình, kiểm tra từng bước bằng mẫu chuẩn.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 17 — Parity Test
+Giai đoạn 17 — Đối chiếu Python và C++
 

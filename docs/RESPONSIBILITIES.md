@@ -1,18 +1,20 @@
-# Responsibilities
+# Phân công
 
-## Person A — IT student
+## Trung — IT
 
-Repository/Git, Docker, FastAPI, SQLite, REST/WebSocket, React dashboard, simulator, data and preprocessing software, feature engineering, AI experiments/evaluation/export, Python/C++ parity framework and automated tests.
+Quản lý repo/Git, Docker, FastAPI/SQLite, HTTP/WebSocket, dashboard, giả lập dữ liệu, xử lý/đặc trưng, thử nghiệm/xuất mô hình, đối chiếu Python/C++ và kiểm thử tự động.
 
-For the device-ingestion milestone, IT also owns data/units/timestamp normalization, session control, firmware serializers, Wi-Fi/HTTP transport, raw buffering/batching, retry behavior and backend recording/export. Implementation is split into ten branches in the [IT device-integration plan](integration/README.md), with a [branch progress tracker](integration/PROGRESS.md).
+Mốc tích hợp thiết bị còn gồm: chuẩn hoá đơn vị/timestamp, điều khiển phiên, đóng gói firmware, Wi-Fi/MQTT, raw HTTP, bộ đệm, gửi lại, lưu/xuất dữ liệu. Xem [10 nhánh](integration/README.md) và [tiến độ](integration/PROGRESS.md).
 
-## Person B — Automation engineering student
+## Tân — Tự động hoá
 
-Physical ESP32-S3 Super Mini and pin verification, MAX30102, MPU6050, GSR/ADC, wiring, power/battery, sensor drivers, acquisition sampling/timing measurements and physical wearable integration. Automation supplies measured driver output units/rates, calibration and board evidence to IT. Firmware networking and wire-format/batching implementation for this milestone belong to IT.
+Kiểm tra board/chân kết nối, cảm biến, dây nối, nguồn/pin, driver, hiệu chuẩn và đo tốc độ/thời gian lấy mẫu. Cung cấp log và thông số đã đo cho IT.
 
-## Shared
+Kế hoạch hiện giao nhánh 05 cho IT, Tân hỗ trợ phần cứng. Nếu giao hẳn nhánh này cho Tân, cần xác nhận và cập nhật phân công trước.
 
-API contract, experiment design, dataset collection, feature validation, model selection, Edge deployment, parity, end-to-end/competition testing and demo. Neither person may silently change the contract or claim clinical meaning from engineering states.
+## Cùng phối hợp
 
-Coordinate edits to firmware `main.cpp`, `board_config.h` and sensor interfaces before either contributor changes them. A software build or merged implementation does not replace physical acceptance evidence.
+Thống nhất đặc tả, quy trình thu dữ liệu, thí nghiệm, chọn mô hình, triển khai trên ESP32 và nghiệm thu/trình diễn. Không tự đổi quy ước dữ liệu hoặc biến trạng thái kỹ thuật thành kết luận y khoa.
+
+Thống nhất trước khi cùng sửa main.cpp, board_config.h hoặc giao diện driver. Build/merge thành công không thay nghiệm thu phần cứng.
 

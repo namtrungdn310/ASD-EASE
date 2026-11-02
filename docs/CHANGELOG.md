@@ -1,34 +1,38 @@
-# Changelog
+# Lịch sử thay đổi
 
-## Unreleased
+## Chưa phát hành
 
-### Added
+### Bổ sung
 
-- Detailed IT device-integration roadmap with ten branch plans, acceptance checklists and a progress tracker; firmware serialization, networking and raw batching are assigned to IT for this milestone. This addition documents planned work, not completed implementation.
-- Initial three-module repository scaffold, documentation system and 25 phase plans.
-- Git repository initialized with `main` as the integration branch and generated/private artifacts ignored.
-- Two-person GitHub workflow, PR template, CODEOWNERS review request and CI checks for protected `dev`/`main` branches.
-- FastAPI/SQLite/raw-file receiver with telemetry, raw-batch and WebSocket paths.
-- React telemetry dashboard with visible synthetic-data provenance.
-- Reproducible multimodal synthetic generator, manifest, validation and replay simulator.
-- ESP32-S3 PlatformIO skeleton and hardware profiler with unverified GPIO configuration.
-- Docker Compose stack and optional AI profile.
-- Verified backend/AI tests, frontend and Docker builds, live HTTP-to-WebSocket delivery, raw-batch storage and simulated disconnect/reconnect behavior.
-- Verified the firmware skeleton compiles with PlatformIO's temporary conservative ESP32-S3 profile; no physical-board claim is implied.
+- Nhánh04 (2026-11-01): backend MQTT3.1.1/Paho2.1.0, Mosquitto2.0.22 có ACL; nhận telemetry chung HTTP/MQTT, registry/token/cookie, lệnh Start/Stop bền và ACK/nonce/boot, migration SQLite có sao lưu/khôi phục. Có simulator MQTT/HTTP,56 backend tests trên Windows/Linux và bài tích hợp broker thật; push PR #13 vào dev, chỉ merge khi đủ6 CI. Firmware05/raw lưu bền06 chưa triển khai.
 
-### Changed
+- Đặc tả kết nối nhánh03: MQTT, ACK/kết nối lại, thời gian/đơn vị, raw HTTP chống trùng/lưu bền, quyền/giới hạn, ví dụ và công cụ kiểm tra. Đây là thiết kế và mẫu thử, chưa có MQTT runtime/board.
+- Kế hoạch10 nhánh tích hợp có điều kiện nghiệm thu và tracker; IT phụ trách đóng gói/mạng/bộ đệm trong mốc này.
+- Khung ba mô-đun, tài liệu và25 kế hoạch giai đoạn.
+- Khởi tạo Git; sau đó thống nhất dev tích hợp, main ổn định.
+- Quy trình hai người, mẫu PR, CODEOWNERS và CI cho dev/main.
+- Khung FastAPI/SQLite, file raw, telemetry/WebSocket và dashboard React có nhãn nguồn giả lập.
+- Bộ sinh giả lập đa cảm biến có cấu hình, bản mô tả, kiểm tra và simulator phát lại.
+- Khung PlatformIO/HardwareProfiler, cấu hình GPIO chưa được nghiệm thu.
+- Docker backend/frontend và profile AI tuỳ chọn.
+- Các lần kiểm tra đã ghi: backend/AI tests, frontend/Docker build, HTTP→WS, lưu raw và phục hồi giả lập sau ngắt gửi.
+- Firmware khung build bằng PlatformIO6.2.0 với profile ESP32-S3 tạm; không chứng minh board thật.
 
-- Repository cleanup separates local environment/IDE configuration from shared files, adds a conflict-marker CI check, and reconciles firmware implementation progress with outstanding physical acceptance.
-- Consolidated manually written firmware enums into `common_types.h`; compatibility pin/sampling headers forward to `board_config.h`. Added CI compilation of header combinations to catch duplicate definitions without changing configured GPIO, sample rates or sensor algorithms.
-- Renamed the source directory `AI` to `ai` and updated CI, Compose, ignore rules and documentation paths.
-- Upgraded frontend Tailwind integration to the current Vite plugin path; production dependency audit now reports zero known vulnerabilities.
-- Refined protected-branch review policy: collaborator PRs require owner approval, while the named owner may use a PR-only bypass on owner-authored PRs after all required checks pass and the branch is conflict-free.
+### Điều chỉnh
 
-### Fixed
+- Việt hoá đặc tả, kế hoạch và comment; rút gọn cách diễn đạt, sửa ghi chú GPIO4 đã cũ thành cấu hình7 hiện có. Không đổi logic, trường dữ liệu hoặc lịch sử commit.
+- Đồng bộ kế hoạch03–10 cho MQTT telemetry/điều khiển, giữ raw HTTP và browser HTTP/WS. Nghiệm thu phân biệt broker nhận, thiết bị thực thi và đủ dữ liệu; không tự đóng giai đoạn.
+- Tách cấu hình local/IDE, thêm kiểm tra dấu conflict và phân biệt code đã có với phần cứng chưa nghiệm thu.
+- Gom enum trong common_types.h; pins.h/sensor_config.h dùng board_config.h, CI kiểm tra tổ hợp header. Cleanup không tự đổi GPIO/rate hoặc thuật toán.
+- Đổi thư mục AI thành ai và cập nhật đường dẫn liên quan.
+- Chuyển Tailwind sang plugin Vite; lần audit production đã ghi nhận0 lỗ hổng.
+- PR của Tân cần chủ repo duyệt; PR của Trung có ngoại lệ review sau đủ CI và không xung đột.
 
-- Corrected the Arduino `Esp.h` include casing so firmware builds on case-sensitive Linux CI runners.
-- Replaced the missing favicon declaration with a cache-busted ASD-EASE wearable signal icon so browsers no longer reuse an icon from an older localhost project.
+### Sửa lỗi
 
-### Removed
+- Sửa hoa/thường Esp.h để build Linux.
+- Thay favicon cũ bằng biểu tượng ASD-EASE có phiên bản URL, tránh dùng lại cache dự án localhost cũ.
 
-- None.
+### Loại bỏ
+
+Chưa ghi nhận thay đổi loại bỏ riêng.

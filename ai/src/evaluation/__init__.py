@@ -1,2 +1,2 @@
-"""Future participant/session-level evaluation interfaces."""
+"""Giao diện đánh giá theo người/phiên, chưa triển khai."""
 

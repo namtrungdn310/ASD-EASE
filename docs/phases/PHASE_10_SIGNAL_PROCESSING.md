@@ -1,74 +1,74 @@
-# Phase 10 — Signal Processing
+# Giai đoạn 10 — Xử lý tín hiệu
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT
+Trung — IT
 
-## Objective
+## Mục tiêu
 
-Implement shared preprocessing and signal-quality logic for real and synthetic raw contracts.
+Viết xử lý tín hiệu và kiểm tra chất lượng dùng chung cho raw thật/giả lập.
 
-## Why This Phase Exists
+## Lý do
 
-All downstream features depend on consistent, quality-aware signals.
+Đặc trưng phía sau cần tín hiệu nhất quán và được kiểm tra chất lượng.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 09
+Giai đoạn 09
 
-## Inputs
+## Đầu vào
 
-Versioned raw data and documented sampling/timing.
+Dữ liệu thô có phiên bản và thông tin tốc độ/thời gian.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/src/preprocessing/...; ai/src/signal_quality/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use the same interface for both origins; preserve time/order and missingness.
+Dùng cùng giao diện cho hai nguồn; giữ thứ tự, thời gian và vị trí mẫu thiếu.
 
-## Tests
+## Kiểm thử
 
-Unit tests, synthetic edge cases and real signal inspection; no final claims from synthetic only.
+Kiểm thử hàm, tình huống biên giả lập và quan sát tín hiệu thật; không kết luận thực tế chỉ từ giả lập.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 10; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Filter distortion, missing samples, leakage or origin-specific branches.
+Bộ lọc làm méo tín hiệu, mất mẫu, lộ dữ liệu hoặc tách logic theo nguồn.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Compare raw/processed plots and disable suspect transforms.
+So biểu đồ trước/sau xử lý, tắt phép biến đổi nghi gây lỗi.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 11 — Baseline Features
+Giai đoạn 11 — Mức nền và đặc trưng
 

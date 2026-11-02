@@ -1,81 +1,52 @@
-# Branch 02 — Verification evidence
+# Nhánh02 — bằng chứng kiểm tra
 
-Date: 2026-10-20 (Asia/Saigon). Branch: `fix/frontend-live-connection-status`.
-Draft PR: [#10](https://github.com/namtrungdn310/ASD-EASE/pull/10), head `feb8ba3`
-at creation. CI results must be checked on GitHub for the latest head, not inferred
-from the local commands below.
-Core source was typed by Trung; this verification step changes tests, dependency
-metadata and documentation only. No merge into dev/main is authorized here.
+Hồ sơ ngày2026-10-20, nhánh fix/frontend-live-connection-status. [PR #10](https://github.com/namtrungdn310/ASD-EASE/pull/10) tạo bản nháp ở head feb8ba3; sau đó đã merge theo tracker. Các lệnh dưới không tự xác nhận CI của head khác.
 
-Branch changes: runtime telemetry validation, per-device/session/origin chart
-history (60 points), separate backend/data freshness states, reconnect cleanup,
-device selector, explicit old-data warnings and retained synthetic provenance.
+Trung viết mã cốt lõi; bước kiểm tra thêm tests, dependency và tài liệu. Thay đổi gồm kiểm tra payload, lịch sử60 điểm theo thiết bị/phiên/nguồn, trạng thái còn mới, dọn kết nối lại, chọn thiết bị, nhãn dữ liệu cũ và nguồn giả lập.
 
-## Verified
+## Kết quả đã ghi
 
-| Check | Command / evidence | Result |
+| Mục | Lệnh/bằng chứng | Kết quả |
 |---|---|---|
-| Frontend regression + real React lifecycle | `cd frontend; npm test` | 26/26 tests PASS |
-| TypeScript and production build | `cd frontend; npm run build` | PASS; bundle >500 kB warning remains |
-| Production dependency audit | `cd frontend; npm audit --omit=dev` | 0 vulnerabilities |
-| Backend regression | `.venv/Scripts/python.exe -m pytest -q` from backend | 13 PASS; dependency deprecation warning |
-| AI regression | `.venv/Scripts/python.exe -m pytest -q` from ai | 15 PASS; dependency deprecation warnings |
-| Simulator HTTP -> real backend -> WebSocket | `.venv/Scripts/python.exe .github/scripts/check-mock-transport.py` | PASS, 18/18 exact payload matches across NORMAL_REST, POOR_SIGNAL and DISCONNECT_RECONNECT |
-| Transport resilience | Same isolated transport script | HTTP 422 invalid payload not broadcast; 2-second send pause preserved acquisition timestamps; reconnected subscriber received new payload |
-| Compose configuration | `docker compose config --quiet` | PASS |
-| Shared firmware headers | `.venv/Scripts/python.exe .github/scripts/check-firmware-headers.py` | All four header combinations PASS; no hardware verification |
-| Current Docker stack | `docker compose up -d --build backend frontend` | Both images built and containers started; backend healthy |
-| Local serving | HTTP GET localhost:8000/api/v1/health and localhost:5173 | Both HTTP 200; not visual evidence |
+| Frontend và vòng đời React | cd frontend; npm test |26/26 PASS |
+| TypeScript/build | cd frontend; npm run build |PASS, cảnh báo bundle>500 kB |
+| Audit production | cd frontend; npm audit --omit=dev |0 lỗ hổng ở lần đó |
+| Backend | pytest từ backend bằng .venv |13 PASS, cảnh báo dependency cũ |
+| AI | pytest từ ai bằng .venv |15 PASS, cảnh báo dependency cũ |
+| Simulator HTTP→backend→WS thật | .github/scripts/check-mock-transport.py |18/18 gói khớp ở NORMAL_REST/POOR_SIGNAL/DISCONNECT_RECONNECT |
+| Ngắt/nối | Cùng script trên |HTTP422 không phát gói sai; tạm ngắt2 s giữ timestamp; subscriber nhận lại bản mới |
+| Compose | docker compose config --quiet |PASS |
+| Header firmware | .github/scripts/check-firmware-headers.py |4 tổ hợp PASS, không xác nhận board |
+| Container | docker compose up -d --build backend frontend |Hai image build/container chạy, backend khoẻ |
+| Phục vụ local | health8000 và frontend5173 |HTTP200, chưa bằng chứng trực quan |
 
-The transport script uses a temporary database and port, not the normal app DB.
-Its two-second pause does not prove the default five-second stale timeout;
-stale timing is tested separately with controlled time in the React suite.
+Script mạng dùng DB/cổng tạm, không DB ứng dụng. Tạm ngắt2 s chưa kiểm tra ngưỡng stale5 s; ngưỡng đó được thử riêng với đồng hồ có kiểm soát trong tests React.
 
-## Test boundaries
+## Giới hạn
 
-- Server rendering: real components/helpers, mock hook for controlled view states.
-- React lifecycle: real React DOM/hooks/StrictMode in jsdom; fake WebSocket, clock
-  and timers. Includes a real DOM selection event and reconnect view transitions.
-- Chart history forwarding and 60-point buffering are verified. Pixel rendering,
-  CSS responsiveness and layout are not verified by jsdom. Its expected zero-size
-  chart warnings are counted in the test rather than treated as browser evidence.
-- Transport: real simulator replay, HTTP, FastAPI validation and live WebSocket;
-  no browser is involved. This is not a single simulator-to-browser E2E run.
+- Render server dùng component/helper thật, hook mẫu để kiểm soát trạng thái.
+- React DOM/hooks/StrictMode thật trong jsdom; socket, đồng hồ và timer được thay có kiểm soát.
+- Kiểm tra chuyển lịch sử60 điểm không chứng minh nét vẽ/CSS/bố cục hoặc trình đọc màn hình.
+- Kiểm tra đường truyền thật không có browser; chưa phải một lần E2E liên tục simulator→browser.
 
-## Open blocker — visual acceptance
+## Còn thiếu nghiệm thu trực quan
 
-`BLOCKED_BROWSER`: browser runtime initialization succeeded but URL selection
-returned `No browser is available`; supported discovery returned `[]`. The
-browser skill's troubleshooting flow was followed; no separate browser-control
-tool or source-code workaround was used to claim visual verification.
+Công cụ trả No browser is available, discovery=[], dù đã thử theo hướng dẫn. Giữ BLOCKED_BROWSER/Phase02 IN_PROGRESS. Việc merge code sau đó không biến kiểm tra hiển thị thành PASS.
 
-Phase 02 remains IN_PROGRESS. Do not mark this branch DONE or ready for merge
-until browser evidence is reviewed. No hardware claim is made.
+## Các bước kiểm tra tay
 
-## Manual browser acceptance to unblock
+1. Chạy docker compose up -d --build backend frontend.
+2. Mở http://localhost:5173, tải lại mạnh; trước phát lại phải thấy backend có kết nối/đang chờ. Trang mới không tự tải lịch sử.
+3. Từ root phát lại:
 
-1. Start the current build with `docker compose up -d --build backend frontend`.
-2. Open `http://localhost:5173`, hard-refresh, and verify backend online/waiting
-   before replay. Historical data is not automatically fetched into a new page.
-3. From the repository root, replay synthetic telemetry:
+```powershell
+$env:PYTHONPATH = (Resolve-Path .\ai).Path
+.\.venv\Scripts\python.exe -m simulator.mock_device --scenario attention_mock --duration 15
+```
 
-   ```powershell
-   $env:PYTHONPATH = (Resolve-Path .\ai).Path
-   .\.venv\Scripts\python.exe -m simulator.mock_device --scenario attention_mock --duration 15
-   ```
-
-4. During replay, record an image with live status, `SYNTHETIC DATA`, SIM-001,
-   session, current measurements and visible chart traces. This is engineering
-   synthetic data, not clinical/research evidence.
-5. Leave the page open after replay exits. After at least six seconds, record
-   stale status, old-data warning, retained chart/metrics, and unavailable current
-   prediction/quality. Synthetic provenance must remain visible.
-6. Replay `poor_signal` and check UNCERTAIN/null probability without a fake 0%.
-7. With the page open, stop only the backend (`docker compose stop backend`),
-   record disconnected state, then start it (`docker compose start backend`).
-   Confirm waiting until a new sample arrives, then live after replay restarts.
-8. Check the selector with two device IDs, keyboard access, 375px width and
-   desktop width; capture any overflow/errors. Two-device logic has automated DOM
-   coverage, but this does not replace visual inspection.
-9. Attach screenshots and browser/device details, then tick the visual checklist
-   in the branch plan. Do not invent PASS from build or HTTP 200 alone.
+4. Chụp trạng thái live, SYNTHETIC DATA, SIM-001, phiên, số đo và đường biểu đồ. Không coi đây là bằng chứng lâm sàng.
+5. Giữ trang sau khi dừng simulator ít nhất6 s; chụp stale, cảnh báo cũ, biểu đồ/số giữ lại và dự đoán/chất lượng hiện tại chưa có. Nhãn nguồn vẫn rõ.
+6. Phát poor_signal, kiểm tra UNCERTAIN/probabilitynull, không giả0%.
+7. Dừng riêng backend bằng docker compose stop backend, chụp disconnected; docker compose start backend, phải waiting tới gói mới rồi live.
+8. Thử hai device ID, bàn phím, màn hình375px và desktop; ghi lỗi/tràn bố cục. Tests DOM không thay kiểm tra này.
+9. Đính kèm ảnh, trình duyệt/thiết bị rồi mới tick nghiệm thu; không suy từ build/HTTP200.

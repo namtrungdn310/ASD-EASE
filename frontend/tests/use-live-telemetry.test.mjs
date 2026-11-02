@@ -6,8 +6,8 @@ import { createRoot } from "react-dom/client";
 import { JSDOM } from "jsdom";
 import { createServer } from "vite";
 
-// Real React mount/update/unmount and real source, not a replacement hook.
-// jsdom cannot verify browser layout, chart pixels or screen-reader behavior.
+// Dùng mã/hook thật để kiểm tra mount/cập nhật/unmount React.
+// jsdom không kiểm chứng bố cục, nét vẽ biểu đồ hoặc trình đọc màn hình.
 let server;
 let useLiveTelemetry;
 let Dashboard;
@@ -89,7 +89,7 @@ async function mount({ strict = false, dashboard = false, failures = 0, timeout 
   const root = createRoot(container);
   const nativeWarn = console.warn;
   console.warn = (...args) => {
-    // jsdom has no layout engine; record only this known Recharts warning.
+    // jsdom không tính bố cục; chỉ ghi nhận cảnh báo Recharts đã biết.
     if (String(args[0]).includes("The width(0) and height(0) of chart")) {
       layoutWarnings++;
       return;

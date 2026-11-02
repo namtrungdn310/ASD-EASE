@@ -1,74 +1,74 @@
-# Phase 00 — Hardware Verification
+# Giai đoạn 00 — Kiểm chứng phần cứng
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-AUTOMATION
+Tân — Tự động hoá
 
-## Objective
+## Mục tiêu
 
-Inspect the purchased ESP32-S3 Super Mini and record chip, memory, pin, USB and power facts.
+Kiểm tra board ESP32-S3 Super Mini đã mua; ghi nhận chip, bộ nhớ, chân kết nối, USB và nguồn.
 
-## Why This Phase Exists
+## Lý do
 
-Physical evidence prevents unsafe board assumptions.
+Tránh cấu hình phần cứng dựa trên phỏng đoán.
 
-## Dependencies
+## Phụ thuộc
 
-None
+Không.
 
-## Inputs
+## Đầu vào
 
-Physical board, cable, multimeter, PlatformIO host tools.
+Board thật, cáp, đồng hồ đo và PlatformIO trên máy.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/include/pins.h; docs/HARDWARE_PROFILE.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Run HardwareProfiler on the physical board; verify pins electrically; record command output.
+Chạy HardwareProfiler trên board; kiểm tra chân bằng phép đo và lưu kết quả.
 
-## Tests
+## Kiểm thử
 
-The board or wiring may differ from seller documentation.
+Kiểm tra nhận dạng chip, bộ nhớ, I2C, ADC, USB và nguồn; lưu lệnh cùng kết quả.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 00; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Return pins to unverified values; inspect board markings, boot logs and wiring.
+Board hoặc sơ đồ chân có thể khác thông tin người bán.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Phase 01 — Project Scaffold
+Đánh dấu cấu hình chưa xác minh; kiểm tra ký hiệu board, nhật ký khởi động và dây nối.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-undefined
+Giai đoạn 01 — Khung dự án
 

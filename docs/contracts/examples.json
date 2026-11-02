@@ -1,0 +1,870 @@
+{
+  "catalog_version": "1.0",
+  "fixture_only": true,
+  "description": "Ví dụ SYNTHETIC cho đặc tả. expected_target là yêu cầu dự kiến, không phải bằng chứng đã triển khai.",
+  "fixture_profile": {
+    "ppg_hz": 10,
+    "imu_hz": 10,
+    "gsr_hz": 10,
+    "window_ms": 1000
+  },
+  "examples": [
+    {
+      "id": "telemetry_calibrating",
+      "kind": "telemetry",
+      "current_schema_valid": true,
+      "expected_target": "Nhận sau xác thực/đồng bộ phiên; chưa có điểm mô hình.",
+      "payload": {
+        "schema_version": "1.0",
+        "device_id": "SYN-DEVICE001",
+        "session_id": "SYN-SESSION001",
+        "timestamp_ms": 0,
+        "data_origin": "SYNTHETIC",
+        "hr_bpm": null,
+        "gsr": {
+          "raw": 1800,
+          "delta": null
+        },
+        "movement": {
+          "score": null
+        },
+        "signal_quality": {
+          "ppg": 0,
+          "gsr": 0,
+          "imu": 0
+        },
+        "prediction": {
+          "probability": null,
+          "state": "CALIBRATING"
+        },
+        "firmware_version": "simulator-contract-1.0",
+        "model_version": "none"
+      }
+    },
+    {
+      "id": "telemetry_hr_available",
+      "kind": "telemetry",
+      "derive_from": "telemetry_calibrating",
+      "changes": {
+        "timestamp_ms": 6000,
+        "hr_bpm": 78.4,
+        "gsr.delta": 0.13,
+        "prediction.state": "UNCERTAIN"
+      },
+      "current_schema_valid": true,
+      "expected_target": "Nhận giá trị HR mẫu; không phải phép đo thật hoặc suy luận đã kiểm chứng."
+    },
+    {
+      "id": "telemetry_ppg_missing",
+      "kind": "telemetry",
+      "derive_from": "telemetry_hr_available",
+      "changes": {
+        "timestamp_ms": 7000,
+        "hr_bpm": null
+      },
+      "current_schema_valid": true,
+      "expected_target": "Nhận HR=null; không dùng giá trị cũ như mẫu mới."
+    },
+    {
+      "id": "telemetry_no_session",
+      "kind": "telemetry",
+      "derive_from": "telemetry_calibrating",
+      "changes": {
+        "session_id": null,
+        "timestamp_ms": 12000,
+        "prediction.state": "UNCERTAIN"
+      },
+      "current_schema_valid": true,
+      "expected_target": "Hiển thị trực tiếp theo thời gian boot sau đồng bộ, không gắn phiên thu."
+    },
+    {
+      "id": "telemetry_invalid_hr_zero",
+      "kind": "telemetry",
+      "derive_from": "telemetry_calibrating",
+      "changes": {
+        "hr_bpm": 0
+      },
+      "current_schema_valid": false,
+      "expected_target": "HTTP422 hoặc MQTT ghi lỗi; bên gửi phải dùng null thay0."
+    },
+    {
+      "id": "telemetry_extra_debug",
+      "kind": "telemetry",
+      "derive_from": "telemetry_calibrating",
+      "changes": {
+        "debug": true
+      },
+      "current_schema_valid": false,
+      "expected_target": "SCHEMA_INVALID: có trường ngoài khai báo."
+    },
+    {
+      "id": "telemetry_nested_extra_gap",
+      "kind": "telemetry",
+      "derive_from": "telemetry_calibrating",
+      "changes": {
+        "gsr.debug": true
+      },
+      "current_schema_valid": true,
+      "expected_target": "Đích từ chối SCHEMA_INVALID sau kiểm tra lồng nhau; hiện schema còn chấp nhận."
+    },
+    {
+      "id": "raw_full",
+      "kind": "raw",
+      "current_schema_valid": true,
+      "expected_target": "Phiên RECORDING được cấp quyền, dùng fixture_profile: HTTP202, duplicate=false.",
+      "payload": {
+        "schema_version": "1.0",
+        "device_id": "SYN-DEVICE001",
+        "session_id": "SYN-SESSION001",
+        "batch_id": 0,
+        "start_timestamp_ms": 0,
+        "data_origin": "SYNTHETIC",
+        "ppg": {
+          "sample_rate_hz": 10,
+          "red": [
+            100,
+            101,
+            102,
+            103,
+            104,
+            105,
+            106,
+            107,
+            108,
+            109
+          ],
+          "ir": [
+            200,
+            201,
+            202,
+            203,
+            204,
+            205,
+            206,
+            207,
+            208,
+            209
+          ]
+        },
+        "imu": {
+          "sample_rate_hz": 10,
+          "ax": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "ay": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "az": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ],
+          "gx": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "gy": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "gz": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "gsr": {
+          "sample_rate_hz": 10,
+          "adc": [
+            1800,
+            1801,
+            1802,
+            1803,
+            1804,
+            1805,
+            1806,
+            1807,
+            1808,
+            1809
+          ]
+        }
+      }
+    },
+    {
+      "id": "raw_null_slots",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "current_schema_valid": true,
+      "changes": {
+        "ppg.red": [
+          100,
+          null,
+          102,
+          103,
+          104,
+          105,
+          106,
+          107,
+          108,
+          109
+        ],
+        "ppg.ir": [
+          200,
+          null,
+          202,
+          203,
+          204,
+          205,
+          206,
+          207,
+          208,
+          209
+        ],
+        "imu.ax": [
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.ay": [
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.az": [
+          1,
+          null,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "imu.gx": [
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.gy": [
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.gz": [
+          0,
+          null,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "gsr.adc": [
+          1800,
+          null,
+          1802,
+          1803,
+          1804,
+          1805,
+          1806,
+          1807,
+          1808,
+          1809
+        ]
+      },
+      "expected_target": "Nhận và giữ vị trí null; recording_complete=false vì thiếu mẫu cảm biến."
+    },
+    {
+      "id": "raw_final_partial",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "current_schema_valid": true,
+      "changes": {
+        "batch_id": 1,
+        "start_timestamp_ms": 1000,
+        "ppg.red": [
+          110,
+          111,
+          112,
+          113,
+          114
+        ],
+        "ppg.ir": [
+          210,
+          211,
+          212,
+          213,
+          214
+        ],
+        "imu.ax": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.ay": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.az": [
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "imu.gx": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.gy": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "imu.gz": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "gsr.adc": [
+          1810,
+          1811,
+          1812,
+          1813,
+          1814
+        ]
+      },
+      "expected_target": "Nhận batch cuối500 ms tại cutoff1500, không chèn0."
+    },
+    {
+      "id": "raw_duplicate",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "changes": {},
+      "current_schema_valid": true,
+      "expected_target": "Sau raw_full đã lưu: HTTP202 duplicate=true, chỉ một batch và một lần tăng số mẫu."
+    },
+    {
+      "id": "raw_conflict",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "changes": {
+        "gsr.adc": [
+          1801,
+          1801,
+          1802,
+          1803,
+          1804,
+          1805,
+          1806,
+          1807,
+          1808,
+          1809
+        ]
+      },
+      "current_schema_valid": true,
+      "expected_target": "Sau raw_full đã lưu: HTTP409 BATCH_CONFLICT, giữ bản gốc."
+    },
+    {
+      "id": "raw_ppg_lengths_invalid",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "changes": {
+        "ppg.ir": []
+      },
+      "current_schema_valid": false,
+      "expected_target": "HTTP422 SCHEMA_INVALID: red/IR khác độ dài."
+    },
+    {
+      "id": "raw_imu_lengths_invalid",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "changes": {
+        "imu.gz": []
+      },
+      "current_schema_valid": false,
+      "expected_target": "HTTP422 SCHEMA_INVALID: các trục IMU khác độ dài."
+    },
+    {
+      "id": "raw_adc_range_gap",
+      "kind": "raw",
+      "derive_from": "raw_full",
+      "changes": {
+        "gsr.adc": [
+          5000,
+          1801,
+          1802,
+          1803,
+          1804,
+          1805,
+          1806,
+          1807,
+          1808,
+          1809
+        ]
+      },
+      "current_schema_valid": true,
+      "expected_target": "Đích HTTP422 khi kiểm tra dải ADC; Sample hiện chưa có giới hạn theo luồng."
+    },
+    {
+      "id": "start_http",
+      "kind": "session_start",
+      "current_schema_valid": true,
+      "payload": {
+        "session_id": "SYN-SESSION001",
+        "device_id": "SYN-DEVICE001",
+        "participant_id": "SYN-P001"
+      },
+      "expected_target": "Đích HTTP202 sau lưu STARTING/lệnh chờ, chưa phải đang thu; lặp request giữ cùng ID."
+    },
+    {
+      "id": "stop_http",
+      "kind": "session_stop",
+      "current_schema_valid": true,
+      "payload": {
+        "session_id": "SYN-SESSION001"
+      },
+      "expected_target": "Đích HTTP202 STOPPING, chưa xác nhận đủ raw."
+    },
+    {
+      "id": "state_request",
+      "kind": "control",
+      "topic_suffix": "state/request",
+      "qos": 1,
+      "retain": false,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "STATE_REQUEST",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "request_id": "REQ-001",
+        "actual_state": "IDLE",
+        "session_id": null,
+        "last_command_id": null,
+        "last_generation": 0,
+        "timestamp_ms": 10000,
+        "last_ack": null
+      },
+      "expected_target": "Gắn kết nối hiện hành và đối chiếu; không tự Start từ presence đã lưu."
+    },
+    {
+      "id": "command_start",
+      "kind": "control",
+      "topic_suffix": "command",
+      "qos": 1,
+      "retain": false,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "COMMAND",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "request_id": "REQ-001",
+        "command_id": "CMD-001",
+        "generation": 1,
+        "session_id": "SYN-SESSION001",
+        "action": "START",
+        "expires_in_ms": 30000,
+        "acquisition_profile": {
+          "ppg_hz": 10,
+          "imu_hz": 10,
+          "gsr_hz": 10,
+          "window_ms": 1000
+        }
+      },
+      "expected_target": "Chạy đúng một lần khi thời hạn hiện hành còn hiệu lực; chỉ đặt epoch một lần."
+    },
+    {
+      "id": "ack_started",
+      "kind": "control",
+      "topic_suffix": "ack",
+      "qos": 1,
+      "retain": false,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "ACK",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "request_id": "REQ-001",
+        "command_id": "CMD-001",
+        "generation": 1,
+        "session_id": "SYN-SESSION001",
+        "action": "START",
+        "result": "STARTED",
+        "timestamp_ms": 0,
+        "reason": null,
+        "final_summary": null
+      },
+      "expected_target": "Backend lưu trạng thái đang thu rồi xác nhận bằng STATE_RESPONSE có đối chiếu."
+    },
+    {
+      "id": "state_ack_request",
+      "kind": "control",
+      "topic_suffix": "state/request",
+      "qos": 1,
+      "retain": false,
+      "derive_from": "state_request",
+      "changes": {
+        "request_id": "REQ-002",
+        "actual_state": "RECORDING",
+        "session_id": "SYN-SESSION001",
+        "last_command_id": "CMD-001",
+        "last_generation": 1,
+        "timestamp_ms": 100,
+        "last_ack": {
+          "control_version": "1.0",
+          "message_type": "ACK",
+          "device_id": "SYN-DEVICE001",
+          "data_origin": "SYNTHETIC",
+          "boot_id": "BOOT-001",
+          "connection_id": "CONN-001",
+          "request_id": "REQ-002",
+          "command_id": "CMD-001",
+          "generation": 1,
+          "session_id": "SYN-SESSION001",
+          "action": "START",
+          "result": "STARTED",
+          "timestamp_ms": 0,
+          "reason": null,
+          "final_summary": null
+        }
+      },
+      "expected_target": "Đối chiếu ACK đã lưu; bọc lại bằng nonce hiện hành, giữ lệnh/kết quả/epoch."
+    },
+    {
+      "id": "state_confirmed",
+      "kind": "control",
+      "topic_suffix": "state/response",
+      "qos": 1,
+      "retain": false,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "STATE_RESPONSE",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "request_id": "REQ-002",
+        "session_id": "SYN-SESSION001",
+        "state": "RECORDING",
+        "generation": 1,
+        "accepted_command_id": "CMD-001",
+        "pending_command": null,
+        "error_code": null
+      },
+      "expected_target": "Trả cho STATE_REQUEST REQ-002 có last_ack, không phản hồi tự phát cho REQ-001."
+    },
+    {
+      "id": "command_stop",
+      "kind": "control",
+      "topic_suffix": "command",
+      "qos": 1,
+      "retain": false,
+      "derive_from": "command_start",
+      "changes": {
+        "request_id": "REQ-002",
+        "command_id": "CMD-002",
+        "generation": 2,
+        "action": "STOP",
+        "acquisition_profile": null
+      },
+      "expected_target": "Dừng tại cutoff chung; retry không sinh thêm batch cuối."
+    },
+    {
+      "id": "ack_stopped",
+      "kind": "control",
+      "topic_suffix": "ack",
+      "qos": 1,
+      "retain": false,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "ACK",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "request_id": "REQ-002",
+        "command_id": "CMD-002",
+        "generation": 2,
+        "session_id": "SYN-SESSION001",
+        "action": "STOP",
+        "result": "STOPPED",
+        "timestamp_ms": 1500,
+        "reason": null,
+        "final_summary": {
+          "cutoff_timestamp_ms": 1500,
+          "final_batch_id": 1,
+          "total_generated_batches": 2,
+          "dropped_batches": 0,
+          "slot_counts": {
+            "ppg": 15,
+            "imu": 15,
+            "gsr": 15
+          },
+          "missing_samples": {
+            "ppg": 0,
+            "imu": 0,
+            "gsr": 0
+          },
+          "dropped_batch_ranges": [],
+          "loss_ranges_truncated": false,
+          "raw_recording_enabled": true
+        }
+      },
+      "expected_target": "Chỉ đủ khi raw_full và raw_final_partial đã lưu đúng file/chỉ mục; tổng kết riêng chưa đủ."
+    },
+    {
+      "id": "ack_zero_batch",
+      "kind": "control",
+      "topic_suffix": "ack",
+      "qos": 1,
+      "retain": false,
+      "derive_from": "ack_stopped",
+      "changes": {
+        "timestamp_ms": 0,
+        "final_summary.cutoff_timestamp_ms": 0,
+        "final_summary.final_batch_id": null,
+        "final_summary.total_generated_batches": 0,
+        "final_summary.slot_counts": {
+          "ppg": 0,
+          "imu": 0,
+          "gsr": 0
+        }
+      },
+      "expected_target": "Kịch bản riêng chưa thu mẫu: phiên rỗng, không phải bộ dữ liệu hữu ích."
+    },
+    {
+      "id": "ack_rejected",
+      "kind": "control",
+      "topic_suffix": "ack",
+      "qos": 1,
+      "retain": false,
+      "derive_from": "ack_started",
+      "changes": {
+        "result": "REJECTED",
+        "reason": "PROFILE_UNSUPPORTED"
+      },
+      "expected_target": "Không chuyển RECORDING; giữ lý do lỗi và đồng bộ lại."
+    },
+    {
+      "id": "presence_online",
+      "kind": "control",
+      "topic_suffix": "presence",
+      "qos": 1,
+      "retain": true,
+      "payload": {
+        "control_version": "1.0",
+        "message_type": "PRESENCE",
+        "device_id": "SYN-DEVICE001",
+        "data_origin": "SYNTHETIC",
+        "boot_id": "BOOT-001",
+        "connection_id": "CONN-001",
+        "status": "ONLINE"
+      },
+      "expected_target": "Chỉ gợi ý kết nối, không chứng minh dữ liệu mới hoặc đang thu."
+    },
+    {
+      "id": "presence_lwt",
+      "kind": "control",
+      "topic_suffix": "presence",
+      "qos": 1,
+      "retain": true,
+      "derive_from": "presence_online",
+      "changes": {
+        "status": "OFFLINE"
+      },
+      "expected_target": "OFFLINE của kết nối cũ không ghi đè kết nối hiện hành."
+    }
+  ],
+  "target_scenarios": [
+    {
+      "id": "C01",
+      "steps": [
+        "state_request",
+        "start_http",
+        "command_start",
+        "ack_started",
+        "state_ack_request",
+        "state_confirmed"
+      ],
+      "assert": "Chỉ một epoch; xác nhận sau lưu ACK ứng dụng. PUBACK không tự thành RECORDING."
+    },
+    {
+      "id": "C02",
+      "steps": [
+        "raw_full",
+        "raw_duplicate",
+        "raw_conflict"
+      ],
+      "assert": "Lần đầu202, trùng202, xung đột409; chỉ tăng số đã lưu một lần."
+    },
+    {
+      "id": "C03",
+      "steps": [
+        "ack_stopped",
+        "raw_final_partial",
+        "raw_full"
+      ],
+      "assert": "Tổng kết trước/sau raw và raw sai thứ tự đều cho cùng kết quả đủ/thiếu."
+    },
+    {
+      "id": "C04",
+      "steps": [
+        "command_start",
+        "command_start",
+        "ack_started",
+        "ack_started"
+      ],
+      "assert": "Lặp lệnh/ACK không đặt lại epoch, nhân đôi phiên hoặc sự kiện."
+    },
+    {
+      "id": "C05",
+      "assert": "Stop generation2 thay Start1; ACK1 muộn không trở lại RECORDING."
+    },
+    {
+      "id": "C06",
+      "assert": "Từ chối lệnh cũ, hết thời hạn, sai request/kết nối/boot; presence không chứng minh live."
+    },
+    {
+      "id": "C07",
+      "assert": "Reboot đánh gián đoạn phiên cũ, không ghép clock mới vào bản ghi cũ."
+    },
+    {
+      "id": "C08",
+      "assert": "Lỗi sau commit trước publish phục hồi cùng lệnh; ACK chưa commit được thử lại qua state request."
+    },
+    {
+      "id": "C09",
+      "assert": "Broker lỗi/HTTP còn thì gửi nốt phiên hợp lệ; HTTP raw lỗi/MQTT còn thì báo mất và không đủ."
+    },
+    {
+      "id": "C10",
+      "assert": "Thiếu batch cuối hoặc tổng kết thì hết hạn có kiểm soát, không báo đủ sai."
+    },
+    {
+      "id": "C11",
+      "assert": "Tài khoản/topic/body sai nguồn/thiết bị bị chặn, không ghi sang nguồn khác."
+    },
+    {
+      "id": "C12",
+      "assert": "Đối chiếu file/chỉ mục sau lỗi; hết đĩa hoặc file COMPLETE hỏng không trả accepted giả."
+    },
+    {
+      "id": "C13",
+      "assert": "Mã HTTP đúng từng lỗi: JSON400, phiên404, phiên đóng/batch mới409, schema422, quá cỡ413, kiểu415, lưu503/507."
+    },
+    {
+      "id": "C14",
+      "assert": "Chuẩn hoá khoá/khoảng trắng và số hợp lệ tương đương; giữ thứ tự mảng/null; từ chối bool/NaN/khoá lặp trước hash."
+    },
+    {
+      "id": "C15",
+      "steps": [
+        "ack_zero_batch"
+      ],
+      "assert": "Không batch phải báo rỗng, không tạo dữ liệu giả để điền."
+    },
+    {
+      "id": "C16",
+      "assert": "Giới hạn hàng đợi cả số và byte; quá64 khoảng mất thì rút gọn chi tiết, vẫn giữ tổng và đánh không đủ."
+    }
+  ]
+}

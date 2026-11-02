@@ -1,76 +1,74 @@
-# Phase 06 — Sensor Integration
+# Giai đoạn 06 — Tích hợp cảm biến
 
-## Status
+## Trạng thái
 
 IN_PROGRESS
 
-## Owner
+## Người phụ trách
 
-AUTOMATION
+Tân — Tự động hoá
 
-## Objective
+## Mục tiêu
 
-Run all three sensors with synchronized, bounded acquisition.
+Chạy ba cảm biến với thời gian thu được kiểm soát và đồng bộ.
 
-## Why This Phase Exists
+## Lý do
 
-Later logging/features require aligned streams.
+Ghi dữ liệu và trích đặc trưng cần các luồng cùng mốc thời gian.
 
-## Dependencies
+## Phụ thuộc
 
-Phases 03–05
+Giai đoạn 03–05
 
-## Inputs
+## Đầu vào
 
-Verified sensor drivers and timing targets.
+Driver đã kiểm chứng và mục tiêu thời gian lấy mẫu.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/sensors/...; ai/edge_firmware/src/processing/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use non-blocking schedules and timestamps; quantify missed samples.
+PR #7 (`332f249`) có vòng đọc chung, hai bus I2C, ADC và báo Serial mỗi giây. Nhịp cấu hình không chứng minh nhịp đo, đồng bộ hoặc không mất mẫu. Phần mạng và bộ đệm raw do IT triển khai sau, cần đo ảnh hưởng riêng.
 
-PR #7 (`332f249`) adds the combined sensor loop, two I2C buses, ADC sampling and one-second Serial reports. Configured loop/read frequencies do not establish measured synchronization or loss-free sampling. Firmware networking/raw batch buffering are subsequent IT work and require their own timing measurements.
+## Kiểm thử
 
-## Tests
+Build/nạp toàn hệ thống; kiểm tra số mẫu, tốc độ, timestamp và tải đồng thời I2C/ADC.
 
-Combined build/flash; rate/count/timestamp tests; bus and ADC stress run.
+## Điều kiện nghiệm thu
 
-## Acceptance Criteria
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+## Đầu ra
 
-## Expected Output
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-A reviewable implementation, test evidence and updated project tracking for Phase 06; no automatic work on the next phase.
+## Rủi ro
 
-## Known Risks
+Tranh chấp I2C, lệnh đọc chặn, thiếu bộ nhớ hoặc trễ lịch lấy mẫu.
 
-I2C contention, blocking reads, heap or timing overruns.
+## Xử lý lỗi và khôi phục
 
-## Debug / Rollback Strategy
+Tắt lần lượt từng cảm biến và quan sát bộ đếm thời gian.
 
-Disable one sensor at a time; inspect timing counters.
+## Kết quả
 
-## Results
+Đã đọc phần triển khai từ PR #7; build trên máy đạt. Chưa có biên bản kiểm thử trên board đáp ứng các mục bên trên.
 
-Combined-loop implementation reviewed from PR #7; host compilation passed. Actual rates, alignment, missing-sample counts and combined hardware stress results are not recorded.
+## Bằng chứng hoàn thành
 
-## Completion Evidence
+Cần lưu board, commit, cấu hình, mẫu có thứ tự, số đo thời gian và thử ngắt cảm biến. Chưa đủ để đánh dấu DONE.
 
-No physical acceptance log available. Supply board/config/commit, per-stream counts/timestamps and stress/disconnect results before marking DONE.
+## Giai đoạn tiếp theo
 
-## Next Phase
-
-Phase 07 — Wi-Fi Backend
+Giai đoạn 07 — Kết nối Wi-Fi với backend
 

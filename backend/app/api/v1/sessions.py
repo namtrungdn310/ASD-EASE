@@ -1,30 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session as DBSession
 from app.db.database import get_db
 from app.db.models import Session
 from app.schemas.session import SessionResponse, SessionStart, SessionStop
 from app.services.session_service import start_session, stop_session
+from app.services.session_service import serialize
+from app.core.security import operator_auth
+from app.core.wire import read_json, validate
 
-router = APIRouter(tags=["sessions"])
+router = APIRouter(tags=["sessions"], dependencies=[Depends(operator_auth)])
 
 
 @router.post("/sessions/start", response_model=SessionResponse)
-def start(request: SessionStart, db: DBSession = Depends(get_db)):
-    if db.get(Session, request.session_id):
-        raise HTTPException(409, "Session already exists")
-    return start_session(db, request)
+async def start(request: Request, response: Response, db: DBSession = Depends(get_db)):
+    payload = validate(SessionStart, await read_json(request))
+    identity = request.app.state.registry.identity(payload.device_id)
+    result, response.status_code = start_session(db, payload, identity, request.app.state.settings)
+    return result
 
 
 @router.post("/sessions/stop", response_model=SessionResponse)
-def stop(request: SessionStop, db: DBSession = Depends(get_db)):
-    result = stop_session(db, request.session_id)
-    if result is None:
-        raise HTTPException(404, "Session not found")
+async def stop(request: Request, response: Response, db: DBSession = Depends(get_db)):
+    payload = validate(SessionStop, await read_json(request))
+    result, response.status_code = stop_session(db, payload.session_id, request.app.state.registry, request.app.state.settings)
     return result
 
 
 @router.get("/sessions", response_model=list[SessionResponse])
 def list_sessions(db: DBSession = Depends(get_db)):
-    return db.scalars(select(Session).order_by(Session.started_at.desc())).all()
+    return [serialize(row) for row in db.scalars(select(Session).order_by(Session.requested_at.desc()))]
 

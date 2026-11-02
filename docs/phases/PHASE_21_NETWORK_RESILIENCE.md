@@ -1,74 +1,74 @@
-# Phase 21 — Network Resilience
+# Giai đoạn 21 — Khả năng phục hồi kết nối
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Prove sensing/inference continue through Wi-Fi loss and telemetry resumes.
+Chứng minh vẫn thu mẫu/suy luận khi mất Wi-Fi và gửi lại telemetry mới sau kết nối.
 
-## Why This Phase Exists
+## Lý do
 
-Network must not be an AI dependency.
+AI trên thiết bị không được phụ thuộc mạng.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 20
+Giai đoạn 20
 
-## Inputs
+## Đầu vào
 
-Working Edge pipeline and competition LAN.
+Luồng xử lý trên thiết bị và LAN thi đấu đã hoạt động.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/communication/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Bound queues/retries and isolate transport timing.
+Giới hạn hàng đợi/retry và tách thời gian gửi khỏi lấy mẫu.
 
-## Tests
+## Kiểm thử
 
-Disconnect/reconnect Wi-Fi while observing local sensing/state counters and heap.
+Ngắt/nối Wi-Fi trong khi quan sát bộ đếm lấy mẫu/trạng thái và bộ nhớ.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 21; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Blocking calls, unbounded queue or reconnect storm.
+Lệnh chặn, hàng đợi vô hạn hoặc kết nối lại quá dồn dập.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Disable sending, inspect heap/timing and cap retry state.
+Tắt gửi, xem bộ nhớ/thời gian và giới hạn trạng thái retry.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 22 — Demo Scenarios
+Giai đoạn 22 — Kịch bản trình diễn
 

@@ -1,74 +1,74 @@
-# Phase 18 — Temporal Logic
+# Giai đoạn 18 — Logic trạng thái theo thời gian
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Add temporal state logic for stable NORMAL/ATTENTION/UNCERTAIN transitions.
+Thêm logic thời gian để chuyển NORMAL/ATTENTION/UNCERTAIN ổn định.
 
-## Why This Phase Exists
+## Lý do
 
-Instant predictions can be noisy and unsuitable for alerts.
+Dự đoán tức thời dễ nhiễu và chưa phù hợp phát cảnh báo.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 17
+Giai đoạn 17
 
-## Inputs
+## Đầu vào
 
-Parity-verified scores and quality flags.
+Điểm dự đoán và cờ chất lượng đã đối chiếu.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/state/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Use documented hysteresis/dwell logic; bad quality can override to UNCERTAIN.
+Ghi rõ ngưỡng vào/ra và thời gian giữ trạng thái; chất lượng kém có thể chuyển UNCERTAIN.
 
-## Tests
+## Kiểm thử
 
-Sequence tests for transitions, recovery, calibration and missing data.
+Thử chuỗi chuyển trạng thái, phục hồi, hiệu chuẩn và mất dữ liệu.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 18; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Sticky states, excess delay or hard-coded unvalidated thresholds.
+Kẹt trạng thái, chậm quá mức hoặc ngưỡng chưa được kiểm chứng.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Replay golden sequences and expose state reasons.
+Phát lại chuỗi chuẩn và ghi lý do chuyển trạng thái.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 19 — Battery Standalone
+Giai đoạn 19 — Chạy độc lập bằng pin
 

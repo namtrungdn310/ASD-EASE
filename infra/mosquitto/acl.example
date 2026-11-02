@@ -1,0 +1,16 @@
+# File thật được sinh từ registry, không dùng pattern đọc/ghi mọi topic.
+user backend
+topic read asd-ease/v1/SYNTHETIC/SIM-001/telemetry
+topic read asd-ease/v1/SYNTHETIC/SIM-001/ack
+topic read asd-ease/v1/SYNTHETIC/SIM-001/state/request
+topic read asd-ease/v1/SYNTHETIC/SIM-001/presence
+topic write asd-ease/v1/SYNTHETIC/SIM-001/command
+topic write asd-ease/v1/SYNTHETIC/SIM-001/state/response
+
+user simulator
+topic write asd-ease/v1/SYNTHETIC/SIM-001/telemetry
+topic write asd-ease/v1/SYNTHETIC/SIM-001/ack
+topic write asd-ease/v1/SYNTHETIC/SIM-001/state/request
+topic write asd-ease/v1/SYNTHETIC/SIM-001/presence
+topic read asd-ease/v1/SYNTHETIC/SIM-001/command
+topic read asd-ease/v1/SYNTHETIC/SIM-001/state/response

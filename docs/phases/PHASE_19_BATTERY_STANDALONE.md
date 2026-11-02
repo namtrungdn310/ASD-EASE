@@ -1,74 +1,74 @@
-# Phase 19 — Battery Standalone
+# Giai đoạn 19 — Chạy độc lập bằng pin
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-AUTOMATION
+Tân — Tự động hoá
 
-## Objective
+## Mục tiêu
 
-Operate ESP32 from verified wearable power without laptop USB.
+Chạy ESP32 bằng nguồn đeo đã kiểm chứng, không dùng USB laptop.
 
-## Why This Phase Exists
+## Lý do
 
-Competition mode requires standalone power.
+Chế độ thi đấu cần nguồn độc lập.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 18, Phase 00
+Giai đoạn 18, Giai đoạn 00
 
-## Inputs
+## Đầu vào
 
-Safe verified battery/regulator/charger and integrated firmware.
+Pin, ổn áp, mạch sạc an toàn và firmware tích hợp.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/...; docs/HARDWARE_PROFILE.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Measure power/runtime and reset behavior; never assume charging support.
+Đo công suất, thời gian chạy và khởi động lại; không mặc định board có mạch sạc.
 
-## Tests
+## Kiểm thử
 
-USB-disconnected boot, runtime and brownout tests with actual measurements.
+Khởi động khi ngắt USB, đo thời gian chạy và thử sụt nguồn có kiểm soát.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 19; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Battery safety, brownout, overheating or insufficient runtime.
+Rủi ro pin, sụt nguồn, quá nhiệt hoặc thời gian chạy thiếu.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Disconnect battery safely; bench-supply and inspect reset logs.
+Ngắt pin an toàn; thử nguồn bàn và xem nhật ký khởi động lại.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 20 — Competition Wireless
+Giai đoạn 20 — Trình diễn không dây
 

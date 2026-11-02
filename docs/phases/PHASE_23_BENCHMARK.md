@@ -1,74 +1,74 @@
-# Phase 23 — Benchmark
+# Giai đoạn 23 — Đo hiệu năng
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-SHARED
+Trung và Tân
 
-## Objective
+## Mục tiêu
 
-Measure only available performance, resource and reliability metrics.
+Đo các chỉ số hiệu năng, tài nguyên và độ ổn định thực sự có thể đo.
 
-## Why This Phase Exists
+## Lý do
 
-Claims must be evidence-based before freeze.
+Mọi công bố trước khi chốt phiên bản phải có bằng chứng.
 
-## Dependencies
+## Phụ thuộc
 
-Phase 22
+Giai đoạn 22
 
-## Inputs
+## Đầu vào
 
-Frozen protocol, real evaluation data and physical system.
+Quy trình cố định, dữ liệu đánh giá thật và hệ thống vật lý.
 
-## Tasks
+## Công việc
 
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Files Expected To Change
+## File dự kiến thay đổi
 
 docs/PROGRESS.md; docs/phases/PHASE_23_BENCHMARK.md
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Measure precision/recall/F1, false alerts, latency, RAM, size and runtime only where valid.
+Chỉ báo precision/recall/F1, cảnh báo sai, độ trễ, RAM, dung lượng và thời gian chạy khi có phép đo hợp lệ.
 
-## Tests
+## Kiểm thử
 
-Reproduce measurements with commands, versions and raw evidence.
+Chạy lại phép đo với lệnh, phiên bản và dữ liệu gốc.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 23; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Small samples, synthetic substitution or selective reporting.
+Mẫu ít, dùng giả lập thay thực tế hoặc chọn lọc kết quả.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Mark unavailable metrics and preserve raw logs.
+Ghi rõ chỉ số chưa đo và giữ nhật ký gốc.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Giai đoạn tiếp theo
 
-Phase 24 — Competition Freeze
+Giai đoạn 24 — Chốt phiên bản thi đấu
 

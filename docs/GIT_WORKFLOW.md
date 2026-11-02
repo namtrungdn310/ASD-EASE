@@ -1,35 +1,35 @@
-# Git and GitHub Workflow for Two Contributors
+# Quy trình Git/GitHub cho nhóm hai người
 
-## Branch roles
+## Vai trò nhánh
 
-- `main`: stable, reviewed integration baseline. No direct push. Only PRs from `dev` are accepted.
-- `dev`: daily integration branch. No direct push. Receives reviewed PRs from short-lived work branches.
-- `feature/<scope>-<description>`: new functionality, for example `feature/backend-session-filter`.
-- `fix/<scope>-<description>`: bug fixes.
-- `docs/<description>`: documentation-only work.
-- `chore/<description>`: CI, tooling or maintenance.
+- main: bản ổn định, chỉ nhận PR từ dev.
+- dev: tích hợp hằng ngày, nhận PR từ nhánh công việc.
+- feature/<scope>-<description>: tính năng mới.
+- fix/<scope>-<description>: sửa lỗi.
+- docs/<description>: tài liệu.
+- chore/<description>: cấu hình, công cụ, bảo trì.
 
-Do not share one feature branch between both contributors. Keep each branch focused on one reviewable outcome.
+Không push trực tiếp dev/main. Mỗi nhánh một mục tiêu; không để hai người dùng chung một nhánh tính năng.
 
-## Required flow
+## Luồng bắt buộc
 
 ```text
 feature/*, fix/*, docs/*, chore/*
                  |
-                 | Pull Request + CI + review policy
+                 | PR + CI + review
                  v
                 dev
                  |
-                 | Pull Request from dev + CI + review policy
+                 | PR + CI + review
                  v
                 main
 ```
 
-The IT owner reviews the Automation student's PRs. For an owner-authored PR, the owner may select **Bypass rules and merge** without another approval, but only after every required CI check passes, the branch is up to date and conflict-free, and all review conversations are resolved. Neither contributor may directly push to protected branches. The owner must use this bypass only for their own PRs.
+Trung review PR của Tân. PR do Trung tạo được dùng “Bypass rules and merge” theo quyền đã thiết lập, nhưng chỉ sau khi CI đạt, nhánh cập nhật, không xung đột và mọi trao đổi đã xử lý. Không dùng quyền này để tự bỏ review PR của Tân.
 
-## First-time collaborator setup
+## Thiết lập lần đầu
 
-The repository owner opens **Settings → Collaborators → Add people**, enters the Automation student's GitHub username and grants **Write** access. Do not grant Admin access. The student accepts the email/GitHub invitation and clones:
+Chủ repo vào Settings → Collaborators → Add people, mời tài khoản Tân với quyền Write, không Admin. Tân nhận lời mời rồi:
 
 ```powershell
 git clone https://github.com/namtrungdn310/ASD-EASE.git
@@ -38,48 +38,45 @@ git switch dev
 git pull --ff-only origin dev
 ```
 
-Each contributor sets their own identity:
+Mỗi người cấu hình danh tính riêng:
 
 ```powershell
 git config user.name "YOUR NAME"
 git config user.email "YOUR VERIFIED GITHUB EMAIL"
 ```
 
-## Start a task
+Thay giá trị ví dụ bằng tên/email đã xác minh của mình.
 
-Always branch from the latest `dev`:
+## Bắt đầu công việc
+
+Chỉ chuyển nhánh khi không có thay đổi chưa xử lý hoặc merge/rebase dở:
 
 ```powershell
+git status
 git switch dev
 git pull --ff-only origin dev
 git switch -c feature/firmware-max30102
 ```
 
-Use `feature/backend-*`, `feature/frontend-*`, `feature/ai-*`, or `feature/firmware-*` when practical. Never branch new work from a stale feature branch.
+Dùng scope backend/frontend/ai/firmware khi phù hợp, không tạo việc mới từ nhánh tính năng đã cũ.
 
-## Commit and publish the work branch
+## Lưu và đẩy nhánh
 
 ```powershell
 git status
 git add <specific-files>
 git diff --staged
-git commit -m "feat(firmware): add MAX30102 driver skeleton"
+git commit -m "feat(firmware): thêm khung driver MAX30102"
 git push -u origin feature/firmware-max30102
 ```
 
-Prefer Conventional Commit prefixes: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`. Never use `git add .` without first reviewing `git status`.
+Chỉ add file đã xem. Giữ tiền tố feat/fix/docs/test/refactor/chore/ci; mô tả commit mới bằng tiếng Việt ngắn, nói việc đã làm. Không viết lại commit đã đẩy chỉ để đổi ngôn ngữ.
 
-## Pull request into dev
+## PR vào dev
 
-On GitHub choose:
+Trên GitHub: base=dev, compare=nhánh công việc. Tân chọn Trung làm reviewer. Điền mẫu PR, chờ đủ CI và giải quyết trao đổi; commit mới làm hết hiệu lực approval cũ theo chính sách đã ghi.
 
-- Base: `dev`
-- Compare: the work branch
-- Reviewer: the repository owner when the Automation student opens the PR
-
-Complete the PR template, wait for every required CI check, and address all review comments. An Automation-student PR requires the owner's approval; new commits invalidate stale approval. For an owner-authored PR, the owner may select **Bypass rules and merge** after verifying the final diff, all required checks, update status and conflict status. All conversations must be resolved. Use **Squash and merge**, then delete the work branch.
-
-After merge, both contributors synchronize:
+Merge bằng Squash and merge cho công việc tập trung. Sau merge, hai người cập nhật:
 
 ```powershell
 git switch dev
@@ -87,32 +84,21 @@ git pull --ff-only origin dev
 git branch -d feature/firmware-max30102
 ```
 
-## Promote dev to main
+Sau squash, -d có thể từ chối vì lịch sử khác. Kiểm tra diff/commit trước, không tự chuyển sang -D. Không xoá nhánh chứa việc chưa bàn giao.
 
-Only promote a reviewed, integrated milestone:
+## Đưa bản ổn định lên main
 
-1. Confirm relevant acceptance criteria and documentation are updated.
-2. Open a PR with base `main` and compare `dev`.
-3. Wait for all CI checks. An Automation-student PR also requires the owner's approval; for an owner-authored PR, the owner may select **Bypass rules and merge** after verifying the final diff is conflict-free.
-4. Resolve every conversation.
-5. Use **Squash and merge** only when the PR represents one release unit; otherwise use **Rebase and merge** to retain reviewed commits.
-6. Never force-push or delete `main`/`dev`.
+1. Có bằng chứng nghiệm thu và tài liệu đã cập nhật.
+2. Mở PR base=main, compare=dev.
+3. Đủ CI, không xung đột; PR của Tân cần Trung approve.
+4. Xử lý mọi trao đổi, chủ repo kiểm tra cuối.
+5. Squash nếu là một mốc phát hành; có thể rebase để giữ các commit đã review khi phù hợp.
+6. Không force-push hoặc xoá dev/main.
 
-## Hotfix rule
+Sửa khẩn cấp vẫn theo fix/* → dev → main. Ngoại lệ tách từ main cần quyết định rõ của chủ repo, cập nhật chính sách bằng review và đưa bản sửa về dev; CI hiện chỉ chấp nhận PRmain từ dev.
 
-Even urgent fixes use `fix/* → dev → main`. If `main` needs an exceptional emergency fix, create the branch from `main`, open a reviewed PR to `main`, then immediately merge the same fix back into `dev`. This exception should be rare and requires the owner's explicit decision; the current CI policy accepts normal `main` PRs only from `dev`, so temporarily changing that policy must itself be reviewed.
+## Bảo vệ nhánh
 
-## Repository protection expected
+Theo cấu hình đã ghi nhận, dev/main yêu cầu PR, CI trên nhánh cập nhật, giải quyết trao đổi và lịch sử tuyến tính; chặn push trực tiếp/force-push/xoá nhánh. PR cộng tác viên cần chủ repo duyệt; chỉ chủ repo có ngoại lệ lúc merge PR của mình.
 
-Both `main` and `dev` require:
-
-- Pull request before merge.
-- One owner approval for collaborator-authored PRs.
-- Stale collaborator-PR approvals are dismissed after new commits; owner-authored PRs may use the named owner's PR-only bypass.
-- All required CI checks passing on an up-to-date branch.
-- All review conversations resolved.
-- Linear history.
-- Admin enforcement for branch protection; the named owner's ruleset bypass is available only while merging a PR and must be used only on owner-authored PRs.
-- Force pushes and branch deletion disabled.
-
-The default branch is `dev`, so new clones and GitHub's default PR target naturally point to daily integration rather than stable `main`.
+Nhánh mặc định là dev. Đây là mô tả quy trình đã thống nhất, không phải kết quả kiểm tra quyền GitHub trực tuyến trong lần dịch tài liệu này.

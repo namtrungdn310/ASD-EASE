@@ -1,2 +1,2 @@
-"""Future shared feature definitions (Phase 11)."""
+"""Đặc trưng dùng chung dự kiến cho giai đoạn 11."""
 

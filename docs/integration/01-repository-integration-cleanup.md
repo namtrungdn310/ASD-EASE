@@ -1,98 +1,71 @@
 # 01 — Dọn nền tảng tích hợp
 
-| Thuộc tính | Giá trị |
+| Mục | Nội dung |
 |---|---|
 | Nhánh | `chore/repository-integration-cleanup` |
-| Chủ trì | Trung — IT; GPIO/board phối hợp Tân |
-| Phụ thuộc | Đã đáp ứng: PR kế hoạch #8 merge vào dev tại 0bcd833 |
-| Ước lượng | 0,5–1 ngày |
-| Theo dõi | [PROGRESS.md](PROGRESS.md), dòng 01 |
+| Phụ trách | Trung — IT; Tân phối hợp GPIO/board |
+| Phụ thuộc | PRkế hoạch #8 đã merge tại0bcd833 |
+| Ước lượng |0,5–1 ngày |
+| Tiến độ |[Dòng01](PROGRESS.md) |
 
-## Kết quả cần đạt
+## Mục tiêu và tình trạng
 
-Repo có cấu hình chia sẻ được giữa hai máy, không còn marker conflict, tài liệu phân biệt implementation với kiểm chứng phần cứng. Không thay đổi thuật toán cảm biến trong PR dọn dẹp.
+Cấu hình chia sẻ được giữa hai máy, không dấu conflict, tài liệu tách code khỏi bằng chứng phần cứng. Không đổi thuật toán cảm biến.
 
-## Hiện trạng trước cleanup và file dự kiến
+**Đã merge PR #9 vào dev tại86cd09f ngày2026-10-18.** Hoàn tất phần dọn phần mềm; wiring/rate/flash vẫn cần đo. GPIO4 dưới đây là cấu hình thời điểm cleanup, hiện sau PR #11 đã là7.
 
-- `docs/FINAL_VERIFICATION.md` còn marker conflict ở lệnh PlatformIO.
-- `.env.example` bị xoá trong PR #7.
-- `ai/edge_firmware/.vscode/` và `compile_commands.json` đã tracked dù có đường dẫn máy Tân; ignore không tự bỏ file đã tracked.
-- Driver mới đọc `board_config.h`, trong khi `pins.h`/`sensor_config.h` còn định nghĩa trùng hoặc cũ.
-- `docs/HARDWARE_PROFILE.md`, `PROGRESS.md`, phase 03–06 chưa phản ánh việc đã có implementation driver.
-- File sửa: các file trên, `.gitignore`, `.github/workflows/ci.yml`, `docs/CHANGELOG.md`.
+## Vấn đề lúc bắt đầu
 
-## Checklist triển khai
+FINAL_VERIFICATION còn conflict ở lệnh PlatformIO; .env.example bị xoá trong PR #7; file IDE/compile_commands có đường dẫn riêng nhưng đã theo dõi trong Git; header chân/rate/enum bị trùng; tài liệu chưa phản ánh driver đã có.
 
-- [x] Xác nhận working tree sạch, cập nhật `dev`, tạo đúng tên nhánh.
-- [x] Xử lý conflict bằng nội dung đúng: từ root chạy `pio run -d ai/edge_firmware`; tìm marker còn sót trong file tracked.
-- [x] Khôi phục `.env.example` từ cấu hình thực dùng, chỉ placeholder; mô tả khác biệt biến backend với biến Vite được đưa vào lúc build.
-- [x] Bỏ tracking các file IDE sinh tự động chứa đường dẫn máy; giữ lại file trên máy người dùng nếu cần, thêm ignore. Không xoá source hay build artefact của người khác ngoài phạm vi.
-- [x] Giữ cấu hình IDE chia sẻ được chỉ khi đã loại đường dẫn tuyệt đối và chứng minh có tác dụng; không thay bằng đường dẫn máy Trung.
-- [x] Hợp nhất pin/sampling config ở mức source: board_config là nguồn chung, giữ wrapper include/alias cho consumer cũ và không đổi giá trị.
-- [ ] Tân xác nhận wiring/driver metadata khi có phần cứng; ghi việc phối hợp chưa thực hiện thay vì coi build là xác nhận.
-- [ ] Xác nhận wiring GSR trước khi sửa hằng số; nếu chưa có bằng chứng, ghi rõ chưa xác nhận thay vì suy từ comment.
-- [x] Giữ sensor enums/`Availability` ở một nguồn để tránh lỗi định nghĩa lại khi communication module dùng `interfaces.h` và sensor headers cùng lúc.
-- [x] Không tự đổi flash/PSRAM theo tên thương mại của board; giữ bằng chứng và cấu hình build tách biệt.
-- [x] Bổ sung CI kiểm tra marker conflict bằng các dòng bắt đầu `<<<<<<< `, `=======`, `>>>>>>> `; xử lý exit code khi không có match, không để lệnh scan tự làm job fail sai.
-- [x] Giữ nguyên tên sáu required checks đang được branch protection dùng.
-- [x] Cập nhật phase/hardware docs về code hiện có và bằng chứng còn thiếu; không đánh dấu DONE từ build-only.
-- [x] Cập nhật changelog, checklist nhánh và tracker.
+## Công việc và bàn giao
 
-## Chế độ học code và công việc còn lại
+- [x] Tạo nhánh từ dev sạch; sửa nội dung conflict, dùng pio run -d ai/edge_firmware từ root.
+- [x] Khôi phục mẫu môi trường không secret, phân biệt cấu hình backend/Vite lúc build.
+- [x] Bỏ theo dõi file IDE riêng nhưng giữ file trên đĩa; ignore không tự bỏ file đã theo dõi.
+- [x] Không thay đường dẫn máy Tân bằng máy Trung hoặc xoá sản phẩm của người khác.
+- [x] board_config là nguồn cấu hình chung, giữ include/alias tương thích, không đổi giá trị.
+- [ ] Tân xác nhận dây nối/board/driver bằng phép đo thật.
+- [ ] Xác nhận wiring GSR trước thay hằng số; comment không là bằng chứng.
+- [x] Enum Availability/EngineeringState chỉ một nguồn, không lỗi khi ghép interfaces và header cảm biến.
+- [x] Không đoán flash/PSRAM từ tên board.
+- [x] CI kiểm tra marker conflict, phân biệt mã trả về không có kết quả với lỗi Git.
+- [x] Giữ nguyên tên6 checks bảo vệ nhánh.
+- [x] Cập nhật phần cứng/giai đoạn/changelog/tracker, không đánh DONE từ build.
+- [x] CI cuối c764210 đạt6/6, PR #9 đã merge sau kế hoạch #8.
 
-Theo yêu cầu của Trung, Codex xử lý nhánh/Git, Markdown, môi trường/IDE và CI; Trung tự viết source cốt lõi. Mỗi lần chỉ hướng dẫn một file, sau khi kiểm tra diff file đó mới chuyển tiếp.
+## Các file cốt lõi Trung đã viết
 
-Phần hỗ trợ đã làm: sửa conflict trong tài liệu, mẫu môi trường + hướng dẫn `docs/LOCAL_SETUP.md`, ignore/untrack file máy cá nhân (giữ nguyên trên disk), CI scanners và cập nhật phase/tracker. Trung đã tự viết cả năm source headers bên dưới. Codex chỉ sửa comment/khoảng trắng và hạ tầng kiểm tra, không đổi logic Trung viết. Firmware build và cả bốn tổ hợp header đều PASS; phần source của nhánh 01 đã hoàn tất, chờ PR/CI và review, chưa xác minh wiring vật lý.
+1. common_types.h: enum chung, UNAVAILABLE đúng tên.
+2. board_config.h: dùng kiểu chung, bỏ enum trùng, giữ cấu hình lúc đó.
+3. interfaces.h: bỏ định nghĩa lặp, dùng chung enum/TelemetryFrame.
+4. pins.h: chuyển thành include board_config, giữ alias.
+5. sensor_config.h: chuyển thành include board_config, bỏ rate trùng.
 
-Thứ tự source dự kiến để Trung tự viết:
+Codex xử lý Git/tài liệu/comment/cấu hình/tests. Build từng bước và tổ hợp header đều đạt, không đổi logic Trung viết.
 
-1. Đã tạo `ai/edge_firmware/include/common_types.h`; `UNAVAILABLE` đúng trong bản đã lưu, syntax/full firmware build PASS. Đã dọn khoảng trắng cuối dòng trước commit.
-2. `board_config.h` đã dùng common types, bỏ enum trùng; comment GPIO4 khớp cấu hình và ghi chưa xác minh wiring. Diff đúng; full firmware build PASS với hai header hiện tại.
-3. `interfaces.h` đã dùng common types, bỏ hai định nghĩa enum lặp. Compiler ESP32-S3 kiểm tra include chung với board_config theo cả hai thứ tự, include lặp, dùng enum/TelemetryFrame/placeholder class: PASS.
-4. `pins.h` đã thành wrapper include `board_config.h`, bỏ `PIN_UNVERIFIED` và các GPIO trùng. Syntax check độc lập, include lặp và include chung với board_config/interfaces PASS; GPIO alias giữ đúng cấu hình hiện có.
-5. `sensor_config.h` đã thành wrapper include board_config, bỏ các sample-rate constants trùng. Syntax check độc lập, include theo các thứ tự và với ba sensor headers đều PASS.
+## Bằng chứng đã ghi
 
-Build/kiểm tra include sau từng thay đổi phù hợp, rồi kiểm tra cả tổ hợp headers để phát hiện duplicate definitions. Chưa đổi giá trị GPIO/flash hoặc thuật toán driver khi thiếu bằng chứng phần cứng.
-
-## Kiểm thử / bằng chứng cần lưu
-
-| Kiểm tra | Kết quả mong đợi |
+| Lần kiểm tra2026-10-18 | Kết quả |
 |---|---|
-| Scan marker trên tracked files | Không còn marker thật; phân biệt ví dụ tài liệu nếu có |
-| Kiểm tra ignore/tracked IDE config | File máy cá nhân không còn trong commit; local config cần thiết vẫn dùng được |
-| Firmware build trên Windows và CI Linux | Không lỗi include, enum hay case đường dẫn |
-| Compose config, backend/AI tests, frontend build | Không regression |
-| Diff review | Không credential, dữ liệu người tham gia hay thay đổi driver ngoài phạm vi |
+| Quét conflict | Có marker trả1, repo sạch0, ngoài repo lỗi Git128 |
+| Môi trường/Compose | Settings đọc mẫu, Compose và diff đạt |
+| File máy riêng |4 file bỏ theo dõi, SHA256 trên đĩa không đổi |
+| Backend/AI |13/15 tests đạt |
+| Tài liệu |27 link local tồn tại, đủ25 giai đoạn |
+| common_types | Kiểm tra cú pháp, include lặp, đủ8 giá trị enum |
+| Lần build sau board_config | Ban đầu lỗi UNVAILABLE trong file đã lưu; sửa UNAVAILABLE thì build đạt26.84 s |
+| interfaces/pins/sensor_config | Include độc lập/lặp/đảo thứ tự và alias đạt, GPIO4 lúc đó giữ nguyên |
+| Bước cuối |Firmware build,4 tổ hợp header, frontend build, Compose, conflict/diff đạt |
+| Sau PR #8 |3 commit cleanup được rebase lên0bcd833, tree trước/sau giống nhau;4 file local giữ hash |
+| CI |6/6 ở7ff1851 trước rebase; kết quả cuối c7642106/6 trước merge |
 
-Lệnh tham khảo: `git ls-files`, `git check-ignore -v <path>`, `git diff --check`, các lệnh baseline trong [README](README.md#lệnh-kiểm-tra-dùng-lại).
+Không coi kiểm tra cú pháp hoặc GPIOalias là xác nhận dây vật lý. Sau PR #11 có một số file IDE được đưa lại; đó là diễn biến sau cleanup, không thay kết quả lịch sử.
 
-## Điều kiện merge / bàn giao
+## Kiểm tra lại và khôi phục
 
-- [x] Config source thống nhất hoặc phần còn thiếu được ghi blocker cụ thể.
-- [x] Không còn đường dẫn cá nhân trong cấu hình tracked dùng chung.
-- [x] CI marker check đã kiểm tra được cả tình huống có/không có marker.
-- [x] Required checks xanh; docs ghi đúng phần chưa kiểm chứng. CI cuối ở commit c764210 PASS 6/6.
-- [x] Đã mở [PR #9 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/9). PR #8 đã merge; cleanup đã rebase lên dev mới, không còn đưa lại commit kế hoạch vào ancestry. Chuẩn bị review sau khi required checks trên commit mới pass.
+Dùng git ls-files, git check-ignore -v <path>, git diff --check và [lệnh dùng lại](README.md#lệnh-kiểm-tra-dùng-lại). Xem diff để không lẫn credential/dữ liệu người tham gia.
 
-### Kết quả bàn giao
+Giữ bản cấu hình local trước bỏ theo dõi. Sửa/hoàn tác bằng commit trên nhánh công việc, không reset dev hoặc xoá .venv/.platformio toàn máy.
 
-PR #9 đã merge vào dev tại `86cd09f` ngày 2026-10-18. Nhánh 01 hoàn tất trong phạm vi software cleanup; GPIO/rates/flash/driver logic không đổi. Các task xác nhận wiring/đo phần cứng chưa được tick vì chưa có bằng chứng từ Tân; phần còn thiếu đã được ghi rõ và tiếp tục theo dõi trong hardware profile/tracker, không chặn việc sửa trạng thái UI ở nhánh 02.
-
-## Rollback
-
-Giữ bản local config trước khi untrack nếu đang dùng. Nếu cấu hình chung mới làm build hỏng, sửa/revert bằng commit trên nhánh công việc; không reset `dev`, không xoá `.venv` hay thư mục `.platformio` toàn máy.
-
-## Nhật ký / kết quả thực hiện
-
-| Ngày / commit | Task | Command / bằng chứng | Kết quả / blocker |
-|---|---|---|---|
-| 2026-10-18 / cleanup branch | Tài liệu, env, IDE và CI | Scanner bắt marker cũ (exit 1), repo đã dọn pass (exit 0), ngoài repo trả lỗi Git 128; template đọc được bằng Settings thật; Compose config và diff check pass; 4 file untrack giữ nguyên SHA256 trên disk; 13 backend + 15 AI tests pass; 27 local links tồn tại và 25 phase files giữ nguyên | Phần hỗ trợ xong; chờ Trung viết common_types và cập nhật các headers, cộng xác nhận wiring từ Tân. Chưa đóng toàn nhánh |
-| 2026-10-18 / local common_types.h | Trung tạo shared enum header, sửa UNAVAILABLE đúng tên | Compiler ESP32-S3 `-fsyntax-only`, include header hai lần và tham chiếu đủ 8 enum values: PASS | Header đúng; bỏ trailing whitespace dòng 3 trước commit. Tiếp theo board_config.h, chưa build toàn firmware với các consumer mới |
-| 2026-10-18 / local board_config.h | Include common types, bỏ enum trùng; comment GPIO do Codex cập nhật | `pio run -d ai/edge_firmware`: FAIL ở MAX30102Sensor.cpp và MPU6050Sensor.cpp vì UNAVAILABLE không có trong enum; disk hiện lại ghi UNVAILABLE | Diff board_config đúng. Chờ Trung sửa/lưu common_types.h rồi build lại; chưa chuyển interfaces.h |
-| 2026-10-18 / saved common_types.h + board_config.h | Trung sửa và lưu lại UNAVAILABLE; kiểm tra bản trên disk | `pio run -d ai/edge_firmware`: SUCCESS, exit 0, 26.84 giây | Hai file đạt kiểm tra hiện tại; tiếp interfaces.h. Build này chưa kiểm tra tổ hợp các header legacy/placeholder chưa được main sử dụng |
-| 2026-10-18 / local interfaces.h | Trung include common_types và bỏ enum trùng | Firmware build SUCCESS; compiler dùng metadata PlatformIO hiện tại kiểm tra board_config/interfaces theo cả hai thứ tự, include lặp và sử dụng enum/struct/class: PASS | interfaces.h đạt; tiếp pins.h. Header legacy pins/sensor_config chưa hợp nhất |
-| 2026-10-18 / local pins.h | Trung chuyển pins thành wrapper board_config | Compiler ESP32-S3 syntax-check pins độc lập và hai tổ hợp với board_config/interfaces/include lặp; static_assert kiểm tra aliases và GSR giữ cấu hình GPIO4: PASS | pins.h đạt; tiếp sensor_config.h. Đây là kiểm tra cấu hình source, không xác minh wiring vật lý |
-| 2026-10-18 / local sensor_config.h và final source review | Trung chuyển sample config thành wrapper; Codex dọn khoảng trắng và thêm script CI kiểm tra headers | Firmware build SUCCESS; `.github/scripts/check-firmware-headers.py`: 4 tổ hợp PASS; frontend build, Compose config, conflict scan và diff check PASS; backend/AI vẫn giữ kết quả 13/15 tests đã chạy trên phần hỗ trợ | Năm file core của cleanup đã hoàn tất; chờ PR/CI. GPIO/rate/flash/driver algorithms không đổi; wiring vẫn chưa xác nhận |
-| 2026-10-18 / rebase sau PR #8 | Đưa ba commit cleanup lên dev 0bcd833 sau squash merge kế hoạch | Nội dung tree trước/sau rebase giống nhau, 4 local generated files giữ nguyên SHA256; CI trước rebase đã PASS 6/6 ở 7ff1851 | Phụ thuộc #8 đã xử lý; chạy lại CI trên commit mới và review PR #9. Chưa merge cleanup hoặc bắt đầu nhánh 02 |
-
-Nhánh tiếp: [02](02-frontend-live-connection-status.md) hoặc [03](03-device-ingestion-contract.md) sau khi 01 merge.
+Sau01: [02](02-frontend-live-connection-status.md) hoặc [03](03-device-ingestion-contract.md).

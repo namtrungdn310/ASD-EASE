@@ -1,9 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
+from app.schemas.control import Counter, Identifier
 
 
 class AnnotationCreate(BaseModel):
-    session_id: str
-    timestamp_ms: int = Field(ge=0)
+    model_config = ConfigDict(extra="forbid")
+    session_id: Identifier
+    timestamp_ms: Counter
     label: str = Field(min_length=1, max_length=100)
     note: str | None = Field(default=None, max_length=1000)
 

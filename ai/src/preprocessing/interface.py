@@ -3,7 +3,7 @@ import numpy as np
 
 
 def normalize_raw_batch(batch: dict[str, Any]) -> dict[str, dict[str, np.ndarray | float]]:
-    """Convert API raw-batch payloads to arrays without synthetic-specific behavior."""
+    """Đổi payload raw thành mảng, không tách logic riêng cho giả lập."""
     required = {"ppg", "imu", "gsr"}
     if not required.issubset(batch):
         raise ValueError(f"Missing streams: {sorted(required - batch.keys())}")

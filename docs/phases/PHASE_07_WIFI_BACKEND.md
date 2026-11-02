@@ -1,79 +1,81 @@
-# Phase 07 — Wi-Fi Backend
+# Giai đoạn 07 — Kết nối Wi-Fi với backend
 
-## Status
+## Trạng thái
 
 NOT_STARTED
 
-## Owner
+## Người phụ trách
 
-IT (firmware networking/serialization and backend); AUTOMATION supports hardware, drivers and measured sampling.
+Trung — IT; Tân hỗ trợ phần cứng, driver và đo tốc độ mẫu.
 
-## Detailed Implementation Plan
+## Mục tiêu
 
-Use the [IT integration overview](../integration/README.md), [contract plan](../integration/03-device-ingestion-contract.md), [session-lifecycle plan](../integration/04-backend-session-lifecycle.md) and [firmware telemetry plan](../integration/05-firmware-telemetry-client.md). Track branch work in [integration progress](../integration/PROGRESS.md). This planning update does not change the phase status or replace real-device acceptance evidence.
+Gửi telemetry thật từ ESP32 qua broker MQTT cục bộ tới backend; nhận Start/Stop và xác nhận thực thi. Trình duyệt vẫn dùng HTTP/WebSocket.
 
-## Objective
+## Lý do
 
-Send real ESP32 telemetry to the local FastAPI receiver over LAN.
+Thay đường truyền giả lập mà không chuyển suy luận sang laptop.
 
-## Why This Phase Exists
+## Phụ thuộc
 
-Replaces mock transport without moving inference to laptop.
+Giai đoạn 06, Giai đoạn 02
 
-## Dependencies
+## Đầu vào
 
-Phase 06, Phase 02
+Mạng LAN, địa chỉ laptop và phần cứng đã kiểm chứng.
 
-## Inputs
+## Công việc
 
-Verified ESP32 networking and laptop LAN address.
+- [ ] Làm đúng phạm vi đã thống nhất.
+- [ ] Chạy các kiểm thử và lưu bằng chứng.
+- [ ] Cập nhật tài liệu giai đoạn, tiến độ, thay đổi và quyết định liên quan.
 
-## Tasks
-
-- [ ] Complete the documented implementation without expanding phase scope
-- [ ] Run every listed test and preserve evidence
-- [ ] Update this phase, PROGRESS, CHANGELOG and decisions when applicable
-
-## Files Expected To Change
+## File dự kiến thay đổi
 
 ai/edge_firmware/src/communication/...; backend/...
 
-## Implementation Notes
+## Lưu ý triển khai
 
-Keep credentials local; use bounded timeouts and contract version 1.0.
+Theo [đặc tả API](../API_CONTRACT.md), [MQTT control](../contracts/MQTT_CONTROL.md) và [ánh xạ driver](../contracts/DRIVER_MAPPING.md). Giữ riêng phiên bản telemetry/raw và control; giới hạn hàng đợi, thời gian chờ, chỉ một tiến trình nhận MQTT. Không lưu retained cho telemetry/lệnh; PUBACK không chứng minh thiết bị đã thực thi hoặc DB đã ghi.
 
-## Tests
+## Kiểm thử
 
-Real device POST to LAN IP; validation and reconnect tests.
+ESP32 thật → broker LAN → backend → WebSocket/dashboard. Thử xác nhận lệnh, kết nối lại, khởi động lại broker/backend, lệnh cũ, quyền truy cập và ảnh hưởng tới lấy mẫu/bộ nhớ.
 
-## Acceptance Criteria
+## Điều kiện nghiệm thu
 
-- [ ] Objective is demonstrated with non-fabricated evidence
-- [ ] All mandatory tests pass
-- [ ] Progress and risks are updated before advancing
+- [ ] Có bằng chứng thật cho mục tiêu.
+- [ ] Các kiểm thử bắt buộc đều đạt.
+- [ ] Cập nhật tiến độ và rủi ro trước khi chuyển tiếp.
+- [ ] MQTT, ACK thực thi và đồng bộ boot/phiên được thử thật; không suy từ PUBACK hoặc presence.
+- [ ] Có bằng chứng wiring, tốc độ mẫu và RAM; fixture/build không thay nghiệm thu board.
 
-## Expected Output
+## Đầu ra
 
-A reviewable implementation, test evidence and updated project tracking for Phase 07; no automatic work on the next phase.
+Phần triển khai có thể review, kết quả kiểm thử và tiến độ đã cập nhật. Không tự chuyển sang giai đoạn sau khi chưa có yêu cầu.
 
-## Known Risks
+## Rủi ro
 
-Firewall, DHCP, credentials or blocking network calls.
+Tường lửa, DHCP, thông tin truy cập hoặc lệnh mạng chặn.
 
-## Debug / Rollback Strategy
+## Xử lý lỗi và khôi phục
 
-Use health endpoint and serial network diagnostics; fall back to isolated LAN.
+Dùng API health và nhật ký Serial; thử trên LAN riêng.
 
-## Results
+## Kết quả
 
-Not executed yet.
+Chưa thực hiện.
 
-## Completion Evidence
+## Bằng chứng hoàn thành
 
-Not available.
+Chưa có bằng chứng nghiệm thu.
 
-## Next Phase
+## Kế hoạch chi tiết
 
-Phase 08 — Data Logger
+Xem [kế hoạch tích hợp](../integration/README.md), [tiến độ](../integration/PROGRESS.md) và [đặc tả API](../API_CONTRACT.md). Tài liệu không thay đổi trạng thái nghiệm thu.
+
+## Giai đoạn tiếp theo
+
+Giai đoạn 08 — Ghi dữ liệu
 
 
