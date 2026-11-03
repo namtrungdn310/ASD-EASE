@@ -2,11 +2,11 @@
 
 ## Trạng thái
 
-NOT_STARTED
+IN_PROGRESS — WAITING_HARDWARE. Code nhánh05 và kiểm tra phần mềm đã có; board ở chỗ Tân, chưa nạp/đo thật.
 
 ## Người phụ trách
 
-Trung — IT; Tân hỗ trợ phần cứng, driver và đo tốc độ mẫu.
+Tân triển khai ban đầu và phụ trách thử board; Trung hoàn thiện code sau PR #14 và review.
 
 ## Mục tiêu
 
@@ -64,7 +64,7 @@ Dùng API health và nhật ký Serial; thử trên LAN riêng.
 
 ## Kết quả
 
-Chưa thực hiện.
+Đã có ESP-MQTT/task mạng riêng, serializer/freshness, Start/Stop/ACK/đồng bộ và tests native qua broker/backend/DB/WS. Chưa xác nhận cảm biến thật/LAN/Dashboard, tốc độ mẫu hoặc RAM/stack chạy trên ESP32. Xem [bàn giao05](../integration/05-HANDOFF.md) và [ma trận kiểm tra](../integration/05-VERIFICATION.md).
 
 ## Bằng chứng hoàn thành
 

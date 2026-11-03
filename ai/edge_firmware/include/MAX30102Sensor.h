@@ -10,6 +10,10 @@ class MAX30105;
 // =============================================================================
 
 struct MAX30102Data {
+  uint64_t sampleMonotonicMs = 0, heartRateMonotonicMs = 0;
+  uint32_t sampleUpdatedAtMs = 0, heartRateUpdatedAtMs = 0;
+  uint32_t newSamples = 0;
+  bool hasSampleTimestamp = false, hasHeartRateTimestamp = false;
   uint32_t  irValue        = 0;
   uint32_t  redValue       = 0;
   float     rawHeartRate    = 0.0f;                      // Nhịp tim thô trung bình trượt (BPM)
@@ -36,6 +40,9 @@ class MAX30102Sensor {
   float computeMedianBpm();   // Tính trung vị khoảng RR từ mảng rates_[]
 
   bool          ready_        = false;
+  uint32_t lastSampleMs_ = 0, lastValidHeartRateMs_ = 0;
+  uint64_t sampleMonotonicMs_ = 0, heartRateMonotonicMs_ = 0;
+  bool hasSampleTime_ = false, hasValidHeartRateTime_ = false;
   PPGStatus     status_       = PPGStatus::DISCONNECTED;
   MAX30105*     sensor_       = nullptr;
   unsigned long lastRetryMs_  = 0;
