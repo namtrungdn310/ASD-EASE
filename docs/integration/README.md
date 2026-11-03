@@ -1,6 +1,6 @@
 # Kế hoạch chuẩn hoá và kết nối ESP32
 
-Lập2026-10-18, cập nhật2026-10-31, Asia/Saigon. Ban đầu trên dev332f249; nhánh03 từ d80cc0e sau PR #11.
+Lập2026-10-18, cập nhật2026-11-03, Asia/Saigon. Ban đầu trên dev332f249; nhánh03 từ d80cc0e sau PR #11.
 
 ## Mục tiêu
 
@@ -12,7 +12,7 @@ ESP32 <-- MQTT lệnh/trạng thái -- broker <-- backend <-- HTTP từ UI
 ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 ```
 
-01 và code02 đã merge;03 merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d. 04 đã triển khai backend MQTT/phiên, thử broker thật và push [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13); hoàn tất khi PR merge vào dev sau đủ CI. Xem [bàn giao04](04-HANDOFF.md), [cách chạy](04-SETUP.md) và [tracker](PROGRESS.md). Firmware MQTT05 và raw lưu bền06/07 chưa triển khai.
+01 và code02 đã merge;03 merge PR #12 tại752bd5d;04 merge [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) tại7ff5a2c sau CI6/6. Tân đã merge một phần05 qua PR #14; code hoàn thiện05 ở nhánh feature/firmware-telemetry-client-completion, chờ review và thử board. Xem [bàn giao05](05-HANDOFF.md), [cách chạy05](05-SETUP.md) và [tracker](PROGRESS.md). Raw lưu bền06/07 chưa triển khai.
 
 ## Điểm xuất phát
 
@@ -28,7 +28,7 @@ Cleanup01 xử lý tài liệu/env; PR #11 có thêm lại file IDE và cập nh
 | Tân — Tự động hoá |Wiring, GPIO, board/flash/PSRAM, nguồn/pin, driver, hiệu chuẩn/rate |
 | Cùng phối hợp |Đơn vị/log đo, thử thiết bị và nghiệm thu |
 
-Thống nhất trước khi sửa chung main.cpp/board_config.h. IT ưu tiên mô-đun riêng; thay thuật toán driver cần phối hợp. Nhánh05 chưa tự chuyển người phụ trách chỉ từ trao đổi đề xuất.
+Thống nhất trước khi sửa chung main.cpp/board_config.h. IT ưu tiên mô-đun riêng; thay thuật toán driver cần phối hợp. Riêng05 Trung đã giao Tân triển khai; sau PR #14 Trung yêu cầu Codex hoàn thiện code, Tân giữ phần nạp/đo phần cứng và Trung review.
 
 ## Nhánh và phụ thuộc
 

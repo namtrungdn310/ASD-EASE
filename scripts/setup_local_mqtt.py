@@ -4,12 +4,13 @@ import json
 from pathlib import Path
 import secrets
 import subprocess
+import re
 
 ROOT = Path(__file__).resolve().parents[1]
 IMAGE = "eclipse-mosquitto:2.0.22@sha256:09b62ff32c2e7b64d4b431b9a89236073289b68db273de2b089edeb9b0d92b5c"
 
 
-def provision(destination, *, http_simulator=False):
+def provision(destination, *, http_simulator=False, device_id=None):
     destination = Path(destination).resolve()
     destination.mkdir(parents=True, exist_ok=True)
     if any(destination.iterdir()):
@@ -19,6 +20,16 @@ def provision(destination, *, http_simulator=False):
                  "http_token": secrets.token_urlsafe(32), "transport": "http" if http_simulator and index == 0 else "mqtt",
                  "acquisition_profile": {"ppg_hz": 100, "imu_hz": 50, "gsr_hz": 20, "window_ms": 1000}}
                 for index, (device, username) in enumerate((("SIM-001", "simulator"), ("SIM-OTHER", "simulator-other")))]
+    if device_id:
+        if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}", device_id) or device_id in {entry["device_id"] for entry in registry}:
+            raise ValueError("ID thiết bị không hợp lệ hoặc trùng simulator")
+        passwords["esp32"] = secrets.token_urlsafe(32)
+        entry = {"device_id":device_id,"data_origin":"DEVICE","mqtt_username":"esp32",
+                 "http_token":secrets.token_urlsafe(32),"transport":"mqtt",
+                 "acquisition_profile":{"ppg_hz":50,"imu_hz":50,"gsr_hz":20,"window_ms":1000}}
+        registry.append(entry)
+        (destination / "firmware-device.json").write_text(json.dumps({"device_id":device_id,"username":"esp32",
+            "password":passwords["esp32"],"data_origin":"DEVICE","http_token":entry["http_token"]}, indent=2), encoding="utf-8")
     (destination / "device-registry.json").write_text(json.dumps(registry, indent=2), encoding="utf-8")
     (destination / "simulator.json").write_text(json.dumps({"username": "simulator", "password": passwords["simulator"],
         "device_id": "SIM-001", "data_origin": "SYNTHETIC", "http_token": registry[0]["http_token"]}, indent=2), encoding="utf-8")
@@ -54,6 +65,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--directory", type=Path, default=ROOT / "infra" / "mosquitto" / "local")
     parser.add_argument("--http-simulator", action="store_true")
+    parser.add_argument("--device-id", help="Thêm account DEVICE riêng với profile danh định50/50/20, không thay simulator")
     args = parser.parse_args()
-    provision(args.directory, http_simulator=args.http_simulator)
+    provision(args.directory, http_simulator=args.http_simulator, device_id=args.device_id)
     print("Đã tạo file local. Đọc docs/integration/04-SETUP.md; không commit thư mục credential.")

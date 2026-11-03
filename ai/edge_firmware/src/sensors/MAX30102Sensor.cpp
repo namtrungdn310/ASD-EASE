@@ -1,4 +1,5 @@
 #include "MAX30102Sensor.h"
+#include <esp_timer.h>
 
 #include <Wire.h>
 #undef I2C_BUFFER_LENGTH
@@ -38,6 +39,7 @@ Availability MAX30102Sensor::begin() {
 }
 
 void MAX30102Sensor::resetCalculations() {
+  hasValidHeartRateTime_ = false;
   irDc_              = 0.0f;
   redDc_             = 0.0f;
   biquadX1_          = 0.0f;
@@ -211,6 +213,9 @@ bool MAX30102Sensor::detectBeat(uint32_t irValue, uint32_t redValue, unsigned lo
         if (!isHarmonic) {
           float instantBpm = 60000.0f / static_cast<float>(delta);
           if (instantBpm >= HR_MIN_PHYSIOLOGICAL && instantBpm <= HR_MAX_PHYSIOLOGICAL) {
+            lastValidHeartRateMs_ = static_cast<uint32_t>(now);
+            heartRateMonotonicMs_ = static_cast<uint64_t>(esp_timer_get_time()) / 1000 - static_cast<uint32_t>(millis() - now);
+            hasValidHeartRateTime_ = true;
             rates_[rateSpot_++] = instantBpm;
             rateSpot_ %= kRateBufferSize;
 
@@ -314,6 +319,15 @@ MAX30102Data MAX30102Sensor::read() {
     hasNewData = true;
   }
 
+  if (hasNewData) {
+    lastSampleMs_ = millis(); hasSampleTime_ = true;
+    sampleMonotonicMs_ = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
+  }
+  data.sampleMonotonicMs = sampleMonotonicMs_;
+  data.sampleUpdatedAtMs = lastSampleMs_;
+  data.hasSampleTimestamp = hasSampleTime_;
+  data.newSamples = sampleCount;
+
   data.irValue        = latestIr_;
   data.redValue       = latestRed_;
   data.fingerDetected = (data.irValue >= PPG_IR_FINGER_THRESHOLD);
@@ -359,6 +373,9 @@ MAX30102Data MAX30102Sensor::read() {
   }
 
   data.status = status_;
+  data.heartRateUpdatedAtMs = lastValidHeartRateMs_;
+  data.heartRateMonotonicMs = heartRateMonotonicMs_;
+  data.hasHeartRateTimestamp = hasValidHeartRateTime_;
   return data;
 }
 

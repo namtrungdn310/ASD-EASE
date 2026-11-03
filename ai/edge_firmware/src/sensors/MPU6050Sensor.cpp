@@ -1,4 +1,5 @@
 #include "MPU6050Sensor.h"
+#include <esp_timer.h>
 #include <Wire.h>
 #include <cmath>
 
@@ -153,6 +154,9 @@ MPU6050Data MPU6050Sensor::read() {
 
   consecutiveErrors_ = 0;
   status_ = IMUStatus::VALID;
+  data.sampleUpdatedAtMs = millis();
+  data.sampleMonotonicMs = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
+  data.hasSampleTimestamp = true;
 
   int16_t rawAx = static_cast<int16_t>((buffer[0] << 8) | buffer[1]);
   int16_t rawAy = static_cast<int16_t>((buffer[2] << 8) | buffer[3]);

@@ -2,73 +2,57 @@
 
 | Mục | Nội dung |
 |---|---|
-| Nhánh | `feature/firmware-telemetry-client` |
-| Phụ trách | Trung — IT, Tân hỗ trợ board/driver |
-| Phụ thuộc |03/04;02 trước nghiệm thu dashboard |
-| Ước lượng |2–4 ngày, chưa tính chờ phần cứng |
-| Tiến độ |[Dòng05](PROGRESS.md) |
+| Nhánh kế hoạch | `feature/firmware-telemetry-client` |
+| Nhánh hoàn thiện | `feature/firmware-telemetry-client-completion` từ dev1e73aea |
+| Phụ trách | Tân triển khai đầu và thử board; Trung hoàn thiện code sau PR #14, review |
+| Phụ thuộc |03/04;02 cho Dashboard |
+| Trạng thái |Code local READY_FOR_REVIEW; nghiệm thu WAITING_HARDWARE |
+| Tài liệu |[Setup](05-SETUP.md), [kiểm tra](05-VERIFICATION.md), [bàn giao](05-HANDOFF.md), [nhật ký](05-IMPLEMENTATION-LOG.md), [tracker](PROGRESS.md) |
 
-## Kết quả
+Cập nhật 2026-11-03. Thiết bị ở chỗ Tân; merge phần dở PR #14 chưa có nghĩa hoàn tất05.
 
-ESP32 gửi telemetry1.0 qua broker LAN, nhận Start/Stop và trả ACK/đồng bộ. Mất/chậm mạng không dừng lấy mẫu. Raw HTTP làm ở07; USB chỉ nạp/chẩn đoán, không thay đường truyền. Theo [kiến trúc](MQTT_ARCHITECTURE.md), broker/backend04 đã có để thử.
+## Mục tiêu và phạm vi
 
-## Phạm vi
+Cảm biến thật ESP32 → Wi-Fi LAN → broker MQTT → backend04 → WebSocket → Dashboard hiện có. Start/Stop từ API → MQTT command → ESP32 thực thi → ACK → backend xác nhận trạng thái.
 
-Mô-đun Wi-Fi, MQTT, topic, lệnh và đóng JSON trong include/communication/ và src/communication/. Thay tối thiểu main.cpp; phối hợp Tân trước sửa chung. network_config.example.h dùng mẫu, network_config.h local bị bỏ qua. Thêm tests C++/Pydantic, hướng dẫn LAN và giai đoạn07; không đổi thuật toán cảm biến chỉ để payload đẹp.
+Giữ Serial để nạp/chẩn đoán, không thay kênh MQTT bằng USB. Nhánh05 chưa ghi raw; raw HTTP/batching thuộc06/07, UI điều khiển đầy đủ thuộc09. Không thay thuật toán lọc, tự tạo prediction hoặc nới schema để chấp nhận dữ liệu sai.
 
-## Đóng gói dữ liệu
+## Phần code đã triển khai
 
-- [ ] Dùng bộ đóng JSON riêng, không gửi nguyên Pretty JSON chẩn đoán.
-- [ ] Theo mapping03: null khi lỗi/cũ, đúng phiên/thiết bị/phiên bản và DEVICE khi cảm biến thật.
-- [ ] GSR delta đúng tỷ lệ; movement chưa thuật toán dùng null, không tính dự đoán giả trên laptop.
-- [ ] Chưa mô hình: probabilitynull, modelnone và trạng thái/chất lượng đúng quy ước; VALID không tự NORMAL.
-- [ ] Có trạng thái và tuổi mẫu; không gửi cache như số đo mới.
-- [ ] Chụp dữ liệu nhất quán giữa task; copy giá trị, không giữ con trỏ vùng đang thay.
-- [ ] Kiểm tra JSON do C++ tạo bằng Pydantic, không chỉ nhìn Serial.
+- [x] Core C++ portable dùng chung production/tests: serializer, epoch, lease, nonce, generation và chống thực thi lặp.
+- [x] Payload telemetry1.0 đúng mapping; null khi thiếu/cũ, GSR delta là tỷ lệ, quality0/modelnone/probabilitynull; chưa có movement score.
+- [x] Metadata thời điểm mẫu và nhịp HR hợp lệ từ driver; dùng đồng hồ64 bit để kiểm tra freshness qua millis rollover.
+- [x] Snapshot copy qua queue1; chỉ gửi bản mới nhất mỗi1000 ms, không gom backlog sau reconnect.
+- [x] ESP-MQTT có publishQoS1, pin platform7.1.3/ArduinoJson7.4.3; giữ sensor libraries hiện có.
+- [x] Task mạng riêng; callback xếp tối đa8 gói, control/outbox gửi8 gói/32 KiB, timeout/backoff hữu hạn.
+- [x] Connection nonce/LWT trước CONNECT, clean session, đợi SUBACK rồi sync; xác nhận nghiệp vụ khác PUBACK.
+- [x] Start/Stop/ACK/confirmation, lệnh lặp/cũ/sai profile, Stop thay Start, giữ epoch khi reconnect; reboot không tự Start.
+- [x] Đồng bộ mỗi15 s, chặn telemetry theo phiên khi backend chưa xác nhận; timeout authorization30 s.
+- [x] Build thiếu secret vẫn được; mặc định mạng tắt, env riêng compile/link nhánh mạng/TLS và không tự kết nối.
+- [x] Helper tạo DEVICE riêng nguồn/profile/credential/ACL, không thay tài khoản simulator.
+- [x] Compose chọn IP LAN/thư mục credential qua biến; mặc định broker loopback.
+- [x] Dùng receiver04 có registry/phiên; bỏ subscriber thử topic cũ chưa dùng và kiểm tra chặn topic sai.
+- [x] Ghi số mẫu, loop gap, heap thấp nhất, stack watermark và outbox; chưa có số đo board.
+- [x] Native C++ → Pydantic runtime, broker/backend/DB/WS thật và hồi quy local.
+- [x] Hướng dẫn nạp/LAN/login/API và ma trận F01–F19.
 
-## Mạng và phiên
+## Phần nghiệm thu còn lại
 
-- [ ] Chọn/pin thư viện Arduino sau thử gửiQoS1, subscribe/LWT/TLS, giới hạn packet/hàng chờ; không chỉ dựa khả năng nhậnQoS1.
-- [ ] CI build không cần credential thật; thiếu file local không làm compile lỗi, mặc định networking tắt/cấu hình mẫu có kiểm soát.
-- [ ] Broker host/port/clientID/credential/TLS riêng với HTTP backend cho07; dùng IP/DNS LAN, không localhost hoặc service Docker.
-- [ ] Thử broker/health trong LAN,1883 dev hoặc8883 TLS theo quy tắc; không public broker hoặc tắt tường lửa.
-- [ ] Wi-Fi nối lại có thời gian chờ tăng và log giới hạn, không vòng chờ làm dừng cảm biến.
-- [ ] MQTT có timeout, task/hàng đợi hữu hạn; callback không chờ DB/HTTP. Tính RAM/stack, không mặc định publish không chặn.
-- [ ] Không chờ broker/PUBACK trong loop10 ms; đo ảnh hưởng MQTT/Serial, để tài nguyên HTTPraw07.
-- [ ] Topic/nguồn/quyền đúng; lệnh/telemetry không retained, LWT không biến dữ liệu cũ thành live.
-- [ ] Subscribe xong mới đồng bộ boot/nonce; chỉ chạy lệnh đúng phiên/generation/thời hạn, ACK sau thực thi. Mốc thu chỉ đặt một lần.
-- [ ] Timestamp theo epoch, xử lý rollover millis()/reboot theo đặc tả.
-- [ ] Nhịp gửi thử1000 ms độc lập sensing; chỉ bản mới nhất, không gửi dồn dữ liệu cũ; raw không đi topictelemetry.
-- [ ] Stop theo máy trạng thái; chưa có07 thì không tuyên bố gửi nốt raw xong.
-- [ ] Phân biệt Wi-Fi/broker lỗi, backend chưa nhận và ứng dụng từ chối; PUBACK không là xác nhận nghiệp vụ. Retry đúng ID/thời hạn, không thử gói sai vô hạn.
-- [ ] Log thiết bị/boot/lệnh/phiên bản/số đếm/thời gian, không secret. Broker còn nhưng backend mất không nghĩa đã bắt đầu thu.
-- [ ] Ghi commit, cấu hình, board và kết quả thật trong giai đoạn07; nêu phần raw/chức năng còn thiếu.
+- [ ] Tân xác nhận board/flash/PSRAM/dây; code giữ MPU SDA5/SCL11, PPG8/9, GSR7.
+- [ ] Nạp firmware networking-enabled thật, SUBACK/sync/ACL trên broker LAN.
+- [ ] Dữ liệu cảm biến thật đến Dashboard với nguồn DEVICE; null/stale khi ngắt cảm biến.
+- [ ] Start/Stop/lệnh lặp/Stop thay Start/reboot/mất Wi-Fi/restart broker/backend trên ESP32 thật.
+- [ ] So số mẫu/rate/gap/độ trễ/heap/stack trước và sau mạng/Serial; profile50/50/20 chưa là số đo.
+- [ ] Kiểm tra TLS/chứng chỉ trên board khi dùng ngoài LAN phát triển riêng.
+- [ ] Commit/push phần completion, PR vào dev, đủ6 CI và Trung review/merge. Chưa thực hiện trong lượt hoàn thiện local.
+- [ ] Cập nhật F01–F19 và trạng thái theo bằng chứng; chưa đóng phase07 hoặc nhánh05.
 
-## Kiểm thử
+## Kết quả đúng khi chưa có raw
 
-| Tình huống | Cần thấy |
-|---|---|
-| JSON hợp lệ/sai/null | Pydantic kiểm tra đúng, không trường debug |
-| Build không có file local | CI đạt, không secret trong nguồn/image |
-| ESP32+broker+backend LAN | Backend nhận/kiểm tra, DB/WS/dashboard đúng DEVICE |
-| Wi-Fi/broker sai/mất/restart | Lấy mẫu tiếp, nối lại/hàng đợi hữu hạn, đồng bộ trước lệnh |
-| Broker còn/backend mất | Không coi PUBACK là ACK đang thu |
-| Sai quyền/payload/quá gói | Lý do rõ, không retry mù hoặc thành công giả |
-| Lệnh/ACK lặp, Stop, reboot, lệnh cũ | Không reset epoch, nhầm phiên hoặc tự Start |
-| Cảm biến mất khi mạng tốt | Null/trạng thái đúng, không số cũ hợp lệ |
+Stop trả summary zero-batch, cutoff0, raw_recording_enabled=false. Backend STOPPED nhưng recording_complete=false/RAW_RECORDING_DISABLED là dự kiến; không giả complete=true. Thu mới phải dùng session_id mới.
 
-## Nghiệm thu và khôi phục
+Có thể tiếp tục06 trên nền04 song song lúc chờ board.07 chỉ nghiệm thu được khi05/06 và số đo phần cứng đủ.
 
-- [ ] Build Windows/Linux, JSON fixtures và CI đạt.
-- [ ] Có log so rate/gap trước/sau mạng, không chỉ comment “non-blocking”.
-- [ ] Chưa board: có thể bàn giao phần mềm với WAITING_HARDWARE, không đóng giai đoạn07.
-- [ ] Có board: giữ log MQTT/application ACK, DB/WS, ảnh dashboard, commit/cấu hình; không lấy PUBACK làm bằng chứng raw.
-- [ ] Commit gợi ý: `feat(firmware): gửi telemetry MQTT và xác nhận lệnh phiên`.
+## Khôi phục
 
-Giữ chế độ Serial-only để chẩn đoán, không xoá driver của Tân. Nếu ảnh hưởng lấy mẫu, tắt transport bằng cấu hình và giữ log để sửa lịch chạy.
-
-## Nhật ký
-
-| Ngày/commit | Việc | Bằng chứng | Kết quả |
-|---|---|---|---|
-|—|—|—|Chưa thực hiện|
+Đặt ASD_NETWORK_ENABLED=0 rồi build/nạp env esp32s3_supermini để về sensing/Serial-only. Giữ credential/DB/log để đối chiếu; không xoá DB, đổi generation hoặc dùng public broker để né lỗi.

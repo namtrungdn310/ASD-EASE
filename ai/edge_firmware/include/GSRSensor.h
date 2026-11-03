@@ -7,6 +7,9 @@
 // =============================================================================
 
 struct GSRData {
+  uint64_t sampleMonotonicMs = 0;
+  uint32_t sampleUpdatedAtMs = 0;
+  bool hasSampleTimestamp = false;
   uint16_t  rawADC                 = 0;
   uint32_t  rawVoltage_mV          = 0;       // Điện áp thô quy đổi từ ADC (mV)
   float     rawVoltage             = 0.0f;    // Điện áp thô (V)

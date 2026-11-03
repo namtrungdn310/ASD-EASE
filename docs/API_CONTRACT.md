@@ -2,7 +2,9 @@
 
 Cập nhật: 2026-11-01. Đây là điểm tra cứu chung cho firmware, backend, simulator, frontend và bộ dữ liệu. Phần **dự kiến** là quy tắc phải triển khai ở nhánh sau, không phải chức năng đã chạy.
 
-**Triển khai nhánh04, 2026-11-01:** đã có Mosquitto2.0.22/Paho2.1.0, xác thực, nhận telemetry chung HTTP/MQTT, Start/Stop202, lệnh bền/ACK/nonce/đồng bộ và migration SQLite1. Xem [cách chạy](integration/04-SETUP.md), [bàn giao](integration/04-HANDOFF.md). Bảng dưới mô tả mốc d80cc0e trước triển khai; raw lưu bền/JCS/đối chiếu đủ dữ liệu vẫn thuộc06, firmware MQTT thuộc05.
+**Triển khai nhánh04, 2026-11-01:** đã có Mosquitto2.0.22/Paho2.1.0, xác thực, nhận telemetry chung HTTP/MQTT, Start/Stop202, lệnh bền/ACK/nonce/đồng bộ và migration SQLite1. Xem [cách chạy](integration/04-SETUP.md), [bàn giao](integration/04-HANDOFF.md). Bảng dưới mô tả mốc d80cc0e trước triển khai; raw lưu bền/JCS/đối chiếu đủ dữ liệu vẫn thuộc06.
+
+**Code nhánh05, 2026-11-03:** ESP-MQTT, serializer và máy trạng thái C++ đã có ở nhánh completion; kiểm tra native/broker không thay nghiệm thu ESP32. Board đang ở chỗ Tân, trạng thái WAITING_HARDWARE. Xem [bàn giao05](integration/05-HANDOFF.md), [cách chạy](integration/05-SETUP.md), [kiểm tra](integration/05-VERIFICATION.md). Giữ protocol1.0, chưa có raw07.
 
 ## Hiện có và dự kiến
 

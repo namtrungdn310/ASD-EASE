@@ -13,7 +13,7 @@ Giai đoạn02 — kiểm thử toàn luồng giả lập. Tổng trạng thái 
 | 04 | MPU6050 | Tân | IN_PROGRESS | - | - | Có đọc thanh ghi/EMA, thiếu hiệu chuẩn/thời gian thật. |
 | 05 | GSR | Tân | IN_PROGRESS | - | - | Có ADC/mức nền/EMA, thiếu xác nhận mạch/GPIO/hiệu chuẩn. |
 | 06 | Tích hợp cảm biến | Tân | IN_PROGRESS | - | - | Có vòng Serial chung, thiếu đo tốc độ/đồng bộ/mất mẫu. |
-| 07 | Wi-Fi và backend | IT | NOT_STARTED | - | - | Client ESP32 LAN/MQTT chưa triển khai. |
+| 07 | Wi-Fi và backend | Trung/Tân | IN_PROGRESS | 2026-11-03 | - | Code MQTT/ACK và tests native đã có; WAITING_HARDWARE, chưa nghiệm thu ESP32/LAN/độ trễ/tài nguyên. |
 | 08 | Ghi dữ liệu | IT | NOT_STARTED | - | - | Khung raw receiver chưa đủ nghiệm thu. |
 | 09 | Thu thập dữ liệu | Chung | NOT_STARTED | - | - | Giả lập không thay dữ liệu thu thật. |
 | 10 | Xử lý tín hiệu | IT | NOT_STARTED | - | - | Mới có giao diện đầu vào chung. |
