@@ -1,3 +1,8 @@
+import sys
+if sys.platform == "win32":
+    import asyncio
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -44,4 +49,3 @@ app.add_middleware(
 )
 for router in (health.router, auth.router, device_control.router, telemetry.router, raw_data.router, devices.router, sessions.router, annotations.router, events.router, websocket.router):
     app.include_router(router, prefix="/api/v1")
-

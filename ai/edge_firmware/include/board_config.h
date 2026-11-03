@@ -46,12 +46,12 @@ enum class IMUStatus {
 
 // ── Chân GPIO được cấu hình (ESP32-S3 Super Mini) ───────────────────────────────
 //   Bus 0 (Wire)  — MAX30102: SDA = GPIO8,  SCL = GPIO9
-//   Bus 1 (Wire1) — MPU6050:  SDA = GPIO10, SCL = GPIO11 (bus riêng, vẫn cần đo thời gian đọc)
+//   Bus 1 (Wire1) — MPU6050:  SDA = GPIO5,  SCL = GPIO11 (Khởi tạo riêng biệt chống nghẽn)
 //   ADC1_CH6      — GSR:      ADC = GPIO7
 constexpr int PIN_MAX30102_SDA = 8;
 constexpr int PIN_MAX30102_SCL = 9;
 
-constexpr int PIN_MPU6050_SDA = 10;
+constexpr int PIN_MPU6050_SDA = 5;
 constexpr int PIN_MPU6050_SCL = 11;
 
 constexpr int PIN_GSR_ADC = 7;

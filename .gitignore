@@ -16,6 +16,8 @@ frontend/vite.config.d.ts
 backend/storage/raw/*
 !backend/storage/raw/.gitkeep
 backend/test_raw_storage/
+test_raw_storage/
+test_asd_edge_ai.db
 ai/data/synthetic/raw/*
 ai/data/synthetic/processed/*
 ai/data/synthetic/manifests/*
@@ -25,6 +27,8 @@ ai/data/synthetic/manifests/*
 ai/.generated/
 .pio/
 .vscode/
+mosquitto/config/password.txt
+mosquitto/data/
 infra/mosquitto/local/
 backend/storage/local/
 *.db.*.bak

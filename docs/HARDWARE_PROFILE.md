@@ -11,8 +11,8 @@ Giai đoạn 00 cần ghi: ký hiệu board, nguồn mua/sơ đồ nếu có; ch
 | Mục | Hiện tại | Cần kiểm chứng |
 |---|---|---|
 | MAX30102 | Wire, SDA8/SCL9 | Dây nối, tốc độ, mất mẫu |
-| MPU6050 | Wire1, SDA10/SCL11 | Dây nối, hướng trục, hiệu chuẩn |
-| GSR | PIN_GSR_ADC=7 sau PR #11 | Tân xác nhận chân thật, điện áp, mô-đun; GPIO4 trong ghi chú cũ đã lỗi thời |
+| MPU6050 | Wire1, SDA5/SCL11 | Dây nối, hướng trục, hiệu chuẩn |
+| GSR | PIN_GSR_ADC=7 sau PR #11 | Tân xác nhận chân thật, điện áp, mô-đun |
 | PPG | Chip100 Hz, averaging2 → FIFO50 Hz danh định | Số mẫu thực, jitter và tràn FIFO |
 | IMU/GSR | Lịch gọi50/20 Hz | Tốc độ, thời gian và mất mẫu thực |
 | Firmware | esp32s3_supermini, esp32-s3-devkitc-1, phiên bản0.2.0, flash cấu hình4 MB | Board, dung lượng thật và PSRAM |
@@ -24,4 +24,3 @@ Availability/EngineeringState nằm trong common_types.h; trạng thái cảm bi
 MAX30102 trả số đếm red/IR; MPU6050 trả gia tốc/vận tốc góc; GSR trả ADC có lấy trung bình. Không gọi ADC là độ dẫn đã hiệu chuẩn. Xem [ánh xạ driver](contracts/DRIVER_MAPPING.md) để đổi đơn vị và phân biệt số thô/số đã lọc.
 
 Giai đoạn 00 vẫn NOT_STARTED theo hồ sơ hiện có. Chỉ DONE khi có bằng chứng kiểm chứng thật.
-
