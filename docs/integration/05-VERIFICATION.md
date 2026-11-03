@@ -1,8 +1,8 @@
 # Kiểm tra nhánh 5
 
-Ngày 2026-11-03, Windows, Python3.12. Nhánh `feature/firmware-telemetry-client-completion`, base dev `1e73aea`; các kết quả dưới áp dụng working tree hoàn thiện local, chưa có SHA commit mới. Board ở chỗ Tân, serial discovery trên máy này trả [].
+Ngày 2026-11-03, Windows, Python3.12. Code hoàn thiện tại d1101c5 trên nhánh `feature/firmware-telemetry-client-completion`, base dev `1e73aea`. Board ở chỗ Tân, serial discovery trên máy này trả [].
 
-**READY_FOR_REVIEW cho code; WAITING_HARDWARE cho nghiệm thu. Chưa chạy CI GitHub của phần completion, chưa push/merge.**
+**WAITING_HARDWARE cho nghiệm thu.** Code và tài liệu được bàn giao qua [PR #15 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/15) theo yêu cầu Trung; kết quả CI/head/merge tra trực tiếp tại PR. Bảng local dưới đây không thay bằng chứng CI.
 
 ## Kết quả local
 
@@ -51,7 +51,7 @@ PASS_SW chỉ nghĩa phần mềm được kiểm tra. NOT_RUN_HW nghĩa chưa c
 | F16 | PASS_SW; NOT_RUN_HW | Broker thật chặn anonymous/sai password/cross-device; native chặn retained/nonce cũ/quá gói/JSON trùng/sai số. Chờ SDK auth/ACL/TLS/retained thật. |
 | F17 | NOT_RUN_HW | Chưa có số đo sensing/network/Serial, heap/stack/timing; không điền số danh định làm số đo. |
 | F18 | NOT_RUN_HW | Frontend26 tests đạt nhưng chưa ảnh browser nhận ESP32 thật. |
-| F19 | PASS_SW local; CI NOT_RUN | Backend/AI/frontend/firmware/header/HTTP/native MQTT đạt theo bảng; CI6 check đã thêm tests, chưa push nên chưa có run mới. |
+| F19 | PASS_SW local; CI xem PR | Backend/AI/frontend/firmware/header/HTTP/native MQTT đạt theo bảng; cả6 check được theo dõi tại PR #15 trên head cuối. |
 
 ## Lệnh tái hiện
 

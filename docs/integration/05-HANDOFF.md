@@ -2,7 +2,7 @@
 
 Cập nhật 2026-11-03. Nhánh `feature/firmware-telemetry-client-completion` từ dev `1e73aea` sau PR #14 của Tân.
 
-**Phần mềm đã triển khai; nghiệm thu ESP32 đang WAITING_HARDWARE.** Board/cảm biến vẫn ở chỗ Tân. Chưa nạp, chưa đo ảnh hưởng mạng và chưa xác nhận Dashboard bằng dữ liệu board thật. Kết quả local không thay CI GitHub hoặc review/merge.
+**Phần mềm đã triển khai; nghiệm thu ESP32 đang WAITING_HARDWARE.** Board/cảm biến vẫn ở chỗ Tân. Chưa nạp, chưa đo ảnh hưởng mạng và chưa xác nhận Dashboard bằng dữ liệu board thật. Code được đưa vào dev qua [PR #15](https://github.com/namtrungdn310/ASD-EASE/pull/15) theo yêu cầu Trung; trạng thái CI/merge xác nhận tại PR.
 
 ## Đã hoàn thiện
 
@@ -45,7 +45,7 @@ Giữ MPU6050 SDA5/SCL11 của PR #14, MAX30102 SDA8/SCL9, GSR7. Profile50/50/20
 
 1. Tân làm theo [05-SETUP](05-SETUP.md), xác nhận board/dây rồi nạp env esp32s3_supermini với file credential local.
 2. Điền [05-VERIFICATION](05-VERIFICATION.md), đặc biệt LAN/StartStop/reconnect/độ trễ/số mẫu/tài nguyên/Dashboard thật.
-3. Trung review diff; commit/push/PR vào dev theo [Git workflow](../GIT_WORKFLOW.md), chỉ ghi DONE sau đủ bằng chứng và merge. Nhánh completion hiện chưa được push/merge trong lượt làm việc này.
+3. Code đã commit/push, [PR #15 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/15); theo [Git workflow](../GIT_WORKFLOW.md), chỉ merge sau đủ6 CI và không xung đột. Tân pull dev sau khi PR merge; chỉ ghi nhánh05 DONE sau đủ bằng chứng board.
 4. Nhánh06 làm backend raw bền/chống trùng/đối chiếu;07 mới bật raw HTTP/batch và thay zero-batch summary bằng tổng kết thu thật.
 
 Nhánh05 Stop có cutoff0/raw_recording_enabled=false, do đó complete=false là đúng. Không lấy telemetry1Hz thay raw hoặc kết quả native thay nghiệm thu ESP32.

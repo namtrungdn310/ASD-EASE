@@ -12,7 +12,7 @@ ESP32 <-- MQTT lệnh/trạng thái -- broker <-- backend <-- HTTP từ UI
 ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 ```
 
-01 và code02 đã merge;03 merge PR #12 tại752bd5d;04 merge [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) tại7ff5a2c sau CI6/6. Tân đã merge một phần05 qua PR #14; code hoàn thiện05 ở nhánh feature/firmware-telemetry-client-completion, chờ review và thử board. Xem [bàn giao05](05-HANDOFF.md), [cách chạy05](05-SETUP.md) và [tracker](PROGRESS.md). Raw lưu bền06/07 chưa triển khai.
+01 và code02 đã merge;03 merge PR #12 tại752bd5d;04 merge [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) tại7ff5a2c sau CI6/6. Tân đã merge một phần05 qua PR #14; code hoàn thiện05 bàn giao vào dev qua [PR #15](https://github.com/namtrungdn310/ASD-EASE/pull/15), còn chờ thử board. Xem [bàn giao05](05-HANDOFF.md), [cách chạy05](05-SETUP.md) và [tracker](PROGRESS.md). Raw lưu bền06/07 chưa triển khai.
 
 ## Điểm xuất phát
 

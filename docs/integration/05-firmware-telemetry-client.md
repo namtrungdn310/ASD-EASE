@@ -44,7 +44,7 @@ Giữ Serial để nạp/chẩn đoán, không thay kênh MQTT bằng USB. Nhán
 - [ ] Start/Stop/lệnh lặp/Stop thay Start/reboot/mất Wi-Fi/restart broker/backend trên ESP32 thật.
 - [ ] So số mẫu/rate/gap/độ trễ/heap/stack trước và sau mạng/Serial; profile50/50/20 chưa là số đo.
 - [ ] Kiểm tra TLS/chứng chỉ trên board khi dùng ngoài LAN phát triển riêng.
-- [ ] Commit/push phần completion, PR vào dev, đủ6 CI và Trung review/merge. Chưa thực hiện trong lượt hoàn thiện local.
+- [x] Commit/push phần completion và mở [PR #15 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/15) theo yêu cầu Trung; CI/review/merge xác nhận tại PR, chỉ merge sau đủ6 check và không xung đột.
 - [ ] Cập nhật F01–F19 và trạng thái theo bằng chứng; chưa đóng phase07 hoặc nhánh05.
 
 ## Kết quả đúng khi chưa có raw

@@ -25,7 +25,7 @@ Giữ thay đổi GPIO MPU SDA5/SCL11 của Tân, PPG8/9 và GSR7; không tự �
 - [x] Native tests/fixtures qua Pydantic; harness C++ qua broker thật → backend/DB/WS, các lỗi và hồi quy.
 - [x] Build firmware hai chế độ, backend/AI/frontend, hướng dẫn05/ma trận nghiệm thu cho Tân.
 - [ ] Tân nạp/đo cảm biến thật, LAN/Dashboard, StartStop/lỗi/tài nguyên trên ESP32; board chưa ở máy Trung.
-- [ ] Commit/push/CI GitHub/review/merge phần completion khi được yêu cầu.
+- [x] Trung yêu cầu đưa code vào dev: commit d1101c5, push và mở [PR #15](https://github.com/namtrungdn310/ASD-EASE/pull/15). CI/review/merge theo kết quả trên head cuối của PR; local không thay CI.
 
 ## Kết quả chạy local
 
