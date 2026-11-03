@@ -1,4 +1,5 @@
 #include "GSRSensor.h"
+#include <esp_timer.h>
 
 // =============================================================================
 Availability GSRSensor::begin() {
@@ -47,6 +48,9 @@ GSRData GSRSensor::read() {
   }
   data.rawADC = static_cast<uint16_t>(
       (adcRawAcc + GSR_AVERAGING_SAMPLES / 2U) / GSR_AVERAGING_SAMPLES);
+  data.sampleUpdatedAtMs = millis();
+  data.sampleMonotonicMs = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
+  data.hasSampleTimestamp = true;
   const float rawVoltage = static_cast<float>(data.rawADC) *
                            static_cast<float>(GSR_ADC_FULL_SCALE_MV) /
                            (static_cast<float>(GSR_ADC_MAX_VALUE) * 1000.0f);

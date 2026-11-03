@@ -10,6 +10,8 @@
 #include "EMA.h"
 #include "communication/mqtt_transport.h"
 #include "communication/telemetry_serializer.h"
+#include "communication/network_settings.h"
+#include <esp_timer.h>
 
 // =============================================================================
 // Các đối tượng cảm biến dùng chung
@@ -118,7 +120,7 @@ static void emitPrettyText(const MAX30102Data& ppg,
                            unsigned long       now) {
   Serial.println(F("\n================================================================"));
   Serial.printf(" ASD-EASE | %s | Uptime: %.1fs | I2C: %s\n",
-                ASD_DEVICE_ID, now / 1000.0f, getBusHealthString());
+                MQTT_DEVICE_ID, now / 1000.0f, getBusHealthString());
   Serial.println(F("----------------------------------------------------------------"));
 
   // ── [1] GSR — Điện da ──────────────────────────────────────────────────────
@@ -181,7 +183,7 @@ static void emitPrettyJson(const MAX30102Data& ppg,
   JsonDocument doc;
 
   doc["uptime_ms"] = now;
-  doc["device"]    = ASD_DEVICE_ID;
+  doc["device"]    = MQTT_DEVICE_ID;
 
   // GSR
   JsonObject g = doc["gsr"].to<JsonObject>();
@@ -308,40 +310,45 @@ void loop() {
   static MAX30102Data latestPpg;
   static MPU6050Data  latestImu;
   static GSRData      latestGsr;
+  uint32_t ppgSamples = 0;
+  bool imuNew = false, gsrNew = false;
 
 
   if (now - lastPpgReadMs >= kPpgIntervalMs) {
     latestPpg = ppgSensor.read();
+    ppgSamples = latestPpg.newSamples;
     lastPpgReadMs = now;
   }
 
   if (now - lastImuReadMs >= kImuIntervalMs) {
     latestImu = imuSensor.read();
+    imuNew = latestImu.hasSampleTimestamp;
     lastImuReadMs = now;
   }
 
   if (now - lastGsrReadMs >= kGsrIntervalMs) {
     latestGsr = gsrSensor.read();
+    gsrNew = latestGsr.hasSampleTimestamp;
     lastGsrReadMs = now;
   }
 
   // Xuất gói dữ liệu định kỳ
   if (now - lastOutputMs >= kOutputIntervalMs) {
-    emitOutput(latestPpg, latestImu, latestGsr, now);
-    
-    String ppgJson = buildPpgJson(latestPpg, now, nullptr);
-    String gsrJson = buildGsrJson(latestGsr, now, nullptr);
-    String imuJson = buildImuJson(latestImu, now, nullptr);
-
-    mqttEnqueueSensor(ppgJson, ASD_DEVICE_ID, "ppg");
-    mqttEnqueueSensor(gsrJson, ASD_DEVICE_ID, "gsr");
-    mqttEnqueueSensor(imuJson, ASD_DEVICE_ID, "imu");
+    if (ASD_SERIAL_DIAGNOSTICS) emitOutput(latestPpg, latestImu, latestGsr, now);
+    if (ASD_SERIAL_DIAGNOSTICS) {
+      auto s = mqttGetStats();
+      Serial.printf("[NET] wifi=%u mqtt=%u sync=%u tx=%lu fail=%lu drop=%lu invalid=%lu heapMin=%lu stackWater=%lu loopGap=%lu samples=%lu/%lu/%lu controlDrop=%lu pending=%lu outbox=%lu error=%d fatal=%d\n",
+        s.wifiConnected, s.mqttConnected, s.synchronized, s.publishOk, s.publishFail, s.dropped,
+        s.invalid, s.minHeapBytes, s.networkStackHighWater, s.maxLoopGapMs, s.ppgSamples, s.imuSamples, s.gsrSamples,
+        s.controlDropped, s.pendingControl, s.outboxBytes, s.transportError, s.fatalReason);
+    }
 
     lastOutputMs = now;
   }
 
-  // Service MQTT connection / publish (non-blocking)
-  mqttTransportLoop();
+  mqttUpdateSnapshot(captureTelemetrySnapshot(latestPpg, latestImu, latestGsr,
+    millis(), static_cast<uint64_t>(esp_timer_get_time()) / 1000));
+  mqttRecordSensing(now, ppgSamples, imuNew, gsrNew);
 
   // Điều phối nhịp loop chính
   const unsigned long elapsed = millis() - now;

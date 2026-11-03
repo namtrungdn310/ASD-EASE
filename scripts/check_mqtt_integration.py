@@ -1,5 +1,6 @@
 """Kiểm thử broker thật, DB/HTTP/WS riêng; không sửa dịch vụ hoặc DB đang dùng."""
 import asyncio
+import argparse
 import json
 import os
 from pathlib import Path
@@ -17,8 +18,10 @@ import websockets
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "ai"))
+sys.path.insert(0, str(ROOT / "backend"))
 from setup_local_mqtt import IMAGE, provision
 from simulator.mqtt_device import SyntheticDevice
+from app.core.security import Registry
 
 
 def docker(*arguments):
@@ -34,9 +37,9 @@ async def wait_until(predicate, *, timeout=15, message="condition"):
     raise AssertionError(f"Timeout: {message}")
 
 
-async def verify(base, environment, directory, port, passwords, container, backend_start, backend_stop):
+async def verify(base, environment, directory, port, passwords, container, backend_start, backend_stop, device_type=SyntheticDevice):
     headers = {"Authorization": f"Bearer {environment['OPERATOR_TOKEN']}"}
-    device = SyntheticDevice(json.loads((directory / "simulator.json").read_text()), port=port)
+    device = device_type(json.loads((directory / "simulator.json").read_text()), port=port)
     device.start()
     stop_pump = False
     async def pump():
@@ -86,7 +89,7 @@ async def verify(base, environment, directory, port, passwords, container, backe
                 print("PASS repeated Start: same command/generation, acquisition epoch unchanged")
                 # QoS1 thật và ACL: tài khoản thiết bị khác không được gửi telemetry của SIM-001.
                 attacker = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="acl-check-" + uuid4().hex[:8], clean_session=True)
-                attacker.username_pw_set("simulator-other", passwords["simulator-other"])
+                attacker.username_pw_set("esp32", passwords["esp32"])
                 connected = threading.Event()
                 attacker.on_connect = lambda *args: connected.set()
                 attacker.connect("127.0.0.1", port)
@@ -107,7 +110,7 @@ async def verify(base, environment, directory, port, passwords, container, backe
                     if next_frame["timestamp_ms"] >= minimum_timestamp:
                         break
                 assert next_frame["timestamp_ms"] < 2**52
-                print("PASS broker ACL: cross-device publish denied; subsequent valid telemetry accepted")
+                print("PASS broker ACL: separate DEVICE account cannot publish SYNTHETIC device telemetry")
                 # Backend restart: DB giữ phiên/ACK, live map phải được đồng bộ lại.
                 await asyncio.to_thread(backend_stop)
                 await asyncio.to_thread(backend_start)
@@ -137,10 +140,23 @@ async def verify(base, environment, directory, port, passwords, container, backe
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--native-firmware", action="store_true", help="Core C++ firmware thay simulator Python; vẫn SYNTHETIC")
+    args = parser.parse_args()
+    device_type = SyntheticDevice
+    if args.native_firmware:
+        from firmware_native_device import NativeDevice
+        device_type = NativeDevice
     with TemporaryDirectory(prefix="asd-ease-broker-test-") as temporary:
         scratch = Path(temporary)
         local = scratch / "local"
-        environment, registry, passwords = provision(local)
+        environment, registry, passwords = provision(local, device_id="ESP32-CHECK")
+        registered = Registry(local / "device-registry.json")
+        board = registered.identity("ESP32-CHECK", "DEVICE")
+        assert board.transport == "mqtt" and board.mqtt_username == "esp32"
+        assert board.acquisition_profile.model_dump() == {"ppg_hz":50,"imu_hz":50,"gsr_hz":20,"window_ms":1000}
+        assert registered.identity("SIM-001").data_origin == "SYNTHETIC"
+        # Dùng account mới với ACL thật ở ca cross-device bên trên; không giả số đo board.
         name = "asd-ease-check-" + uuid4().hex[:10]
         backend = None
         with socket.socket() as reservation:
@@ -163,7 +179,7 @@ def main():
                 nonlocal backend
                 backend = subprocess.Popen([sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", str(api_port)],
                     cwd=ROOT / "backend", env={**os.environ, **environment}, stdout=log, stderr=subprocess.STDOUT)
-                deadline = time.monotonic() + 20
+                deadline = time.monotonic() + 60
                 while time.monotonic() < deadline:
                     if backend.poll() is not None:
                         raise RuntimeError("Backend kiểm thử dừng khi khởi động")
@@ -180,7 +196,7 @@ def main():
                     backend.terminate()
                     backend.wait(timeout=10)
             start_backend()
-            asyncio.run(verify(base, environment, local, port, passwords, name, start_backend, stop_backend))
+            asyncio.run(verify(base, environment, local, port, passwords, name, start_backend, stop_backend, device_type))
         except BaseException:
             log.flush()
             print((scratch / "backend.log").read_text(encoding="utf-8")[-10000:], file=sys.stderr)

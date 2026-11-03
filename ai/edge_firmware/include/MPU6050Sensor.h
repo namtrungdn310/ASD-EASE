@@ -7,6 +7,9 @@
 // =============================================================================
 
 struct MPU6050Data {
+  uint64_t sampleMonotonicMs = 0;
+  uint32_t sampleUpdatedAtMs = 0;
+  bool hasSampleTimestamp = false;
   // Giá trị thô (Raw - trước lọc EMA)
   float     rawAx = 0.0f, rawAy = 0.0f, rawAz = 0.0f;             // Gia tốc thô 3 trục (m/s²)
   float     rawGx = 0.0f, rawGy = 0.0f, rawGz = 0.0f;             // Vận tốc góc thô 3 trục (rad/s)
