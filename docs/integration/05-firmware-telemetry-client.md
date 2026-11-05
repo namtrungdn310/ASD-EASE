@@ -6,10 +6,10 @@
 | Nhánh hoàn thiện | `feature/firmware-telemetry-client-completion` từ dev1e73aea |
 | Phụ trách | Tân triển khai đầu và thử board; Trung hoàn thiện code sau PR #14, review |
 | Phụ thuộc |03/04;02 cho Dashboard |
-| Trạng thái |Code local READY_FOR_REVIEW; nghiệm thu WAITING_HARDWARE |
+| Trạng thái |IN_PROGRESS: đã nạp và nhận live DEVICE qua WS; còn Serial/Dashboard/StartStop/lỗi/tài nguyên thật |
 | Tài liệu |[Setup](05-SETUP.md), [kiểm tra](05-VERIFICATION.md), [bàn giao](05-HANDOFF.md), [nhật ký](05-IMPLEMENTATION-LOG.md), [tracker](PROGRESS.md) |
 
-Cập nhật 2026-11-03. Thiết bị ở chỗ Tân; merge phần dở PR #14 chưa có nghĩa hoàn tất05.
+Cập nhật 2026-11-05. Trung đã nạp COM7 thành công. Sau sửa PR #17 trên `fix/esp32-local-mqtt-integration`, backend sync1 và WS nhận3 frame DEVICE/ESP32-001 thật qua hotspot iPhone. Đang kiểm tra Serial, còn Dashboard/StartStop/lỗi/tài nguyên. Theo [rà soát](05-REVIEW-PR17.md) và [từng bước](05-LOCAL-BRINGUP.md); các kết quả 2026-11-03 dưới đây là lịch sử phần mềm.
 
 ## Mục tiêu và phạm vi
 

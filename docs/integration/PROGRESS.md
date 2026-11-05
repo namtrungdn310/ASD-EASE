@@ -1,15 +1,17 @@
 # Tiến độ nhánh tích hợp thiết bị
 
-Cập nhật2026-11-03, Asia/Saigon. [Kế hoạch](README.md), [kiến trúc](MQTT_ARCHITECTURE.md). Mốc lập kế hoạch332f249; bắt đầu03 trên d80cc0e.
+Cập nhật2026-11-05, Asia/Saigon. [Kế hoạch](README.md), [kiến trúc](MQTT_ARCHITECTURE.md). Mốc lập kế hoạch332f249; bắt đầu03 trên d80cc0e.
 
 ## Hiện tại
+
+- Yêu cầu mới Trung/Tân: [npm run dev](05-ONE-COMMAND-DEV.md) tự bật dịch vụ và mở phiên local, không DevTools/token. Đã thử root/frontend và stop/start trên máy Trung, cookie tự động→WS nhận DEVICE thật. Chờ xác nhận UI và thử trên máy Tân; nhánh05 chưa DONE.
 
 - Kế hoạch [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) merge0bcd833.
 - Cleanup [PR #9](https://github.com/namtrungdn310/ASD-EASE/pull/9) merge86cd09f, CI cuối c764210 đạt6/6; chưa thay nghiệm thu phần cứng.
 - Code02 merge [PR #10](https://github.com/namtrungdn310/ASD-EASE/pull/10) tại ea959ef ngày2026-10-22 theo quyết định chủ repo. Head trước merge6/6, frontend26/transport18 đã đạt; còn thiếu ảnh/log browser độc lập.
 - Nhánh03 đã merge [PR #12](https://github.com/namtrungdn310/ASD-EASE/pull/12) tại752bd5d ngày2026-10-31, CI head af61856 đạt6/6 trước merge.
 - Nhánh04 đã merge [PR #13](https://github.com/namtrungdn310/ASD-EASE/pull/13) vào dev tại7ff5a2c, CI PR/dev đạt6/6 ở mốc đó. Xem [bàn giao](04-HANDOFF.md)/[cách chạy](04-SETUP.md); chưa thay nghiệm thu ESP32.
-- Nhánh05: Tân đã merge phần đang làm qua PR #14 tại1e73aea; Trung yêu cầu hoàn thiện code rồi đưa vào dev qua [PR #15](https://github.com/namtrungdn310/ASD-EASE/pull/15). CI/merge tra tại PR; nghiệm thu WAITING_HARDWARE vì board ở chỗ Tân. Xem [bàn giao05](05-HANDOFF.md), [cách chạy](05-SETUP.md), [ma trận kiểm tra](05-VERIFICATION.md).
+- Nhánh05: code PR #15 đã merge; sau PR #17, tiếp tục sửa trên `fix/esp32-local-mqtt-integration` từ dev46d4e2d. Trung đã nạp COM7 thành công, backend sync1 và WS nhận3 frame DEVICE/ESP32-001 thật qua hotspot iPhone. Đang kiểm tra Serial, còn Dashboard/StartStop/lỗi/tài nguyên; xem [rà soát](05-REVIEW-PR17.md), [bước đang làm](05-LOCAL-BRINGUP.md), [ma trận](05-VERIFICATION.md).
 - Trung đã giao Codex làm nốt03 thay từng-file walkthrough. Các nhánh code sau vẫn có thể học từng file theo yêu cầu.
 - Hướng: MQTT telemetry/lệnh/ACK/đồng bộ, rawHTTP, browserHTTP/WS. Đo wiring/rate/đồng bộ/RAM ở05/07 vẫn còn; không dùng mẫu để nghiệm thu thật.
 - Cần phối hợp Tân về board/GPIO và lịch sửa main.cpp/board_config.h.
@@ -36,7 +38,7 @@ Merge code không tự là hoàn tất giai đoạn. Chờ board thì ghi rõ, k
 | 02 | [fix/frontend-live-connection-status](02-frontend-live-connection-status.md) | 01 | BLOCKED | 2026-10-18 | — | [#10](https://github.com/namtrungdn310/ASD-EASE/pull/10) | Code mergeea959ef, CI6/6; chỉ còn chặn nghiệm thu trực quan, không chặn03. |
 | 03 | [docs/device-ingestion-contract](03-device-ingestion-contract.md) | 01 | DONE | 2026-10-22 | 2026-10-31 | [#12](https://github.com/namtrungdn310/ASD-EASE/pull/12) | Merge752bd5d, CI head af61856 đạt6/6. Phần cứng05/07 vẫn chờ. |
 | 04 | [feature/backend-session-lifecycle](04-backend-session-lifecycle.md) | 03 | DONE | 2026-10-31 | 2026-11-01 | [#13](https://github.com/namtrungdn310/ASD-EASE/pull/13) | Merge7ff5a2c sau6/6 CI; broker/phiên/ACK bền và simulator đã kiểm thử. |
-| 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03/04;02 cho UI | WAITING_HARDWARE | PR #14 | — | [#15](https://github.com/namtrungdn310/ASD-EASE/pull/15) hoàn thiện sau #14 | Code d1101c5 và tài liệu đã push; CI/merge xác nhận tại PR. Tân pull dev sau merge, nạp/đo/LAN/Dashboard thật rồi bổ sung F01–F19. |
+| 05 | [feature/firmware-telemetry-client](05-firmware-telemetry-client.md) | 03/04;02 cho UI | IN_PROGRESS | PR #17 / dev46d4e2d | — | #15 và #17 đã merge; lượt sửa mới chưa PR | Đã nạp board thật, MQTT/backend sync1, WS nhận3 frame DEVICE. Đang kiểm tra Serial rồi Dashboard/StartStop/lỗi/tài nguyên và F01–F19. |
 | 06 | [feature/backend-raw-ingestion](06-backend-raw-ingestion.md) | 03/04 | TODO | — | — | — | Raw HTTP lưu bền/chống trùng, đối chiếu tổng kết. |
 | 07 | [feature/firmware-raw-batching](07-firmware-raw-batching.md) | 05/06 và số đo mẫu | TODO | — | — | — | Raw HTTP song song MQTT, đo rate/RAM/gap. |
 | 08 | [feature/backend-recording-export](08-backend-recording-export.md) | 06;07 trước nghiệm thu thật | TODO | — | — | — | Đọc/xuất/bản mô tả, không cần broker online. |

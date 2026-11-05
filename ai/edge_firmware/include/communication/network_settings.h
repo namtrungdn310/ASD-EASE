@@ -33,7 +33,7 @@
 #define MQTT_PASSWORD ""
 #endif
 #ifndef MQTT_DEVICE_ID
-#define MQTT_DEVICE_ID "ASD-ESP32S3-SUPERMINI"
+#define MQTT_DEVICE_ID "ESP32-001"
 #endif
 #ifndef MQTT_USE_TLS
 #define MQTT_USE_TLS 1

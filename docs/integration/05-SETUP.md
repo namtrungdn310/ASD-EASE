@@ -1,13 +1,16 @@
 # Chạy ESP32 thật qua MQTT trong LAN
 
-Cập nhật 2026-11-03. Code ở nhánh `feature/firmware-telemetry-client-completion`, từ dev `1e73aea`. Board hiện ở chỗ Tân; hướng dẫn này chưa thay bằng chứng nạp/chạy thật. Xem [kết quả kiểm tra](05-VERIFICATION.md) và [bàn giao](05-HANDOFF.md).
+Cập nhật 2026-11-05. Trung đang giữ ESP32-S3 Super Mini cùng MAX30102, MPU6050, Grove GSR. Code sửa sau PR #17 ở nhánh `fix/esp32-local-mqtt-integration`, từ dev `46d4e2d`. Đã đọc chip/flash và nạp COM7 thành công; backend sync1, probe WS nhận3 frame DEVICE thật. Đang kiểm tra Serial, chưa chốt Dashboard/StartStop/tài nguyên/lỗi thật. Làm lần lượt theo [buổi chạy trên máy Trung](05-LOCAL-BRINGUP.md); nội dung dưới là tài liệu tra cứu toàn bộ. Xem [rà soát PR #17](05-REVIEW-PR17.md), [kiểm tra](05-VERIFICATION.md) và [bàn giao](05-HANDOFF.md).
 
 ## 1. Chuẩn bị
+
+**Cách chạy thường ngày trên cả Trung/Tân:** xem [một lệnh npm run dev](05-ONE-COMMAND-DEV.md). Launcher tự bật broker/backend/frontend và mở phiên local, không cần DevTools. Các mục cấu hình/chạy từng dịch vụ bên dưới là tài liệu tra cứu để chẩn đoán hoặc nạp lần đầu.
 
 - Python 3.12, môi trường .venv, Node/npm, Docker Desktop đang chạy và PlatformIO.
 - ESP32-S3, cảm biến và dây thật cần Tân xác nhận. Code giữ MAX30102 SDA8/SCL9, MPU6050 SDA5/SCL11, GSR ADC7 theo PR #14.
 - Laptop và ESP32 trong LAN truy cập được nhau. Không dùng localhost hoặc tên service Docker làm địa chỉ broker trên ESP32.
 - Chỉ một backend MQTT receiver, không chạy đồng thời container và Uvicorn trên cùng DB/client ID.
+- Với Wi-Fi quán cà phê, kiểm tra client isolation/captive portal trước; nên dùng hotspot/router riêng 2.4 GHz cho ESP và laptop. Không đổi mạng quán thành Private hoặc mở firewall rộng để né lỗi.
 
 Từ thư mục gốc repo, PowerShell:
 

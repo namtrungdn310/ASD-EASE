@@ -1,0 +1,9 @@
+{
+  "name": "asd-ease",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:stop": "node scripts/dev.mjs --stop"
+  },
+  "engines": { "node": ">=22" }
+}

@@ -1,5 +1,35 @@
 # Nhật ký hoàn thiện nhánh 5
 
+## Tiếp tục ngày 2026-11-05
+
+- Theo yêu cầu mới, bỏ thao tác DevTools/token: npm run dev ở root/frontend tự chuẩn bị/reuse local theo header, bật broker/backend và Vite. Bridge Node giữ token ở server, chỉ cấp cookie HttpOnly cho localhost; App tự mở/gia hạn phiên. Hướng dẫn cùng cách Trung/Tân tại05-ONE-COMMAND-DEV.md.
+- Đã chạy2 entry và stop/start trên máy Trung; auto-session lấy cookie rồi nhận3 frame DEVICE thật, cả sau restart. Chưa có browser tool để xác nhận UI, chưa chạy máy Tân. Backend77 tests, frontend41, build/audit0 đạt; Vite cập nhật8.3.6 sửa advisory dev server.
+
+- Trung gửi ảnh PPG VALID/có HR, GSR/IMU VALID; chủ đích smoke test, chưa giữ đo ổn định. Chuyển sang đăng nhập cookie trên Dashboard. Ảnh mới có loopGap106 ms (heapMin202632/stackWater3780 byte), cần giữ là điểm kiểm tra F17; không gộp với cửa sổ uptime khác hoặc kết luận zero-loss.
+
+- Đã có Serial thật từ Trung: cửa sổ24.1 s,25 NET lines, wifi/mqtt/sync1, các counter lỗi/drop0, pending/outbox0. HeapMin201764/stackWater3780 byte, loopGap10 ms; processed rates xấp xỉ50.08/49.75/19.92 Hz. Chưa đủ F17 do thiếu baseline và ca mất mạng. GSR/IMU driver VALID, PPG NO_FINGER; chuyển sang kiểm tra MAX30102 khi đặt ngón tay. Raw log giữ local bị Git bỏ qua.
+
+- Trung đã nạp env esp32s3_supermini qua COM7, SUCCESS21.78 giây/hash verified. Sau reset backend MQTT connected/sync1. Probe WS qua cookie nhận3 frame thật DEVICE/ESP32-001/session=null, timestamp tăng, khoảng1002 ms. Bằng chứng nhỏ được lưu trong thư mục credential local bị Git bỏ qua; chưa có ảnh Dashboard, đo3 driver hoặc Start/Stop thật.
+
+- Trung đã điền Wi-Fi trong header local; đã kiểm tra không in secret và đối chiếu credential MQTT, broker/IP hiện tại. Build esp32s3_supermini networking-enabled đạt (RAM47180 byte, flash915953 byte). Dịch vụ vẫn healthy/sync0; chuyển sang hướng dẫn Trung upload COM7, chưa có kết quả nạp.
+
+- Trung đã nối laptop vào hotspot iPhone/5G Viettel: laptop172.20.10.3, gateway172.20.10.1. Tạo bộ credential local esp32-trung, account ESP32-001 riêng và header network_config.h (chờ Trung điền2 trường Wi-Fi).
+- Compose project asd-ease-esp32-trung: broker172.20.10.3:1883, backend127.0.0.1:8000 healthy; account backend/esp32 đăng nhập MQTT đạt, backend MQTT connected/sync0. Login HTTP/WS cookie qua dịch vụ thật đạt. Không gửi gói đo giả; ESP chưa được nạp cấu hình mới. Frontend đang có tại localhost5173 đúng dự án.
+
+- Bước dây/nguồn: Trung xác nhận GPIO đúng cấu hình,3 cảm biến đều3V3 và chung GND. Chuyển sang chọn LAN; chưa mở broker hoặc lưu mật khẩu Wi-Fi. Chưa có bằng chứng đọc cảm biến thật.
+
+- Bước đọc chip/flash đã đạt theo output Trung gửi: ESP32-S3 QFN56 rev0.2, flash4 MB XMC, embedded PSRAM2 MB/AP_3v3, crystal40 MHz, USB-Serial/JTAG; eFuse flash Quad/3.3 V. Chưa nạp firmware mới; tiếp tục đối chiếu dây/VCC/GND của3 cảm biến.
+
+- Bước USB đã đạt: Trung gửi kết quả USB Serial Device COM7, VID:PID303A:1001. Chuyển sang đọc chip/flash bằng esptool; chưa nạp firmware.
+
+- Base dev46d4e2d sau PR #17, nhánh `fix/esp32-local-mqtt-integration`.
+- Trung đã có ESP32-S3 Super Mini và 3 cảm biến, đang cấp nguồn qua USB ở quán cà phê. Serial/PnP chưa thấy ESP; chờ kiểm tra cáp/cổng để nạp. Chưa chạy radio/cảm biến thật.
+- Đã phân tích thay đổi Tân, sửa đường telemetry/sync/DB/WS và auth. Giữ chẩn đoán Wi-Fi và cấu hình cổng/bind local. Chi tiết tại [rà soát PR #17](05-REVIEW-PR17.md).
+- Kết quả local cuối: backend72, protocol C++30, frontend26/build, firmware2 env/header4 và Compose config đạt. Native C++ → Mosquitto/API/DB/WS đạt7 nhóm với login/cookie HttpOnly như browser; gồm Start/Stop và restart backend/broker. Chưa có CI cho lượt sửa local này.
+- Tiếp tục cùng Trung từng bước tại [05-LOCAL-BRINGUP.md](05-LOCAL-BRINGUP.md). Không nạp khi chưa xác nhận COM/board/flash; chưa ghi HW PASS.
+
+## Nhật ký trước đó - 2026-11-03
+
 Ngày 2026-11-03. Nhánh `feature/firmware-telemetry-client-completion` từ dev `1e73aea` (PR #14 của Tân), sau backend04 `7ff5a2c`.
 
 ## Phạm vi và bằng chứng

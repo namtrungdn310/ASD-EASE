@@ -294,7 +294,7 @@ void setup() {
   Serial.printf("[CONFIG] NETWORK=%d TLS=%d INSECURE_LAN=%d\n", ASD_NETWORK_ENABLED, MQTT_USE_TLS, ASD_ALLOW_INSECURE_LAN);
   Serial.println(F("[CONFIG] =============================="));
 
-    // ── MQTT transport ──────────────────────────────────────────────────────────
+  // ── MQTT transport ──────────────────────────────────────────────────────────
   mqttTransportSetup();
 }
 
@@ -356,33 +356,6 @@ void loop() {
   mqttUpdateSnapshot(captureTelemetrySnapshot(latestPpg, latestImu, latestGsr,
     millis(), static_cast<uint64_t>(esp_timer_get_time()) / 1000));
 
-  SensorTelemetry st{};
-  st.finger = latestPpg.fingerDetected;
-  st.hr_bpm = latestPpg.heartRate;
-  st.spo2_pct = latestPpg.spO2;
-  st.ppg_valid = latestPpg.valid;
-  strncpy(st.ppg_status, ppgStatusStr(latestPpg.status), sizeof(st.ppg_status) - 1);
-
-  st.ax = latestImu.ax;
-  st.ay = latestImu.ay;
-  st.az = latestImu.az;
-  st.accel_mag = latestImu.accelMagnitude;
-  st.gx_deg = latestImu.gx_deg;
-  st.gy_deg = latestImu.gy_deg;
-  st.gz_deg = latestImu.gz_deg;
-  st.temp_c = latestImu.temperature;
-  st.imu_valid = latestImu.valid;
-  strncpy(st.imu_status, imuStatusStr(latestImu.status), sizeof(st.imu_status) - 1);
-
-  st.voltage_v = latestGsr.voltage;
-  st.voltage_mv = latestGsr.voltage_mV;
-  st.resistance_kohm = latestGsr.resistance / 1000.0f;
-  st.conductance_us = latestGsr.conductance_uS;
-  st.raw_adc = latestGsr.rawADC;
-  st.gsr_valid = latestGsr.valid;
-  strncpy(st.gsr_status, gsrStatusStr(latestGsr.status), sizeof(st.gsr_status) - 1);
-
-  mqttUpdateSensors(st);
   mqttRecordSensing(now, ppgSamples, imuNew, gsrNew);
 
   // Điều phối nhịp loop chính
