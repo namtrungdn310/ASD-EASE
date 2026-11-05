@@ -2,9 +2,6 @@
 #include <Wire.h>
 #include <ArduinoJson.h>
 
-// Include network_config.h TRUC TIEP — khong phu thuoc __has_include cache
-#include "network_config.h"
-
 #include "board_config.h"
 #include "HardwareProfiler.h"
 #include "MAX30102Sensor.h"
@@ -394,4 +391,3 @@ void loop() {
     delay(LOOP_INTERVAL_MS - elapsed);
   }
 }
-

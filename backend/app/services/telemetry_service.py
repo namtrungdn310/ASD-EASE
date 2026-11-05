@@ -17,8 +17,7 @@ async def receive_telemetry(db, payload, identity, runtime):
     wire = payload.model_dump(mode="json")
     live = runtime.is_live(identity.device_id)
     if not live:
-        await manager.broadcast(wire)
-        return {"accepted": True, "duplicate": False}
+        raise HTTPException(409, "DEVICE_NOT_SYNCHRONIZED")
     # Chuẩn hoá các trường đo số về float; không dùng hàm này cho JCS/raw.
     measured = payload.telemetry().model_dump(mode="json")
     digest = hashlib.sha256(json.dumps(measured, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
@@ -77,4 +76,3 @@ def persist_telemetry(db: Session, telemetry: Telemetry, commit=True) -> None:
         ))
     if commit:
         db.commit()
-

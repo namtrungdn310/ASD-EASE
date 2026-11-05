@@ -1,5 +1,4 @@
 #include "communication/mqtt_transport.h"
-#include "network_config.h"
 #include "communication/network_settings.h"
 #include "board_config.h"
 #include <WiFi.h>

@@ -331,8 +331,13 @@ class TestLifecycle:
     @pytest.mark.asyncio
     async def test_start_creates_task(self):
         sub = MqttSubscriber()
-        with patch.object(sub, "_run_loop", return_value=asyncio.sleep(100)):
+
+        async def wait_forever():
+            await asyncio.Event().wait()
+
+        with patch.object(sub, "_run_loop", new=wait_forever):
             await sub.start()
+            await asyncio.sleep(0)
             assert sub._task is not None
             assert not sub._task.done()
 

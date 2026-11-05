@@ -76,7 +76,7 @@ def operator_allowed(connection):
     settings = connection.app.state.settings
     if getattr(settings, "allow_insecure_local", False):
         origin = connection.headers.get("origin")
-        if origin is None or origin in settings.cors_origin_list:
+        if origin in settings.cors_origin_list:
             return True
     token = bearer(connection) or getattr(connection, "query_params", {}).get("token", "")
     if token and secret_matches(token, settings.operator_token.get_secret_value()):
