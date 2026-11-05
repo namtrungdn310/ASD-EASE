@@ -63,12 +63,19 @@ export function Dashboard() {
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
       <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow text-teal-700">
-            Local engineering monitor
+          <p className="eyebrow text-slate-600">
+            Dashboard thiết bị
           </p>
 
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
-            ASD Edge AI
+          <h1 className="mt-2">
+            <img
+              src="/brand/asd-ease-logo.svg"
+              alt="ASD-EASE"
+              width={760}
+              height={160}
+              className="h-auto w-64 max-w-full sm:w-72"
+            />
+            <span className="sr-only">Dashboard thiết bị</span>
           </h1>
 
           <p className="mt-2 max-w-2xl text-sm text-slate-600">
