@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT / "ai"))
 sys.path.insert(0, str(ROOT / "backend"))
 from setup_local_mqtt import IMAGE, provision
 from simulator.mqtt_device import SyntheticDevice
-from app.core.security import Registry
+from app.core.security import COOKIE_NAME, Registry
 
 
 def docker(*arguments):
@@ -70,7 +70,15 @@ async def verify(base, environment, directory, port, passwords, container, backe
                     denied.disconnect()
                     await asyncio.to_thread(denied.loop_stop)
             print("PASS broker authentication: anonymous and wrong password rejected")
-            async with websockets.connect(base.replace("http", "ws") + "/api/v1/ws/live", additional_headers=headers) as ws:
+            # Đi đúng đường browser: đăng nhập HTTP rồi gửi cookie HttpOnly
+            # khi mở WebSocket; không dùng Bearer mà WebSocket của browser không đặt được.
+            browser_origin = "http://localhost:5173"
+            login = await client.post("/api/v1/auth/login", json={"token": environment["OPERATOR_TOKEN"]},
+                                      headers={"Origin": browser_origin})
+            assert login.status_code == 200 and "HttpOnly" in login.headers["set-cookie"]
+            browser_cookie = {"Cookie": f"{COOKIE_NAME}={client.cookies.get(COOKIE_NAME)}"}
+            async with websockets.connect(base.replace("http", "ws") + "/api/v1/ws/live",
+                                          origin=browser_origin, additional_headers=browser_cookie) as ws:
                 body = {"session_id": "SYN-BROKER-" + uuid4().hex, "device_id": "SIM-001"}
                 started = await client.post("/api/v1/sessions/start", json=body)
                 assert started.status_code == 202 and started.json()["state"] == "STARTING", started.text

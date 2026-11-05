@@ -27,11 +27,12 @@ Xem [Git/GitHub](docs/GIT_WORKFLOW.md), [10 nhánh tích hợp](docs/integration
 
 ## Chạy thử
 
+Chạy local ESP thật cho Trung/Tân: mở Docker Desktop rồi dùng `npm run dev` ở root hoặc frontend. Lệnh tự bật dịch vụ, mở Dashboard và xác thực local. Xem [chạy bằng một lệnh](docs/integration/05-ONE-COMMAND-DEV.md) để cài/nạp lần đầu và khi đổi Wi-Fi/IP.
+
 Đọc [cài đặt local](docs/LOCAL_SETUP.md). Cần Docker Desktop/Compose; chạy trực tiếp cần Python3.12+, Node22+ và PlatformIO.
 
 ```bash
-python scripts/setup_local_mqtt.py
-docker compose up --build
+npm run dev
 ```
 
 Dashboard: <http://localhost:5173>. API health: <http://localhost:8000/api/v1/health>. OpenAPI: <http://localhost:8000/docs>.

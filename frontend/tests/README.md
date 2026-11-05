@@ -13,7 +13,9 @@ Phạm vi: bốn trạng thái kết nối, dữ liệu rỗng/cũ, nguồn gi�
 
 use-live-telemetry.test.mjs dùng hook thật với React DOM/jsdom: StrictMode, cập nhật, timeout/trùng, thử lại, tách callback socket, chọn thiết bị/phiên và dọn khi unmount. Socket/đồng hồ giả lập có kiểm soát; hook/vòng đời React không bị thay. Test Dashboard gửi sự kiện DOM, đối chiếu live → stale → disconnected → waiting → live.
 
-Chỉ đếm cảnh báo Recharts kích thước0 đã biết vì jsdom không tính bố cục. Không kết luận đúng pixel hoặc trình đọc màn hình. Tổng hiện tại26 tests; jsdom chỉ là dependency phát triển.
+local-connection.test.mjs kiểm tra tự mở/gia hạn phiên, retry, giữ Dashboard và cleanup StrictMode. local-session.test.mjs kiểm tra bridge localhost, cookie HttpOnly, chặn Origin/Host/client ngoài và không trả secret.
+
+Chỉ đếm cảnh báo Recharts kích thước0 đã biết vì jsdom không tính bố cục. Không kết luận đúng pixel hoặc trình đọc màn hình. Tổng hiện tại41 tests; jsdom chỉ là dependency phát triển.
 
 Kiểm tra HTTP/WebSocket thật độc lập: cài cả requirements backend/ai rồi chạy từ root:
 

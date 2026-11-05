@@ -53,121 +53,6 @@ class ReceiverLock:
             self.file = None
 
 
-class DeviceTelemetryAggregator:
-    def __init__(self, device_id: str) -> None:
-        self.device_id = device_id
-        self.session_id: str | None = None
-        self.timestamp_ms: int = 0
-        self.data_origin: str = "DEVICE"
-        self.hr_bpm: float | None = None
-        self.gsr_raw: int | None = None
-        self.gsr_delta: float | None = None
-        self.movement_score: float | None = None
-        self.sq_ppg: float = 0.0
-        self.sq_gsr: float = 0.0
-        self.sq_imu: float = 0.0
-        self.ppg_status: str = "DISCONNECTED"
-        self.gsr_status: str = "DISCONNECTED"
-        self.imu_status: str = "DISCONNECTED"
-        self.pred_state: str = "UNCERTAIN"
-        self.pred_prob: float | None = None
-        self.firmware_version: str = "0.2.0"
-        self.model_version: str = "none"
-
-    def _update_common(self, payload: dict) -> None:
-        if "session_id" in payload:
-            self.session_id = payload["session_id"]
-        if "timestamp_ms" in payload and isinstance(payload["timestamp_ms"], (int, float)):
-            self.timestamp_ms = int(payload["timestamp_ms"])
-        else:
-            self.timestamp_ms = int(time.time() * 1000)
-        if "data_origin" in payload and payload["data_origin"] in ("DEVICE", "SYNTHETIC"):
-            self.data_origin = payload["data_origin"]
-        if "firmware_version" in payload and isinstance(payload["firmware_version"], str):
-            self.firmware_version = payload["firmware_version"]
-
-    def update_ppg(self, payload: dict) -> None:
-        self._update_common(payload)
-        self.ppg_status = str(payload.get("status", "VALID"))
-        hr = payload.get("hr_bpm")
-        if hr is not None and isinstance(hr, (int, float)) and 20.0 <= hr <= 240.0:
-            self.hr_bpm = round(float(hr), 1)
-        else:
-            self.hr_bpm = None
-        sq = payload.get("signal_quality")
-        if sq is not None and isinstance(sq, (int, float)):
-            self.sq_ppg = max(0.0, min(1.0, float(sq)))
-        elif payload.get("finger"):
-            self.sq_ppg = 1.0
-
-    def update_gsr(self, payload: dict) -> None:
-        self._update_common(payload)
-        self.gsr_status = str(payload.get("status", "VALID"))
-        raw = payload.get("raw") if payload.get("raw") is not None else payload.get("raw_adc")
-        if raw is not None and isinstance(raw, int) and 0 <= raw <= 4095:
-            self.gsr_raw = raw
-        else:
-            self.gsr_raw = None
-        delta = payload.get("delta")
-        if delta is not None and isinstance(delta, (int, float)):
-            self.gsr_delta = float(delta)
-        else:
-            self.gsr_delta = None
-        sq = payload.get("signal_quality")
-        if sq is not None and isinstance(sq, (int, float)):
-            self.sq_gsr = max(0.0, min(1.0, float(sq)))
-        elif self.gsr_status == "VALID":
-            self.sq_gsr = 1.0
-
-    def update_imu(self, payload: dict) -> None:
-        self._update_common(payload)
-        self.imu_status = str(payload.get("status", "VALID"))
-        score = payload.get("movement_score", payload.get("score"))
-        if score is None and "mag" in payload and isinstance(payload["mag"], (int, float)):
-            score = max(0.0, min(1.0, abs(float(payload["mag"]) - 9.8) / 10.0))
-        if score is not None and isinstance(score, (int, float)):
-            self.movement_score = max(0.0, min(1.0, float(score)))
-        else:
-            self.movement_score = None
-        sq = payload.get("signal_quality")
-        if sq is not None and isinstance(sq, (int, float)):
-            self.sq_imu = max(0.0, min(1.0, float(sq)))
-        elif self.imu_status == "VALID":
-            self.sq_imu = 1.0
-
-    def _derive_prediction_state(self) -> str:
-        if (
-            self.ppg_status == "CALIBRATING"
-            or self.gsr_status == "CALIBRATING"
-            or self.imu_status == "CALIBRATING"
-        ):
-            return "CALIBRATING"
-        return "UNCERTAIN"
-
-    def to_telemetry(self) -> dict:
-        return {
-            "schema_version": "1.0",
-            "device_id": self.device_id,
-            "session_id": self.session_id,
-            "timestamp_ms": self.timestamp_ms if self.timestamp_ms > 0 else int(time.time() * 1000),
-            "data_origin": self.data_origin,
-            "hr_bpm": self.hr_bpm,
-            "gsr": {"raw": self.gsr_raw, "delta": self.gsr_delta},
-            "movement": {"score": self.movement_score},
-            "signal_quality": {
-                "ppg": self.sq_ppg,
-                "gsr": self.sq_gsr,
-                "imu": self.sq_imu,
-            },
-            "prediction": {
-                "probability": self.pred_prob,
-                "state": self._derive_prediction_state(),
-            },
-            "firmware_version": self.firmware_version,
-            "model_version": self.model_version,
-        }
-
-
 @dataclass
 class LiveConnection:
     boot_id: str
@@ -186,7 +71,6 @@ class MQTTRuntime:
         self.mutex = threading.Lock()
         self.counters = Counter()
         self.live = {}
-        self.aggregators = {}
         self.connected = False
         self.connection_epoch = 0
         self.observed_epoch = 0
@@ -205,19 +89,8 @@ class MQTTRuntime:
         for identity in self.registry.entries:
             if identity.transport == "mqtt":
                 prefix = self.prefix(identity)
-                topics.extend([
-                    (prefix + "telemetry", 0),
-                    (prefix + "ack", 1),
-                    (prefix + "state/request", 1),
-                    (prefix + "presence", 1),
-                    (prefix + "sensors/ppg", 0),
-                    (prefix + "sensors/imu", 0),
-                    (prefix + "sensors/gsr", 0),
-                    (prefix + "ppg", 0),
-                    (prefix + "imu", 0),
-                    (prefix + "gsr", 0),
-                    (prefix + "#", 0),
-                ])
+                topics.extend([(prefix + "telemetry", 0), (prefix + "ack", 1),
+                               (prefix + "state/request", 1), (prefix + "presence", 1)])
         if topics:
             client.subscribe(topics)
 
@@ -380,23 +253,6 @@ class MQTTRuntime:
             if not retained and presence.status == "OFFLINE" and live and (live.boot_id, live.connection_id) == (presence.boot_id, presence.connection_id):
                 self.live.pop(identity.device_id, None)
             self.counters["presence_hint"] += 1
-        elif suffix in ("sensors/ppg", "ppg", "sensors/imu", "imu", "sensors/gsr", "gsr"):
-            from app.services.websocket_manager import manager
-            sensor_name = suffix.split("/")[-1]
-            if identity.device_id not in self.aggregators:
-                self.aggregators[identity.device_id] = DeviceTelemetryAggregator(identity.device_id)
-            agg = self.aggregators[identity.device_id]
-            if sensor_name == "ppg":
-                agg.update_ppg(data)
-            elif sensor_name == "imu":
-                agg.update_imu(data)
-            elif sensor_name == "gsr":
-                agg.update_gsr(data)
-
-            # Broadcast hop nhat dinh dang Telemetry cho Frontend Dashboard
-            telemetry_wire = agg.to_telemetry()
-            await manager.broadcast(telemetry_wire)
-            self.counters[f"sensor_{sensor_name}"] += 1
         else:
             raise HTTPException(403, "TOPIC_NOT_ALLOWED")
 
