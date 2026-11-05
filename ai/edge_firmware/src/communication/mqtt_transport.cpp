@@ -1,4 +1,5 @@
 #include "communication/mqtt_transport.h"
+#include "network_config.h"
 #include "communication/network_settings.h"
 #include "board_config.h"
 #include <WiFi.h>
@@ -12,7 +13,7 @@
 namespace {
 portMUX_TYPE statsMux = portMUX_INITIALIZER_UNLOCKED;
 MqttStats stats;
-QueueHandle_t snapshotQueue = nullptr, inbox = nullptr, published = nullptr, subscribed = nullptr;
+QueueHandle_t snapshotQueue = nullptr, inbox = nullptr, published = nullptr, subscribed = nullptr, sensorQueue = nullptr;
 TaskHandle_t worker = nullptr;
 esp_mqtt_client_handle_t client = nullptr;
 std::atomic<bool> connected{false}, connectionFailed{false};
@@ -137,6 +138,19 @@ bool send(asd::Outbound& output, uint64_t now) {
   return true;
 }
 
+static const char* wifiStatusText(wl_status_t s) {
+  switch (s) {
+    case WL_IDLE_STATUS: return "IDLE (Dang cho)";
+    case WL_NO_SSID_AVAIL: return "NO_SSID_AVAIL (Khong tim thay ten Wi-Fi)";
+    case WL_SCAN_COMPLETED: return "SCAN_COMPLETED (Da quet xong)";
+    case WL_CONNECTED: return "CONNECTED (Da ket noi thanh cong)";
+    case WL_CONNECT_FAILED: return "CONNECT_FAILED (Sai mat khau hoac loi bat tay)";
+    case WL_CONNECTION_LOST: return "CONNECTION_LOST (Mat ket noi)";
+    case WL_DISCONNECTED: return "DISCONNECTED (Chua ket noi)";
+    default: return "UNKNOWN";
+  }
+}
+
 void networkTask(void*) {
   const std::string boot = randomId();
   asd::SessionProtocol protocol(MQTT_DEVICE_ID, "DEVICE", ASD_FIRMWARE_VERSION,
@@ -155,25 +169,37 @@ void networkTask(void*) {
   int subscribeIds[2] = {-1,-1};
   bool subAck[2] = {false,false};
   asd::ReadingSnapshot snapshot{};
+  WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
-  WiFi.setAutoReconnect(false);
+  WiFi.setSleep(false);
+  WiFi.setAutoReconnect(true);
+  WiFi.setTxPower(WIFI_POWER_17dBm);
   for (;;) {
     uint64_t now = clockMs();
     bool wifi = WiFi.status() == WL_CONNECTED;
     if (!wifi) {
       if (client) closeClient(protocol);
       ready = subscribedOnce = false;
-      if (wifiAttempt && now - wifiAttemptAt >= 3000) {
+      if (wifiAttempt && now - wifiAttemptAt >= 15000) {
+        wl_status_t st = WiFi.status();
+        Serial.printf("[WIFI] Timeout! Trang thai hien tai: %s (%d). Thu lai sau %lu ms...\n",
+                      wifiStatusText(st), (int)st, (unsigned long)wifiBackoff);
         WiFi.disconnect();
         wifiAttempt = false;
         wifiNext = now + retryDelay(wifiBackoff);
         wifiBackoff = std::min<uint32_t>(30000, wifiBackoff * 2);
       }
       if (!wifiAttempt && now >= wifiNext) {
+        Serial.printf("[WIFI] Bat dau ket noi toi SSID: '%s' ...\n", WIFI_SSID);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        wifiAttemptAt = now; wifiAttempt = true;
+        wifiAttemptAt = now;
+        wifiAttempt = true;
       }
     } else {
+      if (wifiAttempt) {
+        Serial.printf("[WIFI] >>> KET NOI THANH CONG! IP: %s | RSSI: %d dBm <<<\n",
+                      WiFi.localIP().toString().c_str(), (int)WiFi.RSSI());
+      }
       wifiAttempt = false; wifiBackoff = 1000;
       if (client && (connectionFailed || (!connected && now - connectingAt >= 6000))) {
         closeClient(protocol);
@@ -236,13 +262,52 @@ void networkTask(void*) {
           if (!ok) { connectionFailed = true; break; }
         }
         if (now >= nextTelemetry) {
-          // Queue length1 luôn lấy snapshot mới nhất, không xả backlog.
-          if (xQueueReceive(snapshotQueue, &snapshot, 0) == pdTRUE && protocol.telemetry(snapshot, now, output)) {
-            bool ok = send(output, now);
-            portENTER_CRITICAL(&statsMux);
-            if (ok) ++stats.publishOk; else ++stats.publishFail;
-            portEXIT_CRITICAL(&statsMux);
+          SensorTelemetry st{};
+          bool haveSensors = (sensorQueue && xQueueReceive(sensorQueue, &st, 0) == pdTRUE);
+
+          // 1. Unified telemetry frame (topic: asd-ease/v1/DEVICE/ESP32-001/telemetry)
+          if (xQueueReceive(snapshotQueue, &snapshot, 0) == pdTRUE) {
+            asd::Outbound output;
+            if (protocol.telemetry(snapshot, now, output)) {
+              send(output, now);
+            } else if (connected) {
+              std::string payload = asd::telemetryJson(snapshot, now, now, MQTT_DEVICE_ID, "DEVICE", ASD_FIRMWARE_VERSION, "");
+              if (!payload.empty()) {
+                asd::Outbound standalone{"telemetry", payload, 0, false};
+                send(standalone, now);
+              }
+            }
           }
+
+          // 2. 3 Sensor-specific topics (PPG, IMU, GSR)
+          if (haveSensors && connected) {
+            char buf[384];
+
+            // PPG: asd-ease/v1/DEVICE/ESP32-001/sensors/ppg
+            snprintf(buf, sizeof(buf),
+              "{\"device_id\":\"%s\",\"status\":\"%s\",\"finger\":%s,\"hr_bpm\":%.1f,\"spo2_pct\":%.1f,\"timestamp_ms\":%llu}",
+              MQTT_DEVICE_ID, st.ppg_status, st.finger ? "true" : "false",
+              st.hr_bpm, st.spo2_pct, (unsigned long long)now);
+            asd::Outbound ppgOut{"sensors/ppg", buf, 0, false};
+            send(ppgOut, now);
+
+            // IMU: asd-ease/v1/DEVICE/ESP32-001/sensors/imu
+            snprintf(buf, sizeof(buf),
+              "{\"device_id\":\"%s\",\"status\":\"%s\",\"ax\":%.2f,\"ay\":%.2f,\"az\":%.2f,\"mag\":%.2f,\"gx\":%.1f,\"gy\":%.1f,\"gz\":%.1f,\"temp_c\":%.1f,\"timestamp_ms\":%llu}",
+              MQTT_DEVICE_ID, st.imu_status, st.ax, st.ay, st.az, st.accel_mag,
+              st.gx_deg, st.gy_deg, st.gz_deg, st.temp_c, (unsigned long long)now);
+            asd::Outbound imuOut{"sensors/imu", buf, 0, false};
+            send(imuOut, now);
+
+            // GSR: asd-ease/v1/DEVICE/ESP32-001/sensors/gsr
+            snprintf(buf, sizeof(buf),
+              "{\"device_id\":\"%s\",\"status\":\"%s\",\"voltage_v\":%.3f,\"voltage_mv\":%lu,\"resistance_kohm\":%.1f,\"conductance_us\":%.2f,\"raw_adc\":%u,\"timestamp_ms\":%llu}",
+              MQTT_DEVICE_ID, st.gsr_status, st.voltage_v, (unsigned long)st.voltage_mv,
+              st.resistance_kohm, st.conductance_us, (unsigned)st.raw_adc, (unsigned long long)now);
+            asd::Outbound gsrOut{"sensors/gsr", buf, 0, false};
+            send(gsrOut, now);
+          }
+
           nextTelemetry = now + 1000;
         }
       }
@@ -282,6 +347,7 @@ bool mqttTransportSetup() {
   Serial.printf("[MQTT] device=%s transport=%s profile=%u/%u/%u\n", MQTT_DEVICE_ID,
     MQTT_USE_TLS ? "TLS" : "LAN_PLAINTEXT", PPG_EFFECTIVE_RATE_HZ, IMU_SAMPLE_RATE_HZ, GSR_SAMPLE_RATE_HZ);
   snapshotQueue = xQueueCreate(1, sizeof(asd::ReadingSnapshot));
+  sensorQueue = xQueueCreate(1, sizeof(SensorTelemetry));
   inbox = xQueueCreate(8, sizeof(Packet));
   published = xQueueCreate(16, sizeof(int));
   subscribed = xQueueCreate(4, sizeof(int));
@@ -298,6 +364,9 @@ bool mqttTransportSetup() {
 }
 void mqttUpdateSnapshot(const asd::ReadingSnapshot& snapshot) {
   if (snapshotQueue) xQueueOverwrite(snapshotQueue, &snapshot);
+}
+void mqttUpdateSensors(const SensorTelemetry& sensors) {
+  if (sensorQueue) xQueueOverwrite(sensorQueue, &sensors);
 }
 void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, bool imuNew, bool gsrNew) {
   portENTER_CRITICAL(&statsMux);

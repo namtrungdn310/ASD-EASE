@@ -12,12 +12,13 @@ from app.services.transactions import write_transaction
 async def receive_telemetry(db, payload, identity, runtime):
     from app.services.websocket_manager import manager
     from app.services.session_service import ensure_device
-    live = runtime.is_live(identity.device_id)
-    if not live:
-        raise HTTPException(409, "CONNECTION_NOT_SYNCHRONIZED")
     if (payload.device_id, payload.data_origin) != (identity.device_id, identity.data_origin):
         raise HTTPException(403, "IDENTITY_MISMATCH")
     wire = payload.model_dump(mode="json")
+    live = runtime.is_live(identity.device_id)
+    if not live:
+        await manager.broadcast(wire)
+        return {"accepted": True, "duplicate": False}
     # Chuẩn hoá các trường đo số về float; không dùng hàm này cho JCS/raw.
     measured = payload.telemetry().model_dump(mode="json")
     digest = hashlib.sha256(json.dumps(measured, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()

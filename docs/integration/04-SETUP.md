@@ -22,7 +22,9 @@ docker compose config --quiet
 docker compose up -d --build broker backend frontend
 ```
 
-Broker loopback `127.0.0.1:1883`, backend `http://localhost:8000`, Dashboard `http://localhost:5173`. HTTP health công khai ở `/api/v1/health`; dữ liệu/điều khiển cần đăng nhập. Broker chỉ mount file passwords/ACL, không đọc secret người vận hành. Backend đọc cấu hình local qua env_file, registry qua mount chỉ đọc.
+Mặc định broker bind loopback `127.0.0.1:1883`, backend `http://localhost:8000`, Dashboard `http://localhost:5173`; `APP_BIND_IP` mặc định `127.0.0.1` để không mở API/Dashboard ra mạng LAN. HTTP health công khai ở `/api/v1/health`; dữ liệu/điều khiển cần đăng nhập. Broker chỉ mount file passwords/ACL, không đọc secret người vận hành. Backend đọc cấu hình local qua env_file, registry qua mount chỉ đọc.
+
+Chỉ khi cần truy cập từ máy khác trên mạng riêng đáng tin cậy, đặt `APP_BIND_IP` thành IP LAN cụ thể của laptop; không bind `0.0.0.0` trên Wi-Fi công cộng. ESP32 cần broker bind IP LAN cụ thể qua `MQTT_BIND_IP`; có thể đổi cổng host bằng `MQTT_HOST_PORT` nếu cổng1883 đã được dịch vụ khác sử dụng. Frontend cũng phải được build với API/WS URL phù hợp và backend cần CORS đúng.
 
 Lần khởi động đầu với DB cũ: tự sao lưu `*.db.v0-<UTC>.bak` trong cùng vùng lưu, rồi chuyển schema SQLite0→1 bằng transaction. Không xoá volume hoặc JSONL cũ. Nếu không sao lưu/chuyển đổi được, backend dừng; không chạy tiếp với DB nửa chừng.
 

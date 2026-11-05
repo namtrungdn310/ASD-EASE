@@ -11,7 +11,7 @@
 
 // ── Phiên bản firmware và mã thiết bị ───────────────────────────────────────────────
 #define ASD_SCHEMA_VERSION "1.0"
-#define ASD_DEVICE_ID "ASD-ESP32S3-SUPERMINI"
+#define ASD_DEVICE_ID "ESP32-001"
 
 #ifndef FIRMWARE_VERSION
 #define FIRMWARE_VERSION "0.2.0"
