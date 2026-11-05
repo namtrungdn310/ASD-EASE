@@ -1,5 +1,42 @@
 # Kiểm tra nhánh 5
 
+## Buổi 2026-11-05 trên máy Trung
+
+Base dev46d4e2d, nhánh `fix/esp32-local-mqtt-integration`. Board hiện ở Trung: ESP32-S3 Super Mini, MAX30102, MPU6050, Grove GSR. Đã nhận COM7/USB303A:1001, đọc flash4 MB/PSRAM2 MB và nạp SUCCESS. Backend sync1, đã nhận3 frame DEVICE/ESP32-001/session=null thật qua WS. Nghiệm thu toàn nhánh chưa hoàn tất: đang đọc Serial, còn Dashboard/StartStop/lỗi/rate/tài nguyên thật.
+
+Đã bổ sung hồi quy trên receiver production: từ chối sensor topic ngoài hợp đồng, không broadcast khi chưa sync/DB lỗi, chống trùng/cũ và giữ login cookie. Các ca mới đã bắt được lỗi trước khi sửa.
+
+| Bài local 2026-11-05 | Kết quả |
+|---|---|
+| Backend pytest | PASS72 |
+| Protocol C++ → Pydantic | PASS30 |
+| Firmware hai env | PASS2; serial-only flash322541 byte, network-check flash915965 byte; chưa là RAM/rate runtime |
+| Headers | PASS4 |
+| Native C++ → Mosquitto/API/DB/WS | PASS7 nhóm, WS dùng cookie HttpOnly sau HTTP login |
+| Frontend | PASS26 và build đạt |
+| Compose config --quiet | PASS |
+| Nhận USB | Đã nhận COM7, USB303A:1001 theo output Trung gửi |
+| Đọc chip/flash | Esptool xác nhận S3 rev0.2, flash4 MB XMC, embedded PSRAM2 MB/AP_3v3; chưa kiểm tra RAM runtime |
+| Dây/nguồn | Trung xác nhận GPIO đúng bảng,3 cảm biến3V3, chung GND; chưa đo điện áp |
+| Hotspot và dịch vụ local | Laptop172.20.10.3 trên iPhone; broker1883/BE8000 healthy, login MQTT backend/esp32 và WS cookie đạt; backend sync0 |
+| Build cấu hình Wi-Fi thật | PASS esp32s3_supermini; RAM47180/flash915953 byte, file local không được track |
+| Upload COM7 | PASS theo log Trung gửi, SUCCESS21.78 giây/hash verified |
+| ESP → MQTT → backend → WS | PASS kết nối/live ngoài phiên:3 frame DEVICE/ESP32-001, session=null, tăng timestamp, khoảng1002 ms; evidence local bị Git bỏ qua |
+| Serial mạng/cảm biến | wifi/mqtt/sync1; lỗi/drop0 trong24.1 s; GSR/IMU driver VALID, PPG NO_FINGER. Chờ thử ngón tay |
+| PPG với ngón tay | Ảnh Trung gửi có PPG VALID/HR, cùng GSR/IMU VALID. Chỉ smoke test; chưa đánh giá ổn định hoặc độ chính xác |
+| Launcher một lệnh | PASS trên máy Trung từ root/frontend, đồng bộ dependency/cache, stop/start giữ dữ liệu; chưa chạy trực tiếp máy Tân |
+| Tự mở phiên local | PASS bridge→cookie HttpOnly→3 frame DEVICE thật, cả sau stop/start broker/backend; không nhập token. Origin ngoài/file private bị chặn |
+| Hồi quy lượt auto-dev | Backend77, frontend41, build TypeScript/Vite/audit0. Browser tool không khả dụng; chưa thay bằng chứng UI trực quan |
+| Metrics ban đầu | HeapMin201764 byte, stack watermark3780 byte, loopGap10 ms; processed rates khoảng50.08/49.75/19.92 Hz. Chưa đủ F17 hoặc đối chiếu mất mẫu FIFO |
+| Metrics lần chụp tiếp | Uptime khoảng116–117 s, heapMin202632/stackWater3780 byte, loopGap106 ms; F17 còn cần đối chứng/phân tích spike, chưa PASS |
+| Cả3 cảm biến, Dashboard, Start/Stop và lỗi/tài nguyên | Chưa nghiệm thu; đang đọc Serial, không thay bằng frame WS |
+
+Chưa có CI cho lượt sửa local này. Bảng 2026-11-03 bên dưới là lịch sử.
+
+Theo dõi thao tác thực tại [05-LOCAL-BRINGUP.md](05-LOCAL-BRINGUP.md).
+
+## Bằng chứng 2026-11-03
+
 Ngày 2026-11-03, Windows, Python3.12. Code hoàn thiện tại d1101c5 trên nhánh `feature/firmware-telemetry-client-completion`, base dev `1e73aea`. Board ở chỗ Tân, serial discovery trên máy này trả [].
 
 **WAITING_HARDWARE cho nghiệm thu.** Code và tài liệu được bàn giao qua [PR #15 vào dev](https://github.com/namtrungdn310/ASD-EASE/pull/15) theo yêu cầu Trung; kết quả CI/head/merge tra trực tiếp tại PR. Bảng local dưới đây không thay bằng chứng CI.

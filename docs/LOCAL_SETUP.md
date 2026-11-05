@@ -1,5 +1,7 @@
 # Cài đặt và cấu hình trên máy
 
+**Luồng local cho Trung/Tân:** dùng [npm run dev](integration/05-ONE-COMMAND-DEV.md) để tự bật broker/backend/frontend và mở phiên cookie. Không cần DevTools hoặc MQTT Explorer. Các mục chạy từng dịch vụ bên dưới dùng để tra cứu/chẩn đoán.
+
 ## File cấu hình
 
 - .env.example là mẫu được theo dõi trong Git, không chứa secret thật.

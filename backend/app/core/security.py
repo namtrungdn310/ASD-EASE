@@ -74,11 +74,7 @@ def issue_cookie(settings):
 
 def operator_allowed(connection):
     settings = connection.app.state.settings
-    if getattr(settings, "allow_insecure_local", False):
-        origin = connection.headers.get("origin")
-        if origin in settings.cors_origin_list:
-            return True
-    token = bearer(connection) or getattr(connection, "query_params", {}).get("token", "")
+    token = bearer(connection)
     if token and secret_matches(token, settings.operator_token.get_secret_value()):
         return True
     try:

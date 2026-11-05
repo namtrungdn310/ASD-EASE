@@ -1,10 +1,14 @@
 # Bàn giao code nhánh 5
 
+Cập nhật mới 2026-11-05: Trung đã giữ board/cảm biến. Sau PR #17, đang sửa trên `fix/esp32-local-mqtt-integration`; xem [phân tích thay đổi](05-REVIEW-PR17.md) và [bước đang làm](05-LOCAL-BRINGUP.md). Đã nạp COM7 thành công, backend sync1 và WS nhận3 frame DEVICE thật. Đang đọc Serial, còn Dashboard/StartStop/lỗi/tài nguyên thật. Các mục 2026-11-03 dưới đây là bằng chứng lịch sử.
+
 Cập nhật 2026-11-03. Nhánh `feature/firmware-telemetry-client-completion` từ dev `1e73aea` sau PR #14 của Tân.
 
 **Phần mềm đã triển khai; nghiệm thu ESP32 đang WAITING_HARDWARE.** Board/cảm biến vẫn ở chỗ Tân. Chưa nạp, chưa đo ảnh hưởng mạng và chưa xác nhận Dashboard bằng dữ liệu board thật. Code được đưa vào dev qua [PR #15](https://github.com/namtrungdn310/ASD-EASE/pull/15) theo yêu cầu Trung; trạng thái CI/merge xác nhận tại PR.
 
 ## Đã hoàn thiện
+
+- Luồng dev một lệnh cho Trung/Tân: scripts/dev.mjs + local_dev.py chuẩn bị/reuse local và bật dịch vụ; frontend/dev/local-session.mjs đổi token server lấy cookie, LocalConnection.tsx tự mở/gia hạn phiên trước Dashboard. Xem05-ONE-COMMAND-DEV.md; production không bật bridge này.
 
 - Wi-Fi và ESP-MQTT chạy ở task riêng, không chờ mạng trong vòng đọc cảm biến. Snapshot queue1 luôn thay bằng bản mới nhất, không xả telemetry cũ sau reconnect.
 - Topic `asd-ease/v1/DEVICE/{device_id}/...`, telemetry QoS0, control/ACK/sync/presence QoS1; clean session, SUBACK trước sync, LWT có connection nonce mới trước CONNECT.

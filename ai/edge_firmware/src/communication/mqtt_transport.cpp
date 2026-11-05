@@ -12,7 +12,7 @@
 namespace {
 portMUX_TYPE statsMux = portMUX_INITIALIZER_UNLOCKED;
 MqttStats stats;
-QueueHandle_t snapshotQueue = nullptr, inbox = nullptr, published = nullptr, subscribed = nullptr, sensorQueue = nullptr;
+QueueHandle_t snapshotQueue = nullptr, inbox = nullptr, published = nullptr, subscribed = nullptr;
 TaskHandle_t worker = nullptr;
 esp_mqtt_client_handle_t client = nullptr;
 std::atomic<bool> connected{false}, connectionFailed{false};
@@ -101,7 +101,8 @@ void closeClient(asd::SessionProtocol& protocol) {
 bool openClient(asd::SessionProtocol& protocol, uint64_t now) {
   const std::string connection = randomId();
   protocol.connected(connection, now);
-  Serial.printf("[MQTT] CONNECT connection=%s\n", connection.c_str());
+  Serial.printf("[MQTT] CONNECT broker=%s:%u connection=%s\n",
+    MQTT_BROKER_HOST, static_cast<unsigned>(MQTT_BROKER_PORT), connection.c_str());
   will = protocol.presence(false);
   esp_mqtt_client_config_t config{};
   config.host = MQTT_BROKER_HOST; config.port = MQTT_BROKER_PORT;
@@ -171,7 +172,8 @@ void networkTask(void*) {
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
   WiFi.setSleep(false);
-  WiFi.setAutoReconnect(true);
+  // Worker tự quản lý timeout/backoff; không chạy thêm vòng reconnect ngầm.
+  WiFi.setAutoReconnect(false);
   WiFi.setTxPower(WIFI_POWER_17dBm);
   for (;;) {
     uint64_t now = clockMs();
@@ -261,52 +263,19 @@ void networkTask(void*) {
           if (!ok) { connectionFailed = true; break; }
         }
         if (now >= nextTelemetry) {
-          SensorTelemetry st{};
-          bool haveSensors = (sensorQueue && xQueueReceive(sensorQueue, &st, 0) == pdTRUE);
-
-          // 1. Unified telemetry frame (topic: asd-ease/v1/DEVICE/ESP32-001/telemetry)
+          // Một snapshot mới nhất, chỉ gửi sau khi backend đồng bộ/xác nhận.
+          // Không gửi ngoài phiên để lách START/ACK khi protocol từ chối.
           if (xQueueReceive(snapshotQueue, &snapshot, 0) == pdTRUE) {
-            asd::Outbound output;
-            if (protocol.telemetry(snapshot, now, output)) {
-              send(output, now);
-            } else if (connected) {
-              std::string payload = asd::telemetryJson(snapshot, now, now, MQTT_DEVICE_ID, "DEVICE", ASD_FIRMWARE_VERSION, "");
-              if (!payload.empty()) {
-                asd::Outbound standalone{"telemetry", payload, 0, false};
-                send(standalone, now);
-              }
+            // Sensing có thể cập nhật queue sau đầu vòng worker. Đọc đồng hồ
+            // sau snapshot để không nhầm mẫu vừa đọc là dữ liệu từ tương lai.
+            const uint64_t frameAt = clockMs();
+            if (protocol.telemetry(snapshot, frameAt, output)) {
+              bool ok = send(output, frameAt);
+              portENTER_CRITICAL(&statsMux);
+              if (ok) ++stats.publishOk; else ++stats.publishFail;
+              portEXIT_CRITICAL(&statsMux);
             }
           }
-
-          // 2. 3 Sensor-specific topics (PPG, IMU, GSR)
-          if (haveSensors && connected) {
-            char buf[384];
-
-            // PPG: asd-ease/v1/DEVICE/ESP32-001/sensors/ppg
-            snprintf(buf, sizeof(buf),
-              "{\"device_id\":\"%s\",\"status\":\"%s\",\"finger\":%s,\"hr_bpm\":%.1f,\"spo2_pct\":%.1f,\"timestamp_ms\":%llu}",
-              MQTT_DEVICE_ID, st.ppg_status, st.finger ? "true" : "false",
-              st.hr_bpm, st.spo2_pct, (unsigned long long)now);
-            asd::Outbound ppgOut{"sensors/ppg", buf, 0, false};
-            send(ppgOut, now);
-
-            // IMU: asd-ease/v1/DEVICE/ESP32-001/sensors/imu
-            snprintf(buf, sizeof(buf),
-              "{\"device_id\":\"%s\",\"status\":\"%s\",\"ax\":%.2f,\"ay\":%.2f,\"az\":%.2f,\"mag\":%.2f,\"gx\":%.1f,\"gy\":%.1f,\"gz\":%.1f,\"temp_c\":%.1f,\"timestamp_ms\":%llu}",
-              MQTT_DEVICE_ID, st.imu_status, st.ax, st.ay, st.az, st.accel_mag,
-              st.gx_deg, st.gy_deg, st.gz_deg, st.temp_c, (unsigned long long)now);
-            asd::Outbound imuOut{"sensors/imu", buf, 0, false};
-            send(imuOut, now);
-
-            // GSR: asd-ease/v1/DEVICE/ESP32-001/sensors/gsr
-            snprintf(buf, sizeof(buf),
-              "{\"device_id\":\"%s\",\"status\":\"%s\",\"voltage_v\":%.3f,\"voltage_mv\":%lu,\"resistance_kohm\":%.1f,\"conductance_us\":%.2f,\"raw_adc\":%u,\"timestamp_ms\":%llu}",
-              MQTT_DEVICE_ID, st.gsr_status, st.voltage_v, (unsigned long)st.voltage_mv,
-              st.resistance_kohm, st.conductance_us, (unsigned)st.raw_adc, (unsigned long long)now);
-            asd::Outbound gsrOut{"sensors/gsr", buf, 0, false};
-            send(gsrOut, now);
-          }
-
           nextTelemetry = now + 1000;
         }
       }
@@ -346,7 +315,6 @@ bool mqttTransportSetup() {
   Serial.printf("[MQTT] device=%s transport=%s profile=%u/%u/%u\n", MQTT_DEVICE_ID,
     MQTT_USE_TLS ? "TLS" : "LAN_PLAINTEXT", PPG_EFFECTIVE_RATE_HZ, IMU_SAMPLE_RATE_HZ, GSR_SAMPLE_RATE_HZ);
   snapshotQueue = xQueueCreate(1, sizeof(asd::ReadingSnapshot));
-  sensorQueue = xQueueCreate(1, sizeof(SensorTelemetry));
   inbox = xQueueCreate(8, sizeof(Packet));
   published = xQueueCreate(16, sizeof(int));
   subscribed = xQueueCreate(4, sizeof(int));
@@ -363,9 +331,6 @@ bool mqttTransportSetup() {
 }
 void mqttUpdateSnapshot(const asd::ReadingSnapshot& snapshot) {
   if (snapshotQueue) xQueueOverwrite(snapshotQueue, &snapshot);
-}
-void mqttUpdateSensors(const SensorTelemetry& sensors) {
-  if (sensorQueue) xQueueOverwrite(sensorQueue, &sensors);
 }
 void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, bool imuNew, bool gsrNew) {
   portENTER_CRITICAL(&statsMux);
