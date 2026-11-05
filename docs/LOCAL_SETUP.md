@@ -43,6 +43,8 @@ Từ thư mục gốc:
 npm --prefix frontend run dev
 ```
 
+Vite listens on `127.0.0.1` by default so the development server is not exposed to the LAN.
+
 Vite đọc biến khi khởi động/build. Đổi cấu hình thì khởi động lại dev server hoặc build lại. Đổi biến môi trường runtime không tự sửa bundle tĩnh.
 
 ## Docker Compose
