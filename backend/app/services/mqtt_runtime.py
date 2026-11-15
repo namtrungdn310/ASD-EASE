@@ -15,7 +15,7 @@ from app.core.wire import decode_json
 from app.schemas.control import Ack, Presence, StateRequest
 from app.schemas.ingestion import InboundTelemetry
 from app.services.control_service import apply_ack, lease_command, synchronize
-from app.services.session_service import expire_sessions
+from app.services.session_service import ensure_automatic_session, expire_sessions
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +218,9 @@ class MQTTRuntime:
             live = self.is_live(identity.device_id)
             if identity.transport != "mqtt" or not live or time.monotonic() - live.last_dispatch < 1:
                 continue
+            with self.session_factory() as db:
+                if ensure_automatic_session(db, identity, live.boot_id, self.settings):
+                    self.counters["automatic_session_created"] += 1
             with self.session_factory() as db:
                 command = lease_command(db, identity, live.boot_id, live.connection_id, live.request_id)
             if command:

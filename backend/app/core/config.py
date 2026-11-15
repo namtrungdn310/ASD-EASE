@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     cookie_secure: bool = True
     allow_insecure_local: bool = False
     mqtt_enabled: bool = False
+    auto_session_enabled: bool = False
+    auto_session_device_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
     mqtt_host: str = "127.0.0.1"
     mqtt_port: int = Field(default=8883, ge=1, le=65535)
     mqtt_username: str = "backend"
@@ -29,6 +31,8 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def credentials_and_tls(self):
+        if self.auto_session_enabled and not self.auto_session_device_id:
+            raise ValueError("Tự mở phiên cần AUTO_SESSION_DEVICE_ID rõ ràng")
         for secret in (self.operator_token, self.cookie_secret):
             if len(secret.get_secret_value()) < 32:
                 raise ValueError("Cần OPERATOR_TOKEN và COOKIE_SECRET riêng, ít nhất32 ký tự")

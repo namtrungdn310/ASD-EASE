@@ -7,6 +7,7 @@ class EventResponse(BaseModel):
     device_id: str
     session_id: str | None
     state: str
+    probability: float | None = None
     timestamp_ms: int
     created_at: datetime
 

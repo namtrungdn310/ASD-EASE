@@ -1,12 +1,10 @@
 import json
 import pytest
 from fastapi import HTTPException
-from pydantic import ValidationError
 from sqlalchemy import select, func
 from app.db.database import SessionLocal
 from app.db.models import Event, Device
 from app.schemas.control import Ack
-from app.schemas.ingestion import InboundTelemetry
 from conftest import OP_HEADERS, OPERATOR, sync_payload
 from test_telemetry import payload
 
@@ -29,9 +27,21 @@ def test_non_ascii_credentials_are_rejected(client):
 
 def test_state_sync_is_not_a_fresh_measurement(client):
     devices = client.get("/api/v1/devices", headers=OP_HEADERS).json()
-    assert devices[0]["last_seen_at"] is None
+    assert next(row for row in devices if row['device_id'] == 'SIM-001')["last_seen_at"] is None
     assert client.post("/api/v1/telemetry", json=payload()).status_code == 202
-    assert client.get("/api/v1/devices", headers=OP_HEADERS).json()[0]["last_seen_at"] is not None
+    devices = client.get("/api/v1/devices", headers=OP_HEADERS).json()
+    assert next(row for row in devices if row['device_id'] == 'SIM-001')["last_seen_at"] is not None
+
+
+def test_registered_offline_devices_are_listed_without_secrets_or_fake_last_seen(client):
+    response = client.get('/api/v1/devices', headers=OP_HEADERS)
+    assert response.status_code == 200
+    rows = {row['device_id']: row for row in response.json()}
+    assert rows['ESP-001'] == {'device_id': 'ESP-001', 'data_origin': 'DEVICE',
+                              'firmware_version': None, 'last_seen_at': None}
+    assert len(rows) == 3
+    assert all(set(row) == {'device_id', 'data_origin', 'firmware_version', 'last_seen_at'} for row in rows.values())
+    assert 'http_token' not in response.text and 'mqtt_username' not in response.text
 
 
 def test_cookie_login_origin_and_secret_not_in_response(client):

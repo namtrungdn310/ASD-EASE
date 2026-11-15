@@ -81,6 +81,34 @@ def start_session(db, request, identity, settings):
     return result, 202
 
 
+def ensure_automatic_session(db, identity, boot_id, settings):
+    """Mỗi boot DEVICE tối đa một phiên tự động, vẫn chờ STARTED ACK thật."""
+    if not settings.auto_session_enabled or settings.auto_session_device_id != identity.device_id or (
+            identity.data_origin != "DEVICE" or identity.transport != "mqtt"):
+        return False
+    with write_transaction(db):
+        device = db.get(Device, identity.device_id)
+        if not device or device.boot_id != boot_id or device.unresolved or device.actual_state not in {"IDLE", "STOPPED"}:
+            return False
+        if db.scalar(select(Session.session_id).where(Session.device_id == identity.device_id, Session.active.is_(True))):
+            return False
+        # Sau Stop/reject/timeout không tự gửi Start mới vòng lặp trong cùng boot.
+        if db.scalar(select(Session.session_id).where(Session.device_id == identity.device_id, Session.boot_id == boot_id)):
+            return False
+        if db.scalar(select(Session.session_id).where(Session.device_id == identity.device_id,
+                Session.state == "LEGACY", Session.stopped_at.is_(None))):
+            return False
+        row = Session(session_id="AUTO-" + uuid4().hex, device_id=identity.device_id, participant_id=None,
+            requested_at=utc_now(), data_origin=identity.data_origin, state="STARTING", desired_state="RECORDING",
+            actual_state=device.actual_state, active=True, boot_id=boot_id, recording_complete=False,
+            empty_recording=False, incomplete_reasons_json='["RECORDING_NOT_FINISHED"]',
+            acquisition_profile_json=identity.acquisition_profile.model_dump_json())
+        db.add(row)
+        enqueue_command(db, device, row, "START", settings)
+        db.flush()
+    return True
+
+
 def stop_session(db, session_id, registry, settings):
     with write_transaction(db):
         row = db.get(Session, session_id)

@@ -28,7 +28,10 @@ class IMUStream(BaseModel):
 
     @model_validator(mode="after")
     def equal_lengths(self):
-        lengths = {len(v) for v in (self.ax, self.ay, self.az, self.gx, self.gy, self.gz)}
+        lengths = {
+            len(v)
+            for v in (self.ax, self.ay, self.az, self.gx, self.gy, self.gz)
+        }
         if len(lengths) > 1:
             raise ValueError("All IMU arrays must have equal lengths")
         return self
@@ -41,13 +44,14 @@ class GSRStream(BaseModel):
 
 class RawBatch(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
     schema_version: str = Field(pattern=r"^1\.0$")
     device_id: str
     session_id: str
     batch_id: int = Field(ge=0)
     start_timestamp_ms: int = Field(ge=0)
     data_origin: DataOrigin = DataOrigin.DEVICE
+
     ppg: PPGStream
     imu: IMUStream
     gsr: GSRStream
-
