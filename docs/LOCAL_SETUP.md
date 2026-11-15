@@ -1,6 +1,6 @@
 # Cài đặt và cấu hình trên máy
 
-**Luồng local cho Trung/Tân:** dùng [npm run dev](integration/05-ONE-COMMAND-DEV.md) để tự bật broker/backend/frontend và mở phiên cookie. Không cần DevTools hoặc MQTT Explorer. Các mục chạy từng dịch vụ bên dưới dùng để tra cứu/chẩn đoán.
+**Luồng local cho Trung/Tân:** dùng [npm run dev](integration/05-ONE-COMMAND-DEV.md) để tự bật broker/backend/frontend và cấp cookie local. Dashboard chờ bạn chọn thiết bị rồi bấm **Kết nối** mới mở WebSocket; phiên backend tự mở khi ESP đồng bộ vẫn độc lập. Không cần DevTools hoặc MQTT Explorer. Các mục chạy từng dịch vụ bên dưới dùng để tra cứu/chẩn đoán.
 
 ## File cấu hình
 
@@ -70,6 +70,6 @@ compose.yaml đặt trực tiếp đường lưu container và build.args fronte
 
 ## File IDE sinh tự động
 
-.vscode và compile_commands.json chứa đường dẫn máy riêng, không nên chia sẻ như cấu hình chung. PR #11 có đưa lại một số file sinh tự động; không xoá chúng trong lượt chỉnh tài liệu này. Tạo lại bằng PlatformIO khi cần.
+.vscode và compile_commands.json chứa cấu hình/đường dẫn máy riêng, không theo dõi trong Git. Lượt dọn tích hợp 15/11/2026 đã bỏ các bản sinh tự động khỏi repo, giữ file local trên máy đang làm việc. Tạo lại bằng PlatformIO khi cần.
 
 Xem [phần cứng](HARDWARE_PROFILE.md) và [tiến độ](integration/PROGRESS.md).

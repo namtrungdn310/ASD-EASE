@@ -1,0 +1,149 @@
+{
+  "artifact_version": "1.0",
+  "status": "OFFLINE_CANDIDATE_VALIDATED_NOT_DEPLOYED",
+  "selected_policy": "strict",
+  "mode": "hybrid",
+  "policy": {
+    "name": "strict",
+    "max_rr_cv": 0.12,
+    "min_template_median": 0.9,
+    "min_template_p20": 0.75,
+    "min_spectral_fraction": 0.65
+  },
+  "shared": {
+    "fs": 50,
+    "window_samples": 400,
+    "template_points": 32,
+    "min_intervals": 4,
+    "bpm_range": [
+      40,
+      200
+    ],
+    "min_equivalent_amplitude_counts": 4,
+    "recent_window_samples": 200,
+    "max_full_recent_difference_fraction": 0.12,
+    "spectrum_band_hz": [
+      0.5,
+      4
+    ],
+    "harmonic_count": 3,
+    "harmonic_half_width_hz": 0.15,
+    "max_peak_age_rr_factor": 1.5,
+    "peak_age_tolerance_s": 0.05,
+    "confirmations": 2,
+    "max_confirmation_gap_ms": 1500
+  },
+  "hybrid": "preserve current C++ valid result; only use independently confirmed quality candidate when current is null",
+  "policy_sha256": "365ede503dd626318840e8dca5254ce6af6efc28cc717ed28b2665e387a4d2cd",
+  "source_hashes": {
+    "scripts/ppg_quality_candidate.py": "1dc60be396d1b95ee0950c3e05ac271a42f7498551e79a5c5d338124bc1c19d2",
+    "scripts/ppg_msptd_reference.py": "f6c62288a8e675c6318306509347e72f9f1286c3d1e1c532ee1f9efae46b6663",
+    "scripts/benchmark_ppg_quality.py": "a13010fb726437dbe492f8630858cc27294018e2c0efcc31c0cf189523196cc4",
+    "scripts/benchmark_ppg_candidates.py": "a87169e30d4dfb9e1d98d15b62654bfb90cf58108f7ac810562fb30aedfc9285",
+    "ai/edge_firmware/include/processing/ppg_rate.h": "dfa78894341f44b01c53c0651322a0c553c0e4b59fe36e82e177dcdc20f53d03",
+    "ai/edge_firmware/tests/native/ppg_benchmark_harness.cpp": "5cba6a31f318e57433e19afc45bfb92815e81b03801fe4af8df7c230300cbf96"
+  },
+  "development": {
+    "reference_recordings": "BIDMC01-10",
+    "baseline": {
+      "eligible": 4670,
+      "accepted": 4327,
+      "availability_pct": 92.65524625267666,
+      "mae": 0.6458697822972036,
+      "p95": 1.6306403900000037,
+      "over10": 14,
+      "added_windows": 0,
+      "added_mae": null,
+      "added_over10": 0
+    },
+    "reference": {
+      "eligible": 4670,
+      "accepted": 4391,
+      "availability_pct": 94.02569593147751,
+      "mae": 0.6527339441147949,
+      "p95": 1.6551892999999964,
+      "over10": 14,
+      "added_windows": 64,
+      "added_mae": 1.1168156345010098,
+      "added_over10": 0
+    },
+    "noise": {
+      "eligible": 1457,
+      "accepted": 0,
+      "availability_pct": 0.0,
+      "mae": null,
+      "p95": null,
+      "over10": 0,
+      "added_windows": 0,
+      "added_mae": null,
+      "added_over10": 0
+    },
+    "checks": {
+      "no_noise_acceptance": true,
+      "no_additional_over10": true,
+      "mae_within_budget": true,
+      "p95_within_budget": true,
+      "gains_reference_windows": true
+    },
+    "passes": true
+  },
+  "validation": {
+    "reference_recordings": "BIDMC11-15",
+    "noise_seeds": [
+      907,
+      911,
+      919,
+      929,
+      937
+    ],
+    "baseline": {
+      "eligible": 2335,
+      "accepted": 2107,
+      "availability_pct": 90.2355460385439,
+      "mae": 0.6233892183673471,
+      "p95": 1.6925094399999996,
+      "over10": 2,
+      "added_windows": 0,
+      "added_mae": null,
+      "added_over10": 0
+    },
+    "reference": {
+      "eligible": 2335,
+      "accepted": 2150,
+      "availability_pct": 92.07708779443254,
+      "mae": 0.6237888944227439,
+      "p95": 1.6959338850000043,
+      "over10": 2,
+      "added_windows": 43,
+      "added_mae": 0.6433730211371931,
+      "added_over10": 0
+    },
+    "noise": {
+      "eligible": 1457,
+      "accepted": 0,
+      "availability_pct": 0.0,
+      "mae": null,
+      "p95": null,
+      "over10": 0,
+      "added_windows": 0,
+      "added_mae": null,
+      "added_over10": 0
+    },
+    "checks": {
+      "no_noise_acceptance": true,
+      "no_additional_over10": true,
+      "mae_within_budget": true,
+      "p95_within_budget": true,
+      "gains_reference_windows": true
+    },
+    "passes": true
+  },
+  "limitations": [
+    "not a device or API configuration",
+    "not ported to C++ or measured on ESP32",
+    "no independent wrist HR reference",
+    "existing valid C++ results and their errors are preserved",
+    "second wrist trace still has no additional accepted windows",
+    "regularity-based quality may reject irregular pulse rhythms"
+  ]
+}

@@ -1,6 +1,100 @@
 # Kiểm tra nhánh 5
 
+## Kết quả đo cổ tay0.3.15 và khôi phục đối chiếu — 2026-11-07
+
+**HR cổ tay chưa đạt:** bản400Hz/avg8/LED10mA sau xác nhận thu45s/2.246 mẫu, timestamp16–21ms, không lỗi I2C/gap/overflow/clip/ALC. Contact/guard ổn định, WS39 frame đủ GSR/IMU nhưng0 HR. Đã quay về0.3.13-led10/200Hz/avg4/hash verified11,556s; kiểm20s/1.000 mẫu và14 frame WS GSR/IMU đạt. Không chọn cấu hình tối ưu hoặc nới quality gate khi chưa có tham chiếu; phần code/build đạt không thay nghiệm thu HR. [Bằng chứng và giới hạn](05-WRIST-SAMPLING-TRIAL.md).
+
+## Bản thử400Hz/avg8 và đồng hồ PPG — 2026-11-07
+
+Lượt lặp10mA/200Hz0/39 HR dù sensing/contact/guard ổn định. Đã thêm profile400Hz/avg8, giữLED10mA/FIFO50Hz/thuật toán. Bản0.3.14 kiểm đầu có bước nhảy82ms, đã thay bằng0.3.15 theo dõi trôi nhỏ riêngPPG400Hz, có kiểm native tái hiện gap giả và phát hiện khoảng dừng thật.
+
+PASS7 env/4 header,89 ca driver/12 snapshot ở4 profile,76 HR/34 FIFO/8 hybrid/10 selector/95 parity; mô phỏng701/801/809 giữ rõ1 ca nhận nhầm còn mở. Nạp0.3.15 COM7/hash verified12,103s. Kiểm55s chưa áp da:2.746 mẫu, timestamp17–21ms, không gap/I2C/overflow; WS49 frame đúngversion, đủGSR/IMU, guard mở. Chờ xác nhận đo người, chưa nghiệm thu HR cổ tay hoặc CI từ xa. [Chi tiết và giới hạn](05-WRIST-SAMPLING-TRIAL.md).
+
+## Đủ ba mức LED, chờ kiểm tra lặp — 2026-11-07
+
+Lượt cổ tay12,4mA45s/2.251 mẫu/max20ms: không lỗi/gap/clip/ALC, contact/guard ổn định, WS đủ39 GSR/IMU nhưng0 HR. Replay baseline/quality/hybrid0/32. Đã quay về0.3.13-led10/hash verified11,938s; kiểm sau nạp20s/1.001 mẫu và14 frame WS GSR/IMU đạt. Chờ xác nhận đo lặp10mA; chưa chọn mức tối ưu từ một lượt15/39 HR trước đó. [So sánh và bằng chứng](05-WRIST-PROFILE.md).
+
+## Phục hồi và chế độ cổ tay 0.3.13 — 2026-11-06
+
+Lượt10mA đã đo45s/2.252 mẫu/max20ms, không lỗi I2C/gap/clip/ALC, contact/guard ổn định. WS39 frame có15 HR79–85,1bpm, đủ39 GSR/IMU; chưa liên tục hoặc có tham chiếu. Đã nạp0.3.13-wrist12/hash verified12,489s, kiểm trước áp da20s/1.001 mẫu và14 frame WS GSR/IMU đạt; chờ xác nhận đo người12,4mA. [Chi tiết các mẫu số và giới hạn](05-WRIST-PROFILE.md).
+
+Đã đo6,2mA sau xác nhận:45s/2.252 mẫu, không lỗi/gap/ALC, contact/guard ổn định, HR valid0 cả lượt. MQTT timeout làm WS không nhận frame trong lượt; sau đó tự khôi phục, WS13 frame GSR/IMU. Đã nạp0.3.13-led10/hash verified23,422s, kiểm20s/1.001 mẫu không lỗi, WS14 frame GSR/IMU. Chờ xác nhận đo cổ tay10mA, chưa thử12,4mA. Không lấy mẫu số39 frame của lượt trước để chấm lượt bị mất mạng. [Trace và giới hạn](05-WRIST-PROFILE.md).
+
+PASS 6 env/4 header, 81 ca driver với 12 snapshot ở mỗi mức LED 6,2/10/12,4 mA, 76 ca HR, 34 FIFO, 8 tích hợp hybrid/10 selector/39 protocol; công cụ offline và parity chạy lại đạt. Mô phỏng còn ca nhận nhầm nhiễu quang tuần hoàn khi IMU yên. Sau khi cắm lại USB, nạp COM7/hash verified22,026s. Board45s chưa áp da:2.251 mẫu, không lỗi/gap/overflow; init một lần, bước tối đa1.438µs; WS39 GSR/39 IMU firmware0.3.13. Cổng chuyển động đã mở khi IMU yên. Chưa tái hiện lỗi bus cũ hoặc đo HR cổ tay bản mới, chưa CI mới. [Bằng chứng và bước chờ](05-WRIST-PROFILE.md).
+
+## Bước 4: C++ và board 0.3.12 — 2026-11-06
+
+PASS: 10.800 cửa sổ parity Python/C++, 10 ca selector/snapshot, 8 ca driver với worker giả lập, 76 ca công cụ offline, 95 ca parity tổng hợp chạy lại; 5 build/4 tổ hợp header và hồi quy driver/HR/FIFO/protocol. Đã nạp COM7, hash verified. Self-test ESP đạt; WS nhận đủ GSR/IMU. Đầu ngón tay: 38/39 frame có HR 77,2–88,3 bpm. Cổ tay: 0/39 HR, replay từ chối, **chưa đạt mục tiêu đo cổ tay**. Mỗi lượt 45 giây thu 2.251 mẫu không tăng lỗi/gap; lỗi I2C/init chặn khoảng 1 giây đã xảy ra giữa hai lượt, chưa xử lý xong. Chưa có nhịp tham chiếu hoặc CI từ xa mới. [Số đo và giới hạn](05-PPG-FIRMWARE-TRIAL.md).
+
+## Bước 3: chất lượng tín hiệu offline — 2026-11-06
+
+Đã chọn `hybrid_strict` qua vòng phát triển và vòng BIDMC11–15/seed mới sau khóa source/policy. Vòng mới tăng43 cửa sổ, MAE0,6234→0,6238bpm, không thêm lỗi trên10bpm/không nhận nhầm1457 cửa sổ nhiễu/phẳng. Tổng76 ca công cụ offline đạt, có native C++ pipeline và hồi quy quyết định. Chưa port/nạp bộ mới hoặc đo tài nguyên ESP; board vẫn0.3.11. HR cổ tay chưa nghiệm thu, file cổ tay cuối vẫn0 HR. [Bằng chứng và giới hạn](05-PPG-QUALITY-EVALUATION.md).
+
+## Bước 2: benchmark thuật toán offline — 2026-11-06
+
+Đã chạy4 trace/10 BIDMC/38 ca tổng hợp, cùng lọc C++ và cùng mốc chấm. PASS47 ca bản chuyển+6 ca chấm, native harness Werror. Kết quả không đủ để thay bộ HR bằng ứng viên MSPTD chưa quality gate; không chấm accuracy file cổ tay khi chưa có tham chiếu. Firmware giữ0.3.11, chưa nạp/CI/commit mới ở bước này. [Phương pháp và kết quả](05-PPG-ALGORITHM-EVALUATION.md).
+
+## Chẩn đoán 0.3.11 — 2026-11-06
+
+PASS4 build/4 header,76 ca HR,56 ca driver/12 snapshot ở hai mức LED,32 FIFO/39 protocol. Nạp COM7/hash verified11,199s. Không đổi bộ HR, LED, lịch lấy mẫu hoặc backoff. Quan sát45s không tiếp xúc và45s đặt ngón tay đều không phát sinh lỗi I2C/init lại. Lượt ngón tay2.251 mẫu, WS41 GSR/41 IMU/34 HR68,5..74,6bpm; chưa có nhịp tham chiếu. Startup overflow/gaps42 vẫn được giữ, không tăng trong lượt. Chưa xác định nguyên nhân lỗi6s cũ, chưa tuyên bố đã sửa dứt điểm hoặc nhánh5 hoàn tất. [Bằng chứng bước 1](05-PPG-I2C-DIAGNOSIS.md).
+
+## Bản 0.3.10 — 2026-11-06
+
+Đã sửa ca nhận nửa nhịp do biên độ xung xen kẽ. PASS 76 ca HR, 49 ca driver/12 snapshot ở baseline và LED10mA; 32 FIFO, 39 protocol, 4 header, 4 build. Nạp COM7/hash verified 11,199s. [Đối chiếu BIDMC](05-PPG-REFERENCE-BENCHMARK.md) có cải thiện nhưng vẫn 14 cửa sổ sai trên 10 bpm; không thay nghiệm thu cổ tay. Đo đầu ngón tay 45s sau xác nhận: 1.942 mẫu, có lỗi đọc và khoảng mất 6.221ms; WS 41 GSR/41 IMU nhưng 0 HR. **HR chưa đạt**, chưa có CI mới. [Chi tiết và giới hạn](05-SENSOR-RECOVERY.md). Các mốc dưới là lịch sử.
+
+## Tín hiệu yếu/hai kênh0.3.9 — 2026-11-06
+
+PASS4 build/4 tổ hợp header,71 ca HR,49 ca driver/12 snapshot qua schema ở hai mức LED,32 FIFO/39 protocol. Benchmark hữu hạn chỉ nhiễu0/2400 cửa sổ được chấp nhận; không gọi đây là độ chính xác trên người. Đã nạp0.3.9 baseline COM7/hash verified13,544s. Lượt cổ tay35s:1.752 mẫu,30 frame WS DEVICE/30 IMU,0 HR; contact ổn định, không tăng lỗi đọc/overflow/gap trong lượt; xử lý HR tối đa4,93ms. **HR chưa đạt nghiệm thu**, không có tham chiếu. Không thay dây/gá hoặc credential. [Chi tiết](05-SENSOR-RECOVERY.md).
+
+## HR theo cửa sổ0.3.8 — 2026-11-06
+
+Lượt che sáng quanh cảm biến:1.752 mẫu/35s,30 frame WS DEVICE/30 IMU,0 HR; không trace drop/timestamp lùi hoặc lỗi I2C/clip/gap mới. Có6 lần contact restart nên chưa coi đây là phép so ánh sáng được kiểm soát đầy đủ. Bản thử LED10mA riêng đang chuẩn bị, chưa nghiệm thu HR. Xem [phép thử quang](05-PPG-OPTICAL-TRIAL.md).
+
+Lượt tiếp theo, mặt trong cổ tay cùng cấu hình:1.753 mẫu/35s,30 frame WS DEVICE/30 IMU,0 HR hợp lệ. Không trace drop/thời gian lùi hoặc tăng counter lỗi trong lượt; xử lý HR tối đa từ boot4,625ms. Contact có nhưng chu kỳ chưa đủ rõ; **chưa nghiệm thu HR cổ tay**, chưa xác định nguyên nhân quang/tiếp xúc. Chi tiết tại [nhật ký đo](05-SENSOR-RECOVERY.md).
+
+PASS ba build và4 tổ hợp header;16 ca cửa sổ C++,49 ca driver/12 snapshot schema,39 ca protocol. Nạp COM7/hash verified11,220s. Đầu ngón tay:1.753 mẫu/35s,30 frame WS DEVICE,7 có HR73,2..78,8,30 có IMU. Cổ tay:1.753 mẫu/35s,30 frame/30 IMU nhưng0 HR; chưa đủ chu kỳ ngay cả replay bỏ điều kiện biên độ. Hai lượt không trace drop/timestamp lùi hoặc tăng counter lỗi; HR xử lý tối đa4,233ms. **Chưa nghiệm thu độ ổn định/độ chính xác HR**, chưa có tham chiếu. Xem [bằng chứng và giới hạn](05-SENSOR-RECOVERY.md). Các phiên bản dưới giữ lịch sử.
+
+## Cổng tiếp xúc HR0.3.6 — 2026-11-06
+
+Đã nạp COM7, ba build và4 tổ hợp header đạt; driver46 ca/11 snapshot schema, FIFO32/core39 đạt. Không tăng TTL3s. Kiểm tra12 dòng sau nạp: IR624..651/contact0 nên chưa nghiệm thu HR cổ tay. Xem [kết quả0.3.6](05-SENSOR-RECOVERY.md); các mốc0.3.5/0.3.2 bên dưới giữ lịch sử.
+
+## Khôi phục cảm biến0.3.5 — 2026-11-06
+
+- PASS build ba env, header kiểm tra riêng sau build;32 ca FIFO,41 ca driver và11 snapshot/schema,39 ca protocol. Thêm ca ID0x74/ACCEL_CONFIG2, metadata riêng, bỏ lô sau overflow và phục hồi bắt nhịp.
+- Nạp0.3.5 thật qua COM7/hash verified; PPG và IMU có cửa sổ≈50,04Hz. Không che các counter PPG startup138 gap/overflow và169 discard; trong cửa sổ ổn định không tăng. Đã thấy IMU qua WS thật; kết quả HR cổ tay còn chờ tiếp xúc ổn định, chưa đánh dấu độ chính xác đạt.
+- Chi tiết số đo/giới hạn và nguồn đối chiếu tại [05-SENSOR-RECOVERY.md](05-SENSOR-RECOVERY.md). Các mốc0.3.2 và số ca cũ bên dưới giữ làm lịch sử.
+
+## Tối ưu code đo0.3.2 — 2026-11-06
+
+| Bài | Kết quả local |
+|---|---|
+| `python scripts/check_ppg_acquisition.py` | PASS28 ca decoder/FIFO C++ |
+| `python scripts/check_sensor_drivers.py` | PASS37 ca chạy driver thật với fake I2C/ADC/clock;10 snapshot qua serializer C++ và schema backend |
+| `python scripts/check_firmware_protocol.py` | PASS39 ca core/control/telemetry |
+| Backend `pytest -q` | PASS111; warning phụ thuộc Starlette/anyio có sẵn |
+| Frontend `npm test` và `npm run build` | PASS60 và build; cảnh báo bundle>500kB có sẵn |
+| MQTT `check_mqtt_integration.py --native-firmware` | PASS9 nhóm qua Mosquitto/backend/WS thật, dữ liệu SYNTHETIC |
+| Header compatibility | PASS4 tổ hợp |
+| Board với firmware0.3.2 | NOT_RUN: chưa nạp, chưa đo tại cổ tay, chưa xác nhận heap/stack/tốc độ/độ chính xác mới |
+| CI GitHub cho thay đổi mới | NOT_RUN: chưa push lượt tối ưu này |
+
+Ba env PlatformIO đã build đạt ở lượt sửa code; kết quả build cuối sau thay đổi `default_envs` được ghi tại [tiến độ](05-WRIST-MEASUREMENT.md). Sai khác kiểu tham chiếu `unsigned long`/`uint32_t` được phát hiện khi build ESP và đã sửa bằng timestamp32bit rõ kiểu; không thay test để bỏ qua lỗi. Có warning macro I2C_BUFFER_LENGTH của thư viện SparkFun, không sửa vendor và không coi đây là lỗi build. Không dùng các bài phần mềm làm bằng chứng HR/EDA chính xác.
+
+Chi tiết hành vi, cấu hình và giới hạn: [chuỗi đo0.3.2](../contracts/SENSOR_ACQUISITION_0_3_2.md). Các mục bên dưới là mốc trước tối ưu; kết quả board cũ không tự áp dụng cho0.3.2.
+
 ## Buổi 2026-11-05 trên máy Trung
+
+Lượt phiên tự động: launcher bật theo đúng target DEVICE, backend tự tạo AUTO-… sau sync và nhận ACK thật để RECORDING trên ESP32-001. Cursor trong DB theo session mới và cookie→WS nhận3 frame DEVICE tiếp tục tăng timestamp; không POST Start từ browser/công cụ thử. Backend111/frontend60 tests/build PASS. [Cách chạy và mốc phiên](05-AUTOMATIC-SESSIONS.md); raw/export chưa hoàn tất.
+
+Lượt UI mới nhất: trạng thái thiết bị hai nhãn theo freshness, khung AI chờ/kết quả/lịch sử và bố cục toàn chiều rộng đã triển khai. Frontend58 tests/build PASS; HTTP module và3 frame DEVICE schema1.1 thật PASS. Model trên board vẫnnone, chỉ kiểm thử khung có AI bằng fixture test đúng nguồn; không ghi AI production PASS. Chưa kiểm tra pixel/viewport thật do browser tool không có kết nối.
+
+Lượt phục hồi realtime mới nhất: frontend54/backend101 tests và build đạt. Đã rebuild backend, login cookie mới→WS6 lần có DEVICE đầu0,375..0,985 giây từ WS open; ping/pong6/6 và12 gói cách nhau1002 ms. [Chi tiết cơ chế/giới hạn](05-REALTIME-RECOVERY.md). Chưa tái hiện đúng phiên browser gây hard refresh, không coi kiểm thử transport là bằng chứng toàn bộ UI không thể kẹt.
+
+Lượt giao diện mới: ảnh Trung đã có gia tốc/tốc độ xoay thật trên Dashboard. Đã thống nhất toàn màn hình theo docs/design/DASHBOARD.md; frontend46 tests/build đạt, HTTP và3 frame DEVICE schema1.1 đủ vector sau đổi UI đạt. Các bài bố cục trực quan375/768/1440px NOT_RUN vì browser runtime không khả dụng; không gọi DOM tests là QA pixel. Start/Stop/lỗi/tài nguyên trên board vẫn cần nghiệm thu riêng.
+
+Lượt mới nhất: ảnh Trung xác nhận HR/GSR đã hiện trên Dashboard, trạng thái tiếng Việt. Sau yêu cầu tách chuyển động, đã thêm telemetry1.1/firmware0.3.0, hai ô/biểu đồ gia tốc m/s² và tốc độ xoay degrees/s; backend99, frontend44/build, native39, firmware2 env/header4 đạt. Backend đã rebuild trên máy Trung. **Chưa nạp0.3.0/chưa nghiệm thu trục thật**; các mốc số lượng tests cũ trong bảng dưới là lịch sử. Browser tool không khả dụng cho lượt giao diện mới, tests DOM không thay kiểm tra bố cục trực quan.
+
+Native C++→broker/backend/WS thật đạt8 nhóm với dữ liệu SYNTHETIC, có kiểm tra sáu trục1.1 âm/0 và giữ đơn vị. Backend sau rebuild vẫn nhận3 frame thật DEVICE/schema1.0/firmware0.2.0; board cần nạp0.3.0 để có trục mới.
 
 Base dev46d4e2d, nhánh `fix/esp32-local-mqtt-integration`. Board hiện ở Trung: ESP32-S3 Super Mini, MAX30102, MPU6050, Grove GSR. Đã nhận COM7/USB303A:1001, đọc flash4 MB/PSRAM2 MB và nạp SUCCESS. Backend sync1, đã nhận3 frame DEVICE/ESP32-001/session=null thật qua WS. Nghiệm thu toàn nhánh chưa hoàn tất: đang đọc Serial, còn Dashboard/StartStop/lỗi/rate/tài nguyên thật.
 

@@ -4,6 +4,50 @@ Cập nhật2026-11-05, Asia/Saigon. [Kế hoạch](README.md), [kiến trúc](M
 
 ## Hiện tại
 
+- **0.3.25 đo thật chưa đạt; đang dùng bản thử0.3.26:** lượt thật chỉ3/45gói HR53,6–107,9, dù thu/truyền đầy đủ. Không đánh dấu tối ưu xong. Đã tìm ca tái hiện một cửa sổ yếu làm mất cổng chống nhảy nửa nhịp;0.3.26 giữ lịch sử có giới hạn và không phát số cũ.46ca core+20toàn dải+46hình dạng,8tích hợp,89driver/12snapshot và header/build đạt. Vòng mô phỏng mới không tăng lỗi, nhưng chưa kiểm độ đúng0.3.26 trên cổ tay và chưa có reference từng cửa sổ. Không mở thêm lượt người trong vòng này; chưa push/merge. [Bàn giao](05-HR-TRACK-SWITCH.md).
+
+- **0.3.25 đang kiểm cổ tay:** thêm phép chấm độ lặp hình dạng vào bằng chứng chọn chu kỳ từng kênh, không ép theo nhịp người dùng. Seed mô phỏng mới giảm lỗi lớn5→0, nhiễu không tuần hoàn nhận nhầm197→49; dữ liệu BIDMC đã xem giảm lỗi lớn76→34, có giảm coverage. Nhiễu quang tuần hoàn vẫn là giới hạn.111ca core/range/shape,8ca tích hợp và kiểm driver/capture/header/build/nạp đạt; nhận5frame DEVICE sau nạp. Chưa nghiệm thu độ đúng cổ tay; bản thử có thể để trống nhiều hơn. [Chi tiết](05-HR-TRACK-SWITCH.md). Chưa push/merge.
+
+- **Lượt kiểm cổ tay0.3.24 KHÔNG ĐẠT:** chỉ7/45gói HR41,3–43,8; Trung không chấp nhận số đo. Raw đủ2.252 mẫu, không lỗi thu/truyền mới; so cùng raw bằng0.3.23 và0.3.24 cho đầu ra giống nhau. Smoother chỉ cải thiện độ trễ mô phỏng, không xử lý chọn nhầm chu kỳ trên cổ tay.0.3.24 vẫn là bản thử trên ESP, chưa chốt/rollback, chưa push/merge. Không yêu cầu đo lặp hoặc tự tiếp tục nạp thêm trong vòng này. [Bằng chứng](05-HR-TRACK-SWITCH.md).
+
+- **2026-11-08 buổi tối, HR0.3.24:** thêm làm mượt thích nghi khi5 ứng viên mới tạo xu hướng đều; không đổi chọn chu kỳ hoặc lấy105–115 làm số đích.45 ca core+20 ca toàn dải đạt; nhịp ramp mô phỏng giảm độ trễ, nhưng MAE BIDMC đã xem tăng nhẹ0,858→0,874bpm, lỗi lớn giữ76 và mask nhận giữ nguyên. Đã build/nạp và nhận5gói DEVICE đúng phiên bản. Chưa nghiệm thu toàn dải/cổ tay; lỗi nhận nhầm dao động chậm còn tồn tại. Không đổi GSR/IMU/schema/FEforecast; chưa commit/push/merge. [Kết quả và đánh đổi](05-HR-TRACK-SWITCH.md). Các mốc0.3.23 bên dưới là lịch sử.
+
+- **2026-11-08, Trung chốt HR0.3.23-tracker:** giữ nguyên thuật toán và kết quả lượt cuối bên dưới. Đã bỏ5 env thử,7 file dư cùng nhánh cấu hình/worker cũ; env mặc định và alias tracker cùng dùng bản đã chốt. 4env build,4tổ hợp header,45ca core,64FE,111backend,15AI và các bài driver/protocol đạt. Không nạp lại ESP, không đổi GSR/IMU/cấu hình Wi-Fi, chưa commit/push/merge. [Phạm vi và kiểm chứng dọn mã](05-CLEANUP-AUDIT.md).
+
+- **2026-11-08, đã kiểm 0.3.23 trên cổ tay:** đủ 45 frame; sau 4 frame đầu chưa có HR, 41 frame còn lại liên tiếp 68,8–76,6 bpm. FE parser nhận đủ, không dùng dự báo, không trống sau HR đầu tiên; không có lỗi mạng mới. Sửa trộn smoother khi đổi chu kỳ đã được kiểm bằng hai test trước/sau và replay khóa input; raw mới không có chuyển lớn nên không quy toàn bộ coverage tăng cho sửa này. 45 core, 8 tích hợp, 6 capture, 4 tổ hợp header/build/upload đạt. Giữ 0.3.23, không mở thêm lượt đo; độ đúng cổ tay/độ tin cậy lâu dài và nhánh 5 chưa nghiệm thu. Chưa push/merge. [Bàn giao](05-HR-TRACK-SWITCH.md).
+
+## Lịch sử trước khi chốt HR
+
+- **2026-11-08, chẩn đoán mất dữ liệu HR:** nạp 0.3.22, giữ core HR 0.3.20; thêm RSSI/lỗi socket vào Serial. Dây USB mới thu đủ raw nhưng lượt cổ tay chỉ 13/60 frame WS; chưa có số đếm tham chiếu. Kiểm không yêu cầu tiếp xúc da, bật raw 60 giây nhận 59 frame/3.001 mẫu. Chờ lượt cổ tay để so log mới, không cần đếm mạch. 43 core, 6 capture, 4 tổ hợp header/build/upload đạt. HR và kết nối chưa nghiệm thu; chưa push/merge. [Chi tiết](05-HR-LINK-DIAGNOSIS.md).
+
+- **2026-11-07, vòng xử lý nhận nhầm HR:** bản thử 0.3.21 không đạt ở lượt cổ tay mới (5/45 frame có HR, 42,9–43,3 bpm). Đã loại thay đổi không đạt, khôi phục core 0.3.20; nạp cấu hình Wi-Fi nhà, broker/backend healthy và nhận 5 frame DEVICE qua WebSocket. 43 ca core, 8 ca tích hợp, 4 tổ hợp header và build/upload đạt. HR ổn định, gần đúng vẫn chưa đạt; chưa push/merge. [Bằng chứng và các cách lọc đã loại](05-HR-HARMONIC-REJECTION.md). Các mục dưới là lịch sử.
+
+- **Bản mới nhất0.3.20-tracker:** đã nạp và thử cổ tay45giây, đủ45gói,28gói có HR thiết bị và8gói được FE ghi“Tạm tính”. Sau HR đầu tiên lớp hiển thị không bị trống trong lượt thu; dữ liệu gốc giữ null. Thêm xác nhận cú nhảy/startup80↔40, nhưng HR còn đoạn thấp43,7–52 nên chưa kết luận hết nhận nhầm nửa nhịp/đúng sai.39coretest,64FE,build và tích hợp đạt; chưa CI/push/merge. [Bàn giao liền mạch có hạn](05-HR-CONTINUITY.md). Các mục dưới giữ lịch sử.
+
+- **Theo dõi chu kỳ HR, bản mới nhất0.3.18-tracker:** đã hoàn tất code, kiểm thử, build/nạp và hai lượt cổ tay. Lượt cuối nhận45gói/45giây,17gói có HR;13gói cuối liên tiếp70,3–72,2bpm. GSR/IMU45/45, mạng không lỗi. Thẻ hiển thị ở36/45gói khi tính thêm19gói giữ có tuổi, không gọi là HR mới. Còn khoảng thiếu, chưa có HR tham chiếu và còn nhận nhầm nhiễu trong benchmark; không đánhDONE HR/nhánh5. [Bàn giao tracker và cách chạy](05-HR-CYCLE-TRACKER.md). Các mục demo trước dưới đây giữ lịch sử.
+
+- **Kết quả vòng demo HR mới nhất:** hai lượt cổ tay đã xong. Lượt cuối nhận **45 gói WS/45 giây**, GSR/IMU đủ, wifi/mqtt/sync ổn định nhưng HR 0/45. Lượt trước driver có HR ở 9/45 bản chụp nhưng đường truyền ngắt trước lúc có HR; chưa quy được nguyên nhân. Đã kiểm riêng mạch trên bàn 70 giây. Hoàn tất code/test/nạp demo, **chưa đạt HR luôn có số**, không gán số giả hoặc tự mở thêm lượt đo. [Bàn giao demo](05-HR-DEMO.md).
+
+- **Theo mục tiêu demo mới, 2026-11-07:** đã triển khai/nạp `0.3.16-demo` ưu tiên cập nhật HR tương đối, median3/EMA trên ứng viên mới; FE ghi nhãn và tuổi số giữ tối đa 10 giây, không lấp dữ liệu gốc. Đã kiểm phần mềm, hai build và nhận lại 5 gói WS DEVICE thật có GSR/IMU/phiên. Chờ một lượt cổ tay sẵn sàng, chưa tuyên bố HR đúng/ổn định. [Bàn giao demo](05-HR-DEMO.md). Không đổi schema của Trung hoặc phép đo GSR/IMU.
+
+- **Vòng thuật toán HR yếu, 2026-11-07:** triển khai/chấm hai ứng viên offline trên bốn trace cổ tay, BIDMC đã xem và mô phỏng khóa seed. B qua development nhưng vòng seed mới nhận nhầm 165 thành 81,656 bpm ở một cửa sổ; không đạt điều kiện để nạp. Đã chạy 41 ca công cụ, lưu source/input hashes, báo cáo và hình. Không đổi firmware/GSR/IMU/schema, không mở vòng đo mới. [Kết quả và giới hạn](05-HR-WEAK-SIGNAL-EXPERIMENT.md). HR cổ tay và nhánh 5 chưa DONE.
+
+- **Hoàn tất số lượt thu HR, 2026-11-07, 15:22:** Trung yêu cầu B2 đo lại và đã thu đủ 45 giây. Bộ chính A1/B1/A2/B2 đo lại có 9.008 mẫu raw, 160 frame WS, GSR/IMU đầy đủ; B2 gián đoạn 1.673 mẫu giữ riêng. Có manifest/hash, hình và replay trên bốn trace đầy đủ. Thuật toán đối chứng vẫn chưa chấp nhận HR; chưa có HR tham chiếu hoặc số đo nhiệt. Kết thúc bước thu, chuyển tối ưu thuật toán offline. [Bàn giao cuối bước thu](05-HR-DATA-HANDOFF.md). Chưa DONE HR hoặc nhánh 5.
+
+- **Chốt đợt thu HR cổ tay, 2026-11-07:** A1/B1/A2 đủ 45 giây và 40 frame WS mỗi lượt, GSR/IMU đủ, HR chưa được bản đối chứng chấp nhận; B2 chỉ giữ phần 33,413 giây và không tính là lượt đầy đủ. Đã Clean/build/nạp lại trước A2, không đổi thuật toán hay điện năng. Có manifest/hash và so cùng cửa sổ; chưa chứng minh tác dụng che sáng lặp lại hoặc sai số HR thật. Kết thúc thu trong vòng này, chuyển sang thuật toán offline. [Bàn giao dữ liệu](05-HR-DATA-HANDOFF.md). Sự kiện chip nóng chưa được xác nhận đã xử lý; chưa DONE nhánh 5.
+
+- **Dừng đo trên thiết bị, 2026-11-07:** Trung rút USB vì chip ESP32-S3 nóng, không thấy khét/khói/biến dạng. B2 gián đoạn, A2 tạm dừng; không quy đổi phiên thành lỗi tự crash. Code có tắt modem sleep là yếu tố cần đánh giá, chưa xác định nguyên nhân nhiệt. Đã sửa công cụ giữ partial capture, 6 test đạt; chưa nạp firmware mới sau báo nóng. [Checkpoint nhiệt](05-THERMAL-CHECK.md). Có thể tiếp tục phân tích HR offline, chưa yêu cầu cấp nguồn/đeo đo.
+
+- **Vòng HR theo dữ liệu yếu, 2026-11-07:** đã dọn phần thừa có bằng chứng và replay bốn trace; baseline/strict/balanced đều chưa cứu được hai trace cổ tay khó. Kế hoạch mới tập trung xử lý nền/xung và cổng chọn chu kỳ bớt loại cứng, giữ cách đặt nhẹ, không đè. GSR/IMU giữ nguyên. [Kế hoạch và tiêu chí](05-HR-ROOT-CAUSE-PLAN.md), [báo cáo dọn mã](05-CLEANUP-AUDIT.md). Chưa nạp thuật toán mới, chưa xác nhận sai số HR thật hoặc CI từ xa.
+
+- **HR cổ tay chưa đạt, 2026-11-07:** thử400Hz/avg8/0.3.15 cũng0/39 HR dù sensing/mạng ổn định; chưa có cấu hình đủ lặp lại. Đã quay về0.3.13-led10/200Hz/avg4 làm đối chiếu, kiểm20s/1.000 mẫu và14 frame WS GSR/IMU đạt. Code7 env/kiểm hồi quy đạt; cần nhịp tham chiếu để đánh giá tiếp có cơ sở. [Checkpoint](05-WRIST-SAMPLING-TRIAL.md). Nhánh05 chưa DONE, chưaCI/push.
+
+- **Bước 4 đã thử board:** 0.3.12, hybrid C++ khớp policy Python, 5 build và kiểm hồi quy đạt. Đầu ngón tay có 38/39 HR qua WS; cổ tay vẫn 0/39, GSR/IMU đủ. Có lỗi I2C/init chặn khoảng 1 giây giữa hai lượt cần xử lý. [Bằng chứng hiện tại](05-PPG-FIRMWARE-TRIAL.md). Nhánh 05 chưa DONE, chưa CI/push mới; các cập nhật dưới là lịch sử.
+
+- Cập nhật mới: bước3 đã chọn ứng viên HR offline `hybrid_strict` qua2 vòng kiểm, chưa tích hợp/nạp. [Bằng chứng và việc cần làm trước thử board](05-PPG-QUALITY-EVALUATION.md). ESP vẫn0.3.11, HR cổ tay và nhánh05 chưa nghiệm thu/DONE.
+
+- Cập nhật2026-11-06: HR cổ tay vẫn đang tối ưu, chưa nghiệm thu. Board0.3.11 đã có log I2C; bước2 đối chiếu offline đã chạy, chưa nạp bộ HR mới. [Bằng chứng và hướng bước3](05-PPG-ALGORITHM-EVALUATION.md). Nhánh05 chưa DONE, chưa có CI/commit mới cho lượt này.
+
 - Yêu cầu mới Trung/Tân: [npm run dev](05-ONE-COMMAND-DEV.md) tự bật dịch vụ và mở phiên local, không DevTools/token. Đã thử root/frontend và stop/start trên máy Trung, cookie tự động→WS nhận DEVICE thật. Chờ xác nhận UI và thử trên máy Tân; nhánh05 chưa DONE.
 
 - Kế hoạch [PR #8](https://github.com/namtrungdn310/ASD-EASE/pull/8) merge0bcd833.

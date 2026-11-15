@@ -10,7 +10,7 @@
 
 ## Kết quả và phạm vi
 
-Chọn thiết bị, Start/Stop có xác nhận, xem bản ghi và tải file. Sessions/History hiện mới giữ chỗ; thêm điều hướng tối thiểu, không làm lại giao diện.
+Chọn thiết bị, Start/Stop có xác nhận, xem bản ghi và tải file. Chưa có trang Sessions/History thực thi; các file giữ chỗ không được dùng đã được dọn. Chỉ tạo trang khi triển khai nghiệp vụ này; giữ giao diện hiện có.
 
 Theo [kiến trúc](MQTT_ARCHITECTURE.md), browser chỉ HTTP/WS tới backend. Không cài MQTT trong browser hoặc đưa credential vào VITE_*/bundle.
 
@@ -65,6 +65,8 @@ Dùng API giả có kiểm soát trước, rồi simulator/board. Build không t
 UI lỗi vẫn thao tác API theo đặc tả; không sửa tay DB. Rời trang không tự Stop phiên ngoài ý muốn.
 
 ## Nhật ký
+
+2026-11-05: theo yêu cầu mới của Trung, Dashboard hiện tại bổ sung [phiên theo dõi tự động](05-AUTOMATIC-SESSIONS.md), không có nút Start/Stop. Việc tạo/tiếp tục phiên theo boot nằm ở backend, browser chỉ đọc. Phạm vi quản lý/xuất raw và các mục nghiệm thu09 bên trên chưa hoàn tất; cần rà lại thiết kế điều khiển khi triển khai09, không thêm nút trái yêu cầu tự động mặc định.
 
 | Ngày/commit | Việc | Bằng chứng | Kết quả |
 |---|---|---|---|

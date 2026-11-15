@@ -27,7 +27,7 @@ Xem [Git/GitHub](docs/GIT_WORKFLOW.md), [10 nhánh tích hợp](docs/integration
 
 ## Chạy thử
 
-Chạy local ESP thật cho Trung/Tân: mở Docker Desktop rồi dùng `npm run dev` ở root hoặc frontend. Lệnh tự bật dịch vụ, mở Dashboard và xác thực local. Xem [chạy bằng một lệnh](docs/integration/05-ONE-COMMAND-DEV.md) để cài/nạp lần đầu và khi đổi Wi-Fi/IP.
+Chạy local cho Trung/Tân: mở Docker Desktop rồi dùng `npm run dev` ở root hoặc frontend. Lệnh bật broker/backend và mở Dashboard; chọn thiết bị rồi bấm **Kết nối** để bắt đầu theo dõi. Dashboard không tự build/nạp ESP. Khi cần nạp firmware qua USB, chạy `npm run device:flash` ở root. Xem [luồng chạy và thiết lập](docs/integration/05-ONE-COMMAND-DEV.md).
 
 Đọc [cài đặt local](docs/LOCAL_SETUP.md). Cần Docker Desktop/Compose; chạy trực tiếp cần Python3.12+, Node22+ và PlatformIO.
 

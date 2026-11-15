@@ -20,7 +20,7 @@ Giữ Serial để nạp/chẩn đoán, không thay kênh MQTT bằng USB. Nhán
 ## Phần code đã triển khai
 
 - [x] Core C++ portable dùng chung production/tests: serializer, epoch, lease, nonce, generation và chống thực thi lặp.
-- [x] Payload telemetry1.0 đúng mapping; null khi thiếu/cũ, GSR delta là tỷ lệ, quality0/modelnone/probabilitynull; chưa có movement score.
+- [x] Payload telemetry1.0 đúng mapping; null khi thiếu/cũ, GSR delta là tỷ lệ, quality0/modelnone/probabilitynull. Firmware0.2.1 thêm [điểm chuyển động kỹ thuật](../contracts/MOVEMENT_SCORE.md); chờ kiểm chứng trên ESP sau nạp.
 - [x] Metadata thời điểm mẫu và nhịp HR hợp lệ từ driver; dùng đồng hồ64 bit để kiểm tra freshness qua millis rollover.
 - [x] Snapshot copy qua queue1; chỉ gửi bản mới nhất mỗi1000 ms, không gom backlog sau reconnect.
 - [x] ESP-MQTT có publishQoS1, pin platform7.1.3/ArduinoJson7.4.3; giữ sensor libraries hiện có.

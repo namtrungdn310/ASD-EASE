@@ -25,6 +25,8 @@ Thiết kế ghi ngày2026-10-31. Backend04 đã triển khai quyền/telemetry/
 
 ## Telemetry và chất lượng
 
+- Từ firmware0.3.0 có [telemetry1.1](IMU_TELEMETRY_V1_1.md): movement.acceleration m/s² và movement.angular_velocity degrees/s, đủ ba trục hoặc null; backend/frontend tiếp tục nhận1.0 cũ. Raw/control giữ1.0.
+
 - Dùng cấu trúc trong [API](../API_CONTRACT.md). Mặc định gửi1000 ms/lần; sau5000 ms không có mẫu mới được chấp nhận thì dữ liệu cũ. Đây là nhịp gửi, không phải nhịp lấy mẫu.
 - Thiết bị chỉ gửi snapshot mới sau đồng bộ, hàng đợi1, retain=false, không gửi dồn bản cũ. Khoá (device,session/boot,timestamp) cùng nội dung chuẩn hoá là gói trùng: không cập nhật lần thấy gần nhất, DB/sự kiện/WS lần2. Cùng khoá khác nội dung là xung đột; timestamp cũ bị bỏ và ghi log.
 - Schema1.0 không có boot trong telemetry nên không tự phát hiện mọi bản phát lại độc hại. Thiết kế dựa vào phiên MQTT sạch, đồng bộ mới, bên gửi đã xác thực và TLS; giờ nhận gói không chứng minh tuổi của mẫu.
