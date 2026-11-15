@@ -17,6 +17,8 @@ TaskHandle_t worker = nullptr;
 esp_mqtt_client_handle_t client = nullptr;
 std::atomic<bool> connected{false}, connectionFailed{false};
 std::atomic<int> fatalReason{0}, lastTransportError{0};
+std::atomic<int> lastMqttErrorType{0}, lastTlsStackError{0}, lastSocketError{0};
+std::atomic<uint32_t> lastTransportErrorAtMs{0};
 std::string prefix, presenceTopic, will, clientId;
 struct Packet { char suffix[24]; char payload[4097]; bool retained; };
 struct Flight { int id = 0; uint64_t at = 0; };
@@ -44,6 +46,11 @@ void event(void*, esp_event_base_t, int32_t type, void* pointer) {
     connectionFailed = true;
     if (e->error_handle) {
       auto error = e->error_handle;
+      lastMqttErrorType = static_cast<int>(error->error_type);
+      const bool tcpError = error->error_type == MQTT_ERROR_TYPE_TCP_TRANSPORT;
+      lastTlsStackError = tcpError ? error->esp_tls_stack_err : 0;
+      lastSocketError = tcpError ? error->esp_transport_sock_errno : 0;
+      lastTransportErrorAtMs = millis();
       lastTransportError = error->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED ?
         static_cast<int>(error->connect_return_code) : error->esp_tls_last_esp_err;
       if (error->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED &&
@@ -284,6 +291,8 @@ void networkTask(void*) {
       auto heap = esp_get_minimum_free_heap_size();
       auto stack = uxTaskGetStackHighWaterMark(nullptr);
       auto outbox = client ? esp_mqtt_client_get_outbox_size(client) : 0;
+      // Đọc RSSI ở worker mạng, ngoài critical section; -127 khi chưa có Wi-Fi.
+      const int rssi = wifi ? static_cast<int>(WiFi.RSSI()) : -127;
       portENTER_CRITICAL(&statsMux);
       stats.wifiConnected = wifi; stats.mqttConnected = connected;
       stats.synchronized = protocol.authorized(now);
@@ -292,6 +301,12 @@ void networkTask(void*) {
       stats.pendingControl = flightCount;
       stats.outboxBytes = outbox;
       stats.transportError = lastTransportError;
+      // Giữ lỗi gần nhất qua reconnect để chẩn đoán, không dùng như lỗi hiện hành.
+      stats.wifiRssiDbm = rssi;
+      stats.mqttErrorType = lastMqttErrorType;
+      stats.tlsStackError = lastTlsStackError;
+      stats.socketError = lastSocketError;
+      stats.transportErrorAtMs = lastTransportErrorAtMs;
       stats.fatalReason = fatalReason;
       stats.minHeapBytes = heap;
       stats.networkStackHighWater = stack;
@@ -332,11 +347,11 @@ bool mqttTransportSetup() {
 void mqttUpdateSnapshot(const asd::ReadingSnapshot& snapshot) {
   if (snapshotQueue) xQueueOverwrite(snapshotQueue, &snapshot);
 }
-void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, bool imuNew, bool gsrNew) {
+void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, uint32_t imuSamples, bool gsrNew) {
   portENTER_CRITICAL(&statsMux);
   if (haveLoop) stats.maxLoopGapMs = std::max(stats.maxLoopGapMs, now - previousLoop);
   previousLoop = now; haveLoop = true; ++stats.sensingLoops;
-  stats.ppgSamples += ppgSamples; stats.imuSamples += imuNew; stats.gsrSamples += gsrNew;
+  stats.ppgSamples += ppgSamples; stats.imuSamples += imuSamples; stats.gsrSamples += gsrNew;
   portEXIT_CRITICAL(&statsMux);
 }
 MqttStats mqttGetStats() {

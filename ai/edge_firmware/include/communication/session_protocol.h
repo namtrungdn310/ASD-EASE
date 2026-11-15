@@ -1,6 +1,7 @@
 #pragma once
 // Logic giao thức độc lập Arduino để chạy đúng cùng mã trong native tests.
 #include <ArduinoJson.h>
+#include "processing/measurement_quality.h"
 #include <array>
 #include <cstdint>
 #include <deque>
@@ -19,12 +20,18 @@ struct Outbound {
   bool retain = false;
 };
 struct ReadingSnapshot {
+  bool hasMetricQuality = false;
+  MeasurementQuality hrQuality{}, gsrQuality{}, accelerationQuality{}, rotationQuality{};
   uint64_t capturedAtMs = 0;
   float heartRate = 0, gsrDeltaPercent = 0, baselineConductance = 0;
+  float movementScore = 0;
+  std::array<float, 3> acceleration{}, angularVelocity{};
   uint16_t gsrAdc = 0;
   uint32_t heartRateAgeMs = UINT32_MAX, ppgAgeMs = UINT32_MAX,
            gsrAgeMs = UINT32_MAX, imuAgeMs = UINT32_MAX;
   bool heartRateValid = false, gsrValid = false, gsrReadable = false;
+  bool movementValid = false;
+  bool imuValid = false;
   bool gsrCalibrating = false, imuCalibrating = false;
 };
 bool validId(const std::string& value);

@@ -5,6 +5,8 @@
 #include "board_config.h"
 #include "HardwareProfiler.h"
 #include "MAX30102Sensor.h"
+#include "processing/ppg_wrist.h"
+#include "processing/ppg_wrist_motion.h"
 #include "MPU6050Sensor.h"
 #include "GSRSensor.h"
 #include "EMA.h"
@@ -12,6 +14,10 @@
 #include "communication/telemetry_serializer.h"
 #include "communication/network_settings.h"
 #include <esp_timer.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
+#include <atomic>
 
 // =============================================================================
 // Các đối tượng cảm biến dùng chung
@@ -19,15 +25,24 @@
 static MAX30102Sensor ppgSensor;
 static MPU6050Sensor  imuSensor;
 static GSRSensor      gsrSensor;
+static void observeMotion(const MPU6050Data& imu) {
+  asd::PpgMotionSample sample{};sample.at=imu.sampleMonotonicMs;
+  sample.valid=imu.valid && imu.hasSampleTimestamp && imu.gyroCalibrated;
+  sample.axes={{imu.rawAx/9.80665f,imu.rawAy/9.80665f,imu.rawAz/9.80665f,
+      imu.rawGx_deg/90,imu.rawGy_deg/90,imu.rawGz_deg/90}};
+  for(float v:sample.axes)sample.valid=sample.valid && std::isfinite(v);
+  ppgSensor.addMotionSample(sample);
+}
+
 
 // Mốc đọc riêng cho từng cảm biến
-static unsigned long lastPpgReadMs = 0;
-static unsigned long lastImuReadMs = 0;
-static unsigned long lastGsrReadMs = 0;
-static unsigned long lastOutputMs  = 0;
+static uint32_t lastPpgReadMs = 0;
+static uint32_t lastImuReadMs = 0;
+static uint32_t lastGsrReadMs = 0;
+static uint32_t lastOutputMs  = 0;
 
-static constexpr unsigned long kPpgIntervalMs    = PPG_SAMPLE_PERIOD_MS;
-static constexpr unsigned long kImuIntervalMs    = 1000UL / IMU_SAMPLE_RATE_HZ;
+static constexpr unsigned long kPpgIntervalMs    = LOOP_INTERVAL_MS;
+static constexpr unsigned long kImuIntervalMs    = LOOP_INTERVAL_MS;
 static constexpr unsigned long kGsrIntervalMs    = 1000UL / GSR_SAMPLE_RATE_HZ;
 static constexpr unsigned long kOutputIntervalMs = DEFAULT_OUTPUT_INTERVAL_MS;
 
@@ -67,16 +82,12 @@ static void scanI2CBuses() {
   Serial.println(F("----------------------------------------\n"));
 }
 
-static const char* getBusHealthString() {
-  Wire.beginTransmission(I2C_ADDR_MAX30102);
-  byte errMax = Wire.endTransmission();
-  Wire1.beginTransmission(imuSensor.getAddress());
-  byte errImu = Wire1.endTransmission();
-
-  if (errMax == 0 && errImu == 0) return "OK";
-  if (errMax == 0 && errImu != 0) return "MPU6050 NACK";
-  if (errMax != 0 && errImu == 0) return "MAX30102 NACK";
-  return "BOTH NACK";
+static const char* getBusHealthString(const MAX30102Data& ppg, const MPU6050Data& imu) {
+  // Log chỉ đọc snapshot; task log tuyệt đối không truy cập Wire/Wire1.
+  if (ppg.status == PPGStatus::DISCONNECTED || imu.status == IMUStatus::DISCONNECTED)
+    return "Chưa đủ cảm biến";
+  if (ppg.status == PPGStatus::ERROR || imu.status == IMUStatus::ERROR) return "Có lỗi đọc";
+  return "Đang đọc";
 }
 
 // =============================================================================
@@ -120,16 +131,17 @@ static void emitPrettyText(const MAX30102Data& ppg,
                            unsigned long       now) {
   Serial.println(F("\n================================================================"));
   Serial.printf(" ASD-EASE | %s | Uptime: %.1fs | I2C: %s\n",
-                MQTT_DEVICE_ID, now / 1000.0f, getBusHealthString());
+                MQTT_DEVICE_ID, now / 1000.0f, getBusHealthString(ppg, imu));
   Serial.println(F("----------------------------------------------------------------"));
 
   // ── [1] GSR — Điện da ──────────────────────────────────────────────────────
   Serial.printf(" [GSR]  %s", gsrStatusStr(gsr.status));
   if (gsr.status == GSRStatus::VALID) {
-    Serial.printf("  |  V = %.3f V (%u mV)  |  R = %.1f kΩ  |  G = %.2f µS",
-                  gsr.voltage, gsr.voltage_mV,
-                  gsr.resistance / 1000.0f, gsr.conductance_uS);
-    if (gsr.thresholdExceeded) Serial.print("  ** SCR **");
+    Serial.printf("  | ADC=%u", gsr.rawADC);
+    if (gsr.voltageCalibrated) Serial.printf(" | V=%.3f V", gsr.voltage);
+    else Serial.print(" | ADC chưa có hiệu chuẩn điện áp");
+    if (gsr.conductanceCalibrated) Serial.printf(" | G=%.2f µS", gsr.conductance_uS);
+    else Serial.print(" | µS chưa hiệu chuẩn mạch");
   } else if (gsr.status == GSRStatus::CALIBRATING) {
     Serial.printf("  |  V = %.3f V  |  Baseline đang thiết lập...", gsr.voltage);
   } else if (gsr.status == GSRStatus::DISCONNECTED) {
@@ -142,8 +154,7 @@ static void emitPrettyText(const MAX30102Data& ppg,
   // ── [2] MAX30102 — Tim mạch & SpO2 ────────────────────────────────────────
   Serial.printf(" [PPG]  %s", ppgStatusStr(ppg.status));
   if (ppg.status == PPGStatus::VALID) {
-    Serial.printf("  |  HR = %.1f BPM  |  SpO2 = %.1f %%",
-                  ppg.heartRate, ppg.spO2);
+    Serial.printf("  |  HR = %.1f BPM (cửa sổ8s)", ppg.heartRate);
   } else if (ppg.status == PPGStatus::PULSE_ACQUIRING) {
     if (ppg.heartRate >= HR_MIN_PHYSIOLOGICAL) {
       Serial.printf("  |  HR ~ %.1f BPM (đang ổn định...)", ppg.heartRate);
@@ -151,9 +162,14 @@ static void emitPrettyText(const MAX30102Data& ppg,
       Serial.print("  |  Đang bắt xung mạch...");
     }
   } else if (ppg.status == PPGStatus::NO_FINGER) {
-    Serial.print("  |  Chưa đặt ngón tay");
+    Serial.print("  |  Chưa xác nhận tiếp xúc da");
+    // Đối chiếu tiếp xúc thực với ngưỡng; không thay thuật toán hoặc gói MQTT.
+    Serial.printf("  |  IR=%lu  RED=%lu  nguongIR=%lu",
+                  static_cast<unsigned long>(ppg.irValue),
+                  static_cast<unsigned long>(ppg.redValue),
+                  static_cast<unsigned long>(PPG_IR_FINGER_THRESHOLD));
   } else {
-    Serial.print("  |  Mất kết nối I2C");
+    Serial.print("  |  Lỗi đọc hoặc tín hiệu chưa hợp lệ");
   }
   Serial.println();
 
@@ -162,11 +178,16 @@ static void emitPrettyText(const MAX30102Data& ppg,
   if (imu.valid) {
     Serial.printf("  |  Ax=%+.2f  Ay=%+.2f  Az=%+.2f m/s²  |a|=%.2f",
                   imu.ax, imu.ay, imu.az, imu.accelMagnitude);
+    if (imu.movementValid) Serial.printf("  movement=%.3f", imu.movementScore);
+    else Serial.print("  movement=chua_du_mau");
     Serial.println();
-    Serial.printf("         |  Gx=%+.1f  Gy=%+.1f  Gz=%+.1f °/s  |  T=%.1f°C",
-                  imu.gx_deg, imu.gy_deg, imu.gz_deg, imu.temperature);
+    Serial.printf("         |  Gx=%+.1f  Gy=%+.1f  Gz=%+.1f °/s",
+                  imu.gx_deg, imu.gy_deg, imu.gz_deg);
+    if (std::isfinite(imu.temperature)) Serial.printf(" | T=%.1f°C", imu.temperature);
+  } else if (imu.status == IMUStatus::CALIBRATING) {
+    Serial.print("  | Giữ yên để lấy lệch gyro; chưa gửi vector hợp lệ");
   } else {
-    Serial.print("  |  Mất kết nối, đang retry...");
+    Serial.print("  | Chưa có vector hợp lệ, xem ID/cấu hình/I2C");
   }
   Serial.println();
 
@@ -189,15 +210,21 @@ static void emitPrettyJson(const MAX30102Data& ppg,
   JsonObject g = doc["gsr"].to<JsonObject>();
   g["status"]  = gsrStatusStr(gsr.status);
   g["valid"]   = gsr.valid;
+  g["adc_raw"] = gsr.rawADC;
+  g["voltage_calibrated"] = gsr.voltageCalibrated;
+  g["conductance_calibrated"] = gsr.conductanceCalibrated;
   if (gsr.status == GSRStatus::VALID || gsr.status == GSRStatus::CALIBRATING) {
+    if (gsr.voltageCalibrated) {
     g["voltage_v"]       = roundf(gsr.voltage * 1000.0f) / 1000.0f;
     g["voltage_mv"]      = gsr.voltage_mV;
+    }
+    if (gsr.conductanceCalibrated) {
     g["resistance_ohm"]  = roundf(gsr.resistance);
     g["conductance_us"]  = roundf(gsr.conductance_uS * 100.0f) / 100.0f;
+    }
     if (gsr.valid) {
       g["baseline_mv"]   = roundf(gsr.baselineVoltage_mV * 10.0f) / 10.0f;
       g["delta_us"]      = roundf(gsr.deltaConductance_uS * 100.0f) / 100.0f;
-      g["scr_event"]     = gsr.thresholdExceeded;
     }
   }
 
@@ -208,7 +235,6 @@ static void emitPrettyJson(const MAX30102Data& ppg,
   p["finger"]  = ppg.fingerDetected;
   if (ppg.fingerDetected && ppg.heartRate >= HR_MIN_PHYSIOLOGICAL) {
     p["hr_bpm"]      = roundf(ppg.heartRate * 10.0f) / 10.0f;
-    p["spo2_pct"]    = roundf(ppg.spO2 * 10.0f) / 10.0f;
   }
 
   // MPU6050
@@ -237,16 +263,125 @@ static void emitPrettyJson(const MAX30102Data& ppg,
 static void emitOutput(const MAX30102Data& ppg,
                        const MPU6050Data&  imu,
                        const GSRData&      gsr,
-                       unsigned long       now) {
-  if (outputFormat == OutputFormat::PRETTY_JSON) {
+                       unsigned long       now, OutputFormat format) {
+  if (format == OutputFormat::PRETTY_JSON) {
     emitPrettyJson(ppg, imu, gsr, now);
   } else {
     emitPrettyText(ppg, imu, gsr, now);
   }
 }
 
+struct DiagnosticSnapshot {
+  MAX30102Data ppg;
+  MPU6050Data imu;
+  GSRData gsr;
+  MqttStats net;
+  PpgAcquisitionStats ppgStats;
+  ImuAcquisitionStats imuStats;
+  std::array<float, 3> gyroOffsets;
+  uint32_t now;
+  OutputFormat format;
+  asd::PpgHybridStats hybrid;
+};
+static QueueHandle_t diagnosticQueue = nullptr;
+struct PpgTraceFrame {
+  uint64_t time; uint32_t red,ir;
+  asd::PpgMotionSample motion;
+  uint8_t redLed,irLed;uint32_t exposureGeneration;
+};
+static QueueHandle_t ppgTraceQueue = nullptr;
+static std::atomic<uint32_t> traceStarted{0}, traceDropped{0};
+static void observePpg(uint64_t measured, uint32_t red, uint32_t ir) {
+  const uint32_t started = traceStarted.load();
+  if (!ppgTraceQueue || started == 0 || uint32_t(millis() - started) >= 60000) return;
+  const PpgTraceFrame frame{measured,red,ir,ppgSensor.motionAt(measured),
+      ppgSensor.redLed(),ppgSensor.irLed(),ppgSensor.exposureGeneration()};
+  if (xQueueSend(ppgTraceQueue, &frame, 0) != pdTRUE) ++traceDropped;
+}
+
+static void diagnosticTask(void*) {
+  DiagnosticSnapshot d{};
+  for (;;) {
+    const bool haveDiagnostic = xQueueReceive(diagnosticQueue, &d, pdMS_TO_TICKS(10)) == pdTRUE;
+    if (!Serial) { if (ppgTraceQueue) xQueueReset(ppgTraceQueue); continue; }
+    PpgTraceFrame frame{};
+    for (unsigned i = 0; ppgTraceQueue && i < 16 &&
+         xQueueReceive(ppgTraceQueue, &frame, 0) == pdTRUE; ++i)
+      Serial.printf("[PPG-RAW] t=%llu red=%lu ir=%lu imu=%llu,%u,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f led=%u,%u,%lu\n",
+        frame.time,frame.red,frame.ir,frame.motion.at,unsigned(frame.motion.valid),
+        frame.motion.axes[0],frame.motion.axes[1],frame.motion.axes[2],
+        frame.motion.axes[3],frame.motion.axes[4],frame.motion.axes[5],
+        unsigned(frame.redLed),unsigned(frame.irLed),frame.exposureGeneration);
+    if (!haveDiagnostic) continue;
+    emitOutput(d.ppg, d.imu, d.gsr, d.now, d.format);
+    const auto& s = d.net;
+    Serial.printf("[NET] wifi=%u mqtt=%u sync=%u tx=%lu fail=%lu drop=%lu invalid=%lu heapMin=%lu stackWater=%lu loopGap=%lu samples=%lu/%lu/%lu controlDrop=%lu pending=%lu outbox=%lu error=%d fatal=%d\n",
+      s.wifiConnected, s.mqttConnected, s.synchronized, s.publishOk, s.publishFail, s.dropped,
+      s.invalid, s.minHeapBytes, s.networkStackHighWater, s.maxLoopGapMs, s.ppgSamples, s.imuSamples, s.gsrSamples,
+      s.controlDropped, s.pendingControl, s.outboxBytes, s.transportError, s.fatalReason);
+    Serial.printf("[NET-LINK] rssiDbm=%d reconnects=%lu errorAtMs=%lu mqttErrorType=%d tlsStackError=%d socketError=%d\n",
+      s.wifiRssiDbm, s.reconnects, s.transportErrorAtMs,
+      s.mqttErrorType, s.tlsStackError, s.socketError);
+    const auto& p = d.ppgStats;
+    Serial.printf("[PPG-OPT] redLed=%u irLed=%u changes=%lu settling=%u irEvidence=%.3f redEvidence=%.3f sqi=%.3f imuCoverage=%.3f overlap=%.3f corrected=%u supported=%u\n",
+      unsigned(d.ppg.redLed),unsigned(d.ppg.irLed),d.ppg.exposureChanges,unsigned(d.ppg.exposureSettling),
+      d.ppg.irEvidence,d.ppg.redEvidence,d.ppg.qualityEvidence,d.ppg.motionCoverage,d.ppg.motionOverlap,
+      unsigned(d.ppg.motionCorrected),unsigned(d.ppg.motionSupported));
+    Serial.printf("[PPG-DAQ] ms=%lu n=%lu batchMax=%lu pollMax=%lu io=%lu overflow=%lu lostMin=%lu gaps=%lu clip=%lu IR=%lu RED=%lu ac=%.1f hr=%.1f valid=%u fw=%s\n",
+      d.now, p.samples, p.maxBatch, p.maxPollGapMs, p.ioErrors, p.overflowEvents,
+      p.overflowSamplesLowerBound, p.gapEvents, p.clippedSamples,
+      d.ppg.irValue, d.ppg.redValue, d.ppg.pulseAmplitude,
+      d.ppg.heartRate, unsigned(d.ppg.valid), ASD_FIRMWARE_VERSION);
+    Serial.printf("[PPG-REG] wr=%u rd=%u ovf=%u int=0x%02X discarded=%lu contact=%u settled=%u restarts=%lu windows=%lu\n",
+      p.writePointer, p.readPointer, p.overflowCounter, p.interrupt, p.discardedSamples,
+      unsigned(d.ppg.fingerDetected), unsigned(d.ppg.contactSettled), p.contactRestarts, d.ppg.acceptedWindows);
+    Serial.printf("[PPG-RATE] ir=%.3f recent=%.3f red=%.3f redRecent=%.3f source=%u powerRatio=%.2f maxUs=%lu\n",
+      d.ppg.periodicity, d.ppg.recentPeriodicity, d.ppg.redPeriodicity, d.ppg.redRecentPeriodicity,
+      unsigned(d.ppg.heartRateSource), d.ppg.bandPowerRatio, p.maxRateProcessingUs);
+    Serial.printf("[PPG-INIT] attempts=%lu ok=%lu failed=%lu started=%lu duration=%lu maxDuration=%lu lastRecovery=%lu retryMs=%lu stepMaxUs=%lu\n",
+      p.initAttempts, p.initSuccesses, p.initFailures, p.lastInitStartedMs,
+      p.lastInitDurationMs, p.maxInitDurationMs, p.lastRecoveryDurationMs, I2C_RETRY_INTERVAL_MS,p.maxInitStepUs);
+    const auto& f = p.lastFault;
+    Serial.printf("[PPG-IO] events=%lu at=%lu phase=%u kind=%u reg=0x%02X requested=%u received=%u code=%u expected=0x%02X observed=0x%02X\n",
+      p.faultEvents, f.atMs, unsigned(f.phase), unsigned(f.kind), unsigned(f.reg),
+      unsigned(f.requested), unsigned(f.received), unsigned(f.code), unsigned(f.expected), unsigned(f.observed));
+    const auto& h=d.hybrid;
+    const auto& cause=p.recoveryCause;
+    Serial.printf("[PPG-CAUSE] at=%lu phase=%u kind=%u reg=0x%02X requested=%u received=%u code=%u\n",
+      cause.atMs,unsigned(cause.phase),unsigned(cause.kind),unsigned(cause.reg),
+      unsigned(cause.requested),unsigned(cause.received),unsigned(cause.code));
+    const auto optics=asd::assessWrist(d.ppg.irValue,d.ppg.pulseAmplitude,d.ppg.hasRateWindow,
+      d.ppg.fingerDetected,d.ppg.contactSettled,d.ppg.opticalOverload,d.ppg.valid);
+    const char* opticalLevel=asd::wristLevelName(optics.level);
+#if ASD_PPG_WRIST_MOTION_GUARD
+    if (d.ppg.fingerDetected && !d.ppg.opticalOverload && !d.ppg.wristMotionAllowed)
+      opticalLevel=d.ppg.wristMotionReason==0 ? "IMU_CHUA_SAN_SANG" :
+        (d.ppg.wristMotionReason==1 ? "DANG_CHUYEN_DONG" : "DANG_THU_LAI_CUA_SO");
+#endif
+    Serial.printf("[PPG-WRIST] level=%s acDcPct=%.4f ambientEvents=%lu led=%u chipHz=%u fifoHz=%u motionReason=%u allowHr=%u motionScore=%.4f\n",
+      opticalLevel,optics.acDcPct,p.ambientOverflowEvents,
+      unsigned(d.ppg.irLed),PPG_RAW_SAMPLE_RATE_HZ,PPG_EFFECTIVE_RATE_HZ,
+      unsigned(d.ppg.wristMotionReason),unsigned(d.ppg.wristMotionAllowed),d.imu.movementScore);
+    Serial.printf("[PPG-HYBRID] enabled=%u selfTest=%u requests=%lu overwritten=%lu completed=%lu accepted=%lu wallUs=%lu maxWallUs=%lu stackFree=%lu selfTestUs=%lu workspace=%u\n",
+      unsigned(h.enabled),unsigned(h.selfTestPassed),h.requests,h.overwritten,h.completed,h.accepted,
+      h.lastWallUs,h.maxWallUs,h.stackFreeBytes,h.selfTestUs,unsigned(h.workspaceBytes));
+#if ASD_PPG_TRACKER_ENABLED
+    Serial.printf("[PPG-TRACK] massScore=%.3f evidence=%.3f candidateBpm=%.2f enabled=%u\n",
+      h.trackingMassScore,h.trackingEvidence,h.trackingRawBpm,unsigned(h.enabled));
+#endif
+    const auto& m = d.imuStats;
+    Serial.printf("[IMU-DAQ] ms=%lu n=%lu io=%lu overflow=%lu gaps=%lu clip=%lu bias=%u offsets=%.3f/%.3f/%.3f logStack=%u\n",
+      d.now, m.samples, m.ioErrors, m.overflowEvents, m.gaps, m.clipped,
+      unsigned(d.imu.gyroCalibrated), d.gyroOffsets[0], d.gyroOffsets[1], d.gyroOffsets[2],
+      unsigned(uxTaskGetStackHighWaterMark(nullptr)));
+    if (traceStarted.load() != 0)
+      Serial.printf("[PPG-TRACE] dropped=%lu\n", static_cast<unsigned long>(traceDropped.load()));
+  }
+}
+
 // =============================================================================
 void setup() {
+  imuSensor.setSampleObserver(observeMotion);
   Serial.begin(115200);
   delay(1500);
 
@@ -277,9 +412,10 @@ void setup() {
   Availability s3 = gsrSensor.begin();
 
   Serial.printf("\n[INIT] MAX30102: %s | MPU6050 (0x%02X): %s | GSR (GPIO%d): %s\n",
-                s1 == Availability::READY ? "OK" : "FAIL",
+                s1 == Availability::READY ? "OK" : (ppgSensor.isInitializing() ? "DANG_KHOI_TAO" : "FAIL"),
                 imuSensor.getAddress(),
-                s2 == Availability::READY ? "OK" : "FAIL",
+                s2 == Availability::READY ? "OK" :
+                  (imuSensor.getStatus() == IMUStatus::CALIBRATING ? "DANG_KHOI_TAO" : "FAIL"),
                 PIN_GSR_ADC,
                 s3 == Availability::READY ? "OK" : "FAIL");
   Serial.println(F("[NOTE] MPU6050 lắp úp -> trục Y,Z đã đảo chiều trong firmware\n"));
@@ -296,6 +432,22 @@ void setup() {
 
   // ── MQTT transport ──────────────────────────────────────────────────────────
   mqttTransportSetup();
+  if (!asd::ppgHybridSetup()) {
+#if ASD_PPG_TRACKER_ENABLED
+    Serial.println(F("[PPG-HYBRID] Task tracker chưa bật; HR chờ task, không thay bằng số đối chứng"));
+#else
+    Serial.println(F("[PPG-HYBRID] Task chưa bật; tiếp tục bộ HR đối chứng"));
+#endif
+  }
+  if (ASD_SERIAL_DIAGNOSTICS) {
+    ppgTraceQueue = xQueueCreate(128, sizeof(PpgTraceFrame));
+    diagnosticQueue = xQueueCreate(1, sizeof(DiagnosticSnapshot));
+    if (diagnosticQueue && xTaskCreate(diagnosticTask, "asd-log", 6144, nullptr, 0, nullptr) != pdPASS) {
+      vQueueDelete(diagnosticQueue); diagnosticQueue = nullptr;
+    }
+    if (!diagnosticQueue) Serial.println(F("[LOG] Không đủ bộ nhớ; tắt log định kỳ, sensing/MQTT vẫn chạy"));
+    if (diagnosticQueue && ppgTraceQueue) ppgSensor.setSampleObserver(observePpg);
+  }
 }
 
 // =============================================================================
@@ -307,56 +459,72 @@ void loop() {
     char c = static_cast<char>(Serial.read());
     if (c == 'j' || c == 'J') {
       outputFormat = OutputFormat::PRETTY_JSON;
-      Serial.println(F("\n>>> Chế độ: JSON <<<"));
     } else if (c == 't' || c == 'T') {
       outputFormat = OutputFormat::PRETTY_TEXT;
-      Serial.println(F("\n>>> Chế độ: TEXT <<<"));
+    } else if (c == 'p') {
+      traceDropped.store(0); traceStarted.store(millis());
+    } else if (c == 'q') {
+      traceStarted.store(0); if (ppgTraceQueue) xQueueReset(ppgTraceQueue);
     }
   }
 
   static MAX30102Data latestPpg;
   static MPU6050Data  latestImu;
   static GSRData      latestGsr;
+  static asd::WristMotionGuard wristMotion;
   uint32_t ppgSamples = 0;
-  bool imuNew = false, gsrNew = false;
+  uint32_t imuSamples = 0;
+  bool gsrNew = false;
 
 
-  if (now - lastPpgReadMs >= kPpgIntervalMs) {
+  if (asd::sampleDue(now, lastImuReadMs, kImuIntervalMs)) {
+    latestImu = imuSensor.read();
+    imuSamples = latestImu.newSamples;
+  }
+  if (asd::sampleDue(now, lastPpgReadMs, kPpgIntervalMs)) {
     latestPpg = ppgSensor.read();
     ppgSamples = latestPpg.newSamples;
-    lastPpgReadMs = now;
   }
 
-  if (now - lastImuReadMs >= kImuIntervalMs) {
-    latestImu = imuSensor.read();
-    imuNew = latestImu.hasSampleTimestamp;
-    lastImuReadMs = now;
+#if ASD_PPG_WRIST_MOTION_GUARD
+  const uint64_t motionNow=static_cast<uint64_t>(esp_timer_get_time())/1000;
+  // Chỉ vượt cổng chuyển động khi worker có IMU khớp thời gian và
+  // ứng viên HR không trùng chu kỳ chuyển động. Không xóa cửa sổ PPG.
+  wristMotion.update(motionNow,latestImu.sampleMonotonicMs,
+      latestImu.valid && latestImu.hasSampleTimestamp,latestImu.gyroCalibrated,
+      latestImu.movementValid,latestImu.movementScore);
+  ppgSensor.setExposureQuiet(wristMotion.allowsHr());
+  const bool motionReferenceFresh=latestImu.valid && latestImu.gyroCalibrated && latestImu.hasSampleTimestamp &&
+      latestImu.sampleMonotonicMs<=motionNow && motionNow-latestImu.sampleMonotonicMs<=100;
+  latestPpg.wristMotionAllowed=wristMotion.allowsHr() || (motionReferenceFresh && latestPpg.motionSupported);
+  latestPpg.wristMotionReason=static_cast<uint8_t>(wristMotion.reason());
+  if (!latestPpg.wristMotionAllowed) {
+    latestPpg.valid=false; latestPpg.hasHeartRateTimestamp=false;
+    latestPpg.heartRate=0;
+    if (latestPpg.status==PPGStatus::VALID) latestPpg.status=PPGStatus::PULSE_ACQUIRING;
   }
+#else
+  latestPpg.wristMotionAllowed=true;
+#endif
 
-  if (now - lastGsrReadMs >= kGsrIntervalMs) {
+  if (asd::sampleDue(now, lastGsrReadMs, kGsrIntervalMs)) {
     latestGsr = gsrSensor.read();
     gsrNew = latestGsr.hasSampleTimestamp;
-    lastGsrReadMs = now;
   }
 
   // Xuất gói dữ liệu định kỳ
-  if (now - lastOutputMs >= kOutputIntervalMs) {
-    if (ASD_SERIAL_DIAGNOSTICS) emitOutput(latestPpg, latestImu, latestGsr, now);
-    if (ASD_SERIAL_DIAGNOSTICS) {
-      auto s = mqttGetStats();
-      Serial.printf("[NET] wifi=%u mqtt=%u sync=%u tx=%lu fail=%lu drop=%lu invalid=%lu heapMin=%lu stackWater=%lu loopGap=%lu samples=%lu/%lu/%lu controlDrop=%lu pending=%lu outbox=%lu error=%d fatal=%d\n",
-        s.wifiConnected, s.mqttConnected, s.synchronized, s.publishOk, s.publishFail, s.dropped,
-        s.invalid, s.minHeapBytes, s.networkStackHighWater, s.maxLoopGapMs, s.ppgSamples, s.imuSamples, s.gsrSamples,
-        s.controlDropped, s.pendingControl, s.outboxBytes, s.transportError, s.fatalReason);
-    }
-
-    lastOutputMs = now;
+  if (asd::sampleDue(now, lastOutputMs, kOutputIntervalMs) && diagnosticQueue) {
+    const DiagnosticSnapshot d{latestPpg, latestImu, latestGsr, mqttGetStats(),
+      ppgSensor.acquisitionStats(), imuSensor.acquisitionStats(), imuSensor.gyroOffsets(), now, outputFormat, asd::ppgHybridStats()};
+    xQueueOverwrite(diagnosticQueue, &d); // Latest-only, không đợi Serial.
   }
 
+  const uint64_t qualityNow = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
   mqttUpdateSnapshot(captureTelemetrySnapshot(latestPpg, latestImu, latestGsr,
-    millis(), static_cast<uint64_t>(esp_timer_get_time()) / 1000));
+    millis(), qualityNow, ppgSensor.signalQuality(qualityNow), gsrSensor.signalQuality(qualityNow),
+    imuSensor.accelerationQuality(qualityNow), imuSensor.rotationQuality(qualityNow)));
 
-  mqttRecordSensing(now, ppgSamples, imuNew, gsrNew);
+  mqttRecordSensing(now, ppgSamples, imuSamples, gsrNew);
 
   // Điều phối nhịp loop chính
   const unsigned long elapsed = millis() - now;

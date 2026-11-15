@@ -1,10 +1,13 @@
 #include "communication/session_protocol.h"
+#include "processing/movement_score.h"
 #include <iostream>
+#include <limits>
 #include <memory>
 
 // Chỉ harness native: clock/đầu vào giả và stdout NDJSON; core cùng mã với ESP32.
 int main() {
   std::unique_ptr<asd::SessionProtocol> protocol;
+  asd::MovementScoreEstimator movement;
   unsigned nonce = 0;
   std::string line;
   while (std::getline(std::cin, line)) {
@@ -14,6 +17,7 @@ int main() {
     uint64_t now = input["now"] | uint64_t(0);
     bool accepted = true;
     if (operation == "init") {
+      movement.reset();
       asd::Profile profile;
       profile.ppg = input["profile"]["ppg_hz"] | 50;
       profile.imu = input["profile"]["imu_hz"] | 50;
@@ -25,6 +29,7 @@ int main() {
     else if (operation == "disconnect") protocol->disconnected();
     else if (operation == "tick") protocol->tick(now);
     else if (operation == "resync") protocol->requestSynchronization(now);
+    else if (operation == "motion_reset") movement.reset();
     else if (operation == "budget") protocol->transportPending(input["count"] | 0U, input["bytes"] | 0U);
     else if (operation == "burst") {
       std::string wire; serializeJson(input["payload"], wire);
@@ -35,6 +40,27 @@ int main() {
       if (input["wire"].is<const char*>()) wire = input["wire"].as<std::string>();
       else serializeJson(input["payload"], wire);
       accepted = protocol->receive(input["suffix"] | "command", wire, input["retain"] | false, now);
+    } else if (operation == "motion") {
+      auto sample = input["sample"];
+      asd::MovementScoreEstimator::Reading reading;
+      if (input["sensor_valid"] | true) {
+        const float missing = std::numeric_limits<float>::quiet_NaN();
+        reading = movement.update(now, sample["ax"] | missing, sample["ay"] | missing,
+            sample["az"] | missing, sample["gx"] | missing,
+            sample["gy"] | missing, sample["gz"] | missing);
+      } else movement.reset();
+      result["motion"]["valid"] = reading.valid;
+      if (reading.valid) result["motion"]["score"] = reading.score;
+      else result["motion"]["score"] = nullptr;
+      asd::ReadingSnapshot snapshot;
+      snapshot.capturedAtMs = now;
+      snapshot.imuAgeMs = 0;
+      snapshot.movementScore = reading.score;
+      snapshot.movementValid = reading.valid;
+      JsonDocument frame;
+      deserializeJson(frame, asd::telemetryJson(snapshot, now, now,
+          "SYN-FIRMWARE", "SYNTHETIC", "native-motion-test", ""));
+      result["telemetry"] = frame;
     } else if (operation == "telemetry") {
       asd::ReadingSnapshot s;
       auto v = input["snapshot"];
@@ -46,6 +72,14 @@ int main() {
       s.gsrAdc = v["gsr_adc"] | uint16_t(0);
       s.gsrAgeMs = v["gsr_age"] | UINT32_MAX;
       s.imuAgeMs = v["imu_age"] | UINT32_MAX;
+      s.movementScore = v["movement_score"] | 0.0f;
+      s.movementValid = v["movement_valid"] | false;
+      s.imuValid = v["imu_valid"] | false;
+      const char* axes[] = {"x", "y", "z"};
+      for (size_t i = 0; i < 3; ++i) {
+        s.acceleration[i] = v["acceleration"][axes[i]] | std::numeric_limits<float>::quiet_NaN();
+        s.angularVelocity[i] = v["angular_velocity"][axes[i]] | std::numeric_limits<float>::quiet_NaN();
+      }
       s.gsrDeltaPercent = v["gsr_percent"] | 0.0f;
       s.baselineConductance = v["gsr_baseline"] | 0.0f;
       s.gsrReadable = v["gsr_readable"] | false;

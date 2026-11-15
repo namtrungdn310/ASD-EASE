@@ -1,214 +1,202 @@
 #include "MPU6050Sensor.h"
 #include <esp_timer.h>
 #include <Wire.h>
+#include <algorithm>
 #include <cmath>
 
-
-static constexpr uint8_t REG_SMPLRT_DIV   = 0x19;
-static constexpr uint8_t REG_CONFIG       = 0x1A;
-static constexpr uint8_t REG_GYRO_CONFIG  = 0x1B;
-static constexpr uint8_t REG_ACCEL_CONFIG = 0x1C;
-static constexpr uint8_t REG_ACCEL_XOUT_H = 0x3B;
-static constexpr uint8_t REG_PWR_MGMT_1   = 0x6B;
-static constexpr uint8_t REG_WHO_AM_I     = 0x75;
+namespace {
+constexpr uint32_t kPeriodMs = 1000 / IMU_SAMPLE_RATE_HZ;
+constexpr float kAccelLsb[] = {16384, 8192, 4096, 2048};
+constexpr float kGyroLsb[] = {131, 65.5, 32.8, 16.4};
+static_assert(IMU_SAMPLE_RATE_HZ == 50 && IMU_FILTER_BW == 5,
+              "Revalidate filtering, FIFO clock and acquisition profile for a new rate");
+static_assert(IMU_ACCEL_RANGE == 0 && IMU_GYRO_RANGE == 0,
+              "Movement score/clipping limits require the validated 2g/250dps profile");
+}
 
 bool MPU6050Sensor::writeRegister(uint8_t reg, uint8_t value) {
-  if (wire_ == nullptr) wire_ = &Wire1;
   wire_->beginTransmission(i2cAddr_);
-  wire_->write(reg);
-  wire_->write(value);
-  return (wire_->endTransmission() == 0);
+  wire_->write(reg); wire_->write(value);
+  return wire_->endTransmission() == 0;
 }
 
 bool MPU6050Sensor::readRegisters(uint8_t reg, uint8_t* buffer, size_t len) {
-  if (wire_ == nullptr) wire_ = &Wire1;
-  wire_->beginTransmission(i2cAddr_);
-  wire_->write(reg);
-  
-  if (wire_->endTransmission(false) != 0) {
+  wire_->beginTransmission(i2cAddr_); wire_->write(reg);
+  if (wire_->endTransmission(false) != 0) return false;
+  if (wire_->requestFrom(i2cAddr_, static_cast<uint8_t>(len)) != len) {
+    while (wire_->available()) (void)wire_->read();
     return false;
   }
-
-  uint8_t bytesRead = wire_->requestFrom(i2cAddr_, static_cast<uint8_t>(len));
-  if (bytesRead != len) return false;
-
   for (size_t i = 0; i < len; ++i) {
-    buffer[i] = wire_->read();
+    if (!wire_->available()) return false;
+    buffer[i] = static_cast<uint8_t>(wire_->read());
   }
   return true;
 }
 
-// =============================================================================
-Availability MPU6050Sensor::begin(TwoWire* wirePort) {
-  if (wirePort != nullptr) {
-    wire_ = wirePort;
-  } else if (wire_ == nullptr) {
-    wire_ = &Wire1;
-  }
-
-  ready_ = false;
-  status_ = IMUStatus::DISCONNECTED;
+void MPU6050Sensor::fail() {
+  ready_ = false; initStage_ = 0; status_ = IMUStatus::ERROR;
   lastRetryMs_ = millis();
-
-  // 1. Dò tìm địa chỉ I2C của MPU6050: 0x68 (AD0=GND), 0x69 (kiểm tra cách nối AD0 theo mô-đun)
-  const uint8_t candidateAddresses[] = { I2C_ADDR_MPU6050, 0x69 };
-  uint8_t foundAddr = 0;
-
-  for (uint8_t addr : candidateAddresses) {
-    wire_->beginTransmission(addr);
-    if (wire_->endTransmission() == 0) {
-      foundAddr = addr;
-      break;
-    }
-  }
-
-  if (foundAddr == 0) {
-    status_ = IMUStatus::DISCONNECTED;
-    return Availability::UNAVAILABLE;
-  }
-
-  i2cAddr_ = foundAddr;
-
-  // 2. Reset chip phần cứng để xóa mọi trạng thái treo/lỗi trước đó (bit 7: DEVICE_RESET)
-  writeRegister(REG_PWR_MGMT_1, 0x80);
-  delay(50);
-
-  // 3. Đánh thức chip và chọn nguồn xung nhịp PLL với trục X gyro (0x01)
-  // Dùng CLKSEL=1 thay nguồn RC nội; độ ổn định thực tế cần đo
-  if (!writeRegister(REG_PWR_MGMT_1, 0x01)) {
-    status_ = IMUStatus::ERROR;
-    return Availability::ERROR;
-  }
-  delay(15);
-
-  // 4. Đọc kiểm tra mã nhận diện WHO_AM_I (0x75)
-  uint8_t id = 0;
-  if (readRegisters(REG_WHO_AM_I, &id, 1)) {
-    whoAmI_ = id;
-    // Driver hiện chấp nhận các mã WHO_AM_I sau; chưa chứng minh mọi mô-đun đều tương thích:
-    // 0x68: MPU-6050, 0x70: MPU-6500, 0x71/0x73: MPU-9250, 0x72, 0x98...
-    Serial.printf("[MPU6050] Phát hiện thiết bị tại 0x%02X (WHO_AM_I = 0x%02X)\n", i2cAddr_, whoAmI_);
-  } else {
-    Serial.printf("[MPU6050] CẢNH BÁO: Không đọc được WHO_AM_I tại 0x%02X\n", i2cAddr_);
-  }
-
-  // 5. Cấu hình tốc độ chia mẫu: Sample Rate = Gyro Rate / (1 + SMPLRT_DIV) -> 1 kHz
-  writeRegister(REG_SMPLRT_DIV, 0x00);
-
-  // 6. Cấu hình Digital Low Pass Filter (DLPF): mode 3 (~44 Hz bandwidth)
-  writeRegister(REG_CONFIG, 0x03);
-
-  // 7. Cấu hình thang đo Gyro: 0 = ±250 °/s (131 LSB/(°/s))
-  writeRegister(REG_GYRO_CONFIG, 0x00);
-
-  // 8. Cấu hình thang đo Accel: 0 = ±2 g (16384 LSB/g)
-  writeRegister(REG_ACCEL_CONFIG, 0x00);
-
-  ready_ = true;
-  status_ = IMUStatus::VALID;
-  consecutiveErrors_ = 0;
+  latest_ = {}; clock_.reset();
   resetFilters();
-  Serial.printf("[MPU6050] OK — Khởi tạo thành công tại 0x%02X (±2 g / ±250 °/s, Bộ lọc EMA ON)\n", i2cAddr_);
-  return Availability::READY;
+  if (!gyroBias_.ready()) gyroBias_.restartWindow();
+}
+
+Availability MPU6050Sensor::begin(TwoWire* port) {
+  wire_ = port ? port : (wire_ ? wire_ : &Wire1);
+  ready_ = false; initStage_ = 0; lastRetryMs_ = millis();
+  whoAmI_ = 0; latest_ = {}; clock_.reset();
+  gyroBias_.reset(); resetFilters();
+  bool found = false;
+  for (uint8_t address : {I2C_ADDR_MPU6050, uint8_t(0x69)}) {
+    i2cAddr_ = address;
+    uint8_t id = 0;
+    if (!readRegisters(0x75, &id, 1)) continue;
+    whoAmI_ = id;
+    // Không coi MPU6500/9250 hoặc mã lạ là 6050: FIFO/filter/nhiệt độ có thể khác.
+    if (id != 0x68 && id != 0x74) {
+      Serial.printf("[IMU] WHO_AM_I=0x%02X tại 0x%02X chưa có profile; không gửi số giả hợp lệ\n", id, address);
+      continue;
+    }
+    found = true; break;
+  }
+  if (!found) { status_ = IMUStatus::DISCONNECTED; return Availability::UNAVAILABLE; }
+  if (!writeRegister(0x6b, 0x80)) { fail(); return Availability::ERROR; }
+  // Chờ reset/wake bằng state machine, không delay(50/15) trong sensing.
+  initStage_ = 1; stageStarted_ = millis(); status_ = IMUStatus::CALIBRATING;
+  return Availability::UNAVAILABLE;
+}
+
+bool MPU6050Sensor::resetFifo() {
+  return writeRegister(0x23, 0x00) && writeRegister(0x6a, 0x00) &&
+      writeRegister(0x6a, 0x04) && writeRegister(0x6a, 0x40) && writeRegister(0x23, 0xf8);
+}
+
+bool MPU6050Sensor::configure() {
+  const uint8_t divider = 1000 / IMU_SAMPLE_RATE_HZ - 1;
+  const uint8_t gyro = IMU_GYRO_RANGE << 3, accel = IMU_ACCEL_RANGE << 3;
+  // MPU6515 (0x74): nhánh MPU6500 có ACCEL_CONFIG2 riêng; bit6 chọn FIFO1KiB.
+  const bool is6515 = whoAmI_ == 0x74;
+  if (!writeRegister(0x19, divider) || !writeRegister(0x1a, IMU_FILTER_BW) ||
+      !writeRegister(0x1b, gyro) || !writeRegister(0x1c, accel) ||
+      (is6515 && !writeRegister(0x1d, 0x40 | IMU_FILTER_BW)) ||
+      !writeRegister(0x37, 0x00) || !writeRegister(0x38, 0x10) || !resetFifo()) return false;
+  uint8_t registers[4]{}, fifo = 0, user = 0, power = 0, id = 0;
+  if (!readRegisters(0x19, registers, 4) || registers[0] != divider ||
+      registers[1] != IMU_FILTER_BW || registers[2] != gyro || registers[3] != accel ||
+      !readRegisters(0x23, &fifo, 1) || fifo != 0xf8 ||
+      !readRegisters(0x6a, &user, 1) || (user & 0x40) == 0 ||
+      !readRegisters(0x6b, &power, 1) || (power & 0x47) != 0x01 ||
+      !readRegisters(0x75, &id, 1) || id != whoAmI_) return false;
+  if (is6515) {
+    uint8_t accelFilter = 0;
+    if (!readRegisters(0x1d, &accelFilter, 1) || (accelFilter & 0x7f) != (0x40 | IMU_FILTER_BW)) return false;
+  }
+  Serial.printf("[IMU] ID=0x%02X %s FIFO50Hz DLPF~10Hz ±2g/250dps; gyro-bias=%u, giữ yên khi khởi động\n",
+      whoAmI_, is6515 ? "MPU6515" : "MPU6050", unsigned(IMU_AUTO_GYRO_BIAS));
+  return true;
 }
 
 void MPU6050Sensor::resetFilters() {
-  axFilter_.reset();
-  ayFilter_.reset();
-  azFilter_.reset();
-  gxFilter_.reset();
-  gyFilter_.reset();
-  gzFilter_.reset();
+  movement_.reset();
+  axFilter_.reset(); ayFilter_.reset(); azFilter_.reset();
+  gxFilter_.reset(); gyFilter_.reset(); gzFilter_.reset();
+}
+
+MPU6050Data MPU6050Sensor::process(const asd::ImuRawSample& raw, uint64_t measured) {
+  MPU6050Data data{};
+  data.whoAmI = whoAmI_; data.sampleMonotonicMs = measured;
+  data.sampleUpdatedAtMs = static_cast<uint32_t>(measured); data.hasSampleTimestamp = true;
+  const auto clip = [](int16_t axis) { return axis <= -32760 || axis >= 32760; };
+  accelerationQuality_.add(measured, clip(raw.ax) || clip(raw.ay) || clip(raw.az));
+  rotationQuality_.add(measured, clip(raw.gx) || clip(raw.gy) || clip(raw.gz));
+  if (clip(raw.ax) || clip(raw.ay) || clip(raw.az) || clip(raw.gx) || clip(raw.gy) || clip(raw.gz)) {
+    ++stats_.clipped; resetFilters();
+    if (!gyroBias_.ready()) gyroBias_.restartWindow();
+    data.status = IMUStatus::ERROR; return data;
+  }
+  // Hệ trục đã thống nhất: lật Y/Z một lần, giữ raw trước EMA và trước bù offset.
+  const float scale = 9.80665f / kAccelLsb[IMU_ACCEL_RANGE];
+  data.rawAx = raw.ax * scale; data.rawAy = -raw.ay * scale; data.rawAz = -raw.az * scale;
+  data.rawGx_deg = raw.gx / kGyroLsb[IMU_GYRO_RANGE];
+  data.rawGy_deg = -raw.gy / kGyroLsb[IMU_GYRO_RANGE];
+  data.rawGz_deg = -raw.gz / kGyroLsb[IMU_GYRO_RANGE];
+  constexpr float radians = 3.14159265358979323846f / 180;
+  data.rawGx = data.rawGx_deg * radians; data.rawGy = data.rawGy_deg * radians;
+  data.rawGz = data.rawGz_deg * radians;
+  // Không áp hệ số nhiệt của6050 cho6515 khi chưa xác minh riêng; không gửi lên MQTT.
+  data.temperature = whoAmI_ == 0x68 ? raw.temperature / 340.0f + 36.53f : NAN;
+  const bool hadBias = gyroBias_.ready();
+  data.gyroCalibrated = IMU_AUTO_GYRO_BIAS && gyroBias_.update(measured,
+      {{data.rawAx, data.rawAy, data.rawAz}}, {{data.rawGx_deg, data.rawGy_deg, data.rawGz_deg}});
+  if (IMU_AUTO_GYRO_BIAS && !data.gyroCalibrated) {
+    data.status = IMUStatus::CALIBRATING; return data;
+  }
+  if (!hadBias && data.gyroCalibrated) resetFilters();
+  const auto bias = gyroBias_.offsets();
+  data.ax = axFilter_.update(data.rawAx); data.ay = ayFilter_.update(data.rawAy);
+  data.az = azFilter_.update(data.rawAz);
+  data.gx_deg = gxFilter_.update(data.rawGx_deg - bias[0]);
+  data.gy_deg = gyFilter_.update(data.rawGy_deg - bias[1]);
+  data.gz_deg = gzFilter_.update(data.rawGz_deg - bias[2]);
+  data.gx = data.gx_deg * radians; data.gy = data.gy_deg * radians; data.gz = data.gz_deg * radians;
+  data.accelMagnitude = std::sqrt(data.ax*data.ax + data.ay*data.ay + data.az*data.az);
+  // Score v1 giữ đúng định nghĩa trước EMA/bù offset; UI dùng hai vector có đơn vị.
+  const auto movement = movement_.update(measured, data.rawAx, data.rawAy, data.rawAz,
+      data.rawGx_deg, data.rawGy_deg, data.rawGz_deg);
+  data.movementScore = movement.score; data.movementValid = movement.valid;
+  data.status = IMUStatus::VALID; data.valid = true;
+  return data;
 }
 
 MPU6050Data MPU6050Sensor::read() {
-  MPU6050Data data{};
-  data.whoAmI = whoAmI_;
-
-  // Nếu cảm biến chưa sẵn sàng, thử kết nối lại không nghẽn định kỳ (mỗi 3 giây)
+  const uint32_t now = millis();
   if (!ready_) {
-    const unsigned long now = millis();
-    if (now - lastRetryMs_ >= I2C_RETRY_INTERVAL_MS) {
-      lastRetryMs_ = now;
-      if (begin() == Availability::READY) {
-        Serial.println(F("[MPU6050] >>> Phục hồi kết nối thành công! <<<"));
-      }
+    if (initStage_ == 1 && uint32_t(now - stageStarted_) >= 100) {
+      if (!writeRegister(0x6b, 0x01)) fail();
+      else { initStage_ = 2; stageStarted_ = now; }
+    } else if (initStage_ == 2 && uint32_t(now - stageStarted_) >= 30) {
+      if (!configure()) fail();
+      else { ready_ = true; initStage_ = 0; lastFifoMs_ = now; }
+    } else if (initStage_ == 0 && uint32_t(now - lastRetryMs_) >= I2C_RETRY_INTERVAL_MS) {
+      (void)begin();
     }
-    data.status = status_;
-    return data;
+    MPU6050Data data{}; data.status = status_; data.whoAmI = whoAmI_; return data;
   }
-
-  uint8_t buffer[14];
-  if (!readRegisters(REG_ACCEL_XOUT_H, buffer, 14)) {
-    consecutiveErrors_++;
-    // Nếu lỗi liên tiếp quá 5 lần, chuyển sang trạng thái ngắt kết nối để tự động reconnect
-    if (consecutiveErrors_ >= 5) {
-      ready_ = false;
-      status_ = IMUStatus::DISCONNECTED;
-      resetFilters();
-      Serial.println(F("[MPU6050] CẢNH BÁO: Mất kết nối I2C liên tiếp > 5 lần, chuyển sang chế độ phục hồi tự động."));
+  struct Transport {
+    MPU6050Sensor* sensor;
+    bool read(uint8_t reg, uint8_t* bytes, size_t size) { return sensor->readRegisters(reg, bytes, size); }
+  } transport{this};
+  asd::ImuRawSample samples[8];
+  const auto batch = asd::readImuFifo(transport, samples);
+  if (batch.status != asd::ImuFifoStatus::Ok) {
+    ++stats_.gaps;
+    if (batch.status == asd::ImuFifoStatus::IoError) ++stats_.ioErrors;
+    if (batch.status == asd::ImuFifoStatus::Overflow) ++stats_.overflowEvents;
+    fail();
+    MPU6050Data data{}; data.status = status_; return data;
+  }
+  if (batch.count == 0) {
+    if (uint32_t(now - lastFifoMs_) > 500) {
+      ++stats_.gaps; fail(); MPU6050Data data{}; data.status = status_; return data;
     }
-    data.status = status_;
-    return data;
+    auto data = latest_; data.newSamples = 0; return data;
   }
-
-  consecutiveErrors_ = 0;
-  status_ = IMUStatus::VALID;
-  data.sampleUpdatedAtMs = millis();
-  data.sampleMonotonicMs = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
-  data.hasSampleTimestamp = true;
-
-  int16_t rawAx = static_cast<int16_t>((buffer[0] << 8) | buffer[1]);
-  int16_t rawAy = static_cast<int16_t>((buffer[2] << 8) | buffer[3]);
-  int16_t rawAz = static_cast<int16_t>((buffer[4] << 8) | buffer[5]);
-
-  int16_t rawTemp = static_cast<int16_t>((buffer[6] << 8) | buffer[7]);
-
-  int16_t rawGx = static_cast<int16_t>((buffer[8] << 8) | buffer[9]);
-  int16_t rawGy = static_cast<int16_t>((buffer[10] << 8) | buffer[11]);
-  int16_t rawGz = static_cast<int16_t>((buffer[12] << 8) | buffer[13]);
-
-  // Bù trừ lật úp cảm biến: đảo chiều trục Y và Z (xoay 180° quanh trục X)
-  const float valAx =  (static_cast<float>(rawAx) / 16384.0f) * 9.80665f;
-  const float valAy = -(static_cast<float>(rawAy) / 16384.0f) * 9.80665f;
-  const float valAz = -(static_cast<float>(rawAz) / 16384.0f) * 9.80665f;
-
-  data.rawAx = valAx;
-  data.rawAy = valAy;
-  data.rawAz = valAz;
-
-  // Lọc EMA cho 3 trục gia tốc (m/s²): triệt tiêu rung giật cơ học
-  data.ax = axFilter_.update(valAx);
-  data.ay = ayFilter_.update(valAy);
-  data.az = azFilter_.update(valAz);
-
-  data.accelMagnitude = sqrtf(data.ax * data.ax + data.ay * data.ay + data.az * data.az);
-
-  data.temperature = (static_cast<float>(rawTemp) / 340.0f) + 36.53f;
-
-  // Bù trừ lật úp: đảo chiều Gy và Gz
-  const float valGxDeg =  static_cast<float>(rawGx) / 131.0f;
-  const float valGyDeg = -static_cast<float>(rawGy) / 131.0f;
-  const float valGzDeg = -static_cast<float>(rawGz) / 131.0f;
-
-  constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
-  data.rawGx_deg = valGxDeg;
-  data.rawGy_deg = valGyDeg;
-  data.rawGz_deg = valGzDeg;
-  data.rawGx     = valGxDeg * kDegToRad;
-  data.rawGy     = valGyDeg * kDegToRad;
-  data.rawGz     = valGzDeg * kDegToRad;
-
-  // Lọc EMA cho 3 trục vận tốc góc (°/s): khử nhiễu trắng con quay
-  data.gx_deg = gxFilter_.update(valGxDeg);
-  data.gy_deg = gyFilter_.update(valGyDeg);
-  data.gz_deg = gzFilter_.update(valGzDeg);
-
-  data.gx = data.gx_deg * kDegToRad;
-  data.gy = data.gy_deg * kDegToRad;
-  data.gz = data.gz_deg * kDegToRad;
-
-  data.status = IMUStatus::VALID;
-  data.valid = true;
-  return data;
+  lastFifoMs_ = now;
+  const uint64_t captured = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
+  const uint64_t span = (batch.count - 1) * kPeriodMs;
+  if (captured < span) { ++stats_.gaps; fail(); return {}; }
+  const auto timing = clock_.batch(captured, static_cast<uint32_t>(batch.count), kPeriodMs);
+  if (timing.gap) {
+    ++stats_.gaps; resetFilters();
+    if (!gyroBias_.ready()) gyroBias_.restartWindow();
+  }
+  for (size_t i = 0; i < batch.count; ++i) {
+    latest_ = process(samples[i], timing.first + i * kPeriodMs);
+    if(observer_)observer_(latest_);
+  }
+  stats_.samples += static_cast<uint32_t>(batch.count);
+  latest_.newSamples = static_cast<uint32_t>(batch.count);
+  status_ = latest_.status;
+  return latest_;
 }
