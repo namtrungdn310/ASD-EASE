@@ -2,7 +2,7 @@
 import json
 from fastapi import HTTPException
 from sqlalchemy import select
-from app.db.models import CommandLease, Device, DeviceCommand, DeviceConnection, Session, SyncNonce
+from app.db.models import CommandLease, DeviceCommand, DeviceConnection, Session, SyncNonce
 from app.schemas.control import Command, StateResponse
 from app.services.session_service import abort_session, ensure_device, now_ms, utc_now
 from app.services.transactions import write_transaction

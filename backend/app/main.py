@@ -15,6 +15,10 @@ import logging
 async def lifespan(application: FastAPI):
     application.state.settings = settings
     application.state.registry = Registry(settings.device_registry_file)
+    if settings.auto_session_enabled:
+        identity = application.state.registry.identity(settings.auto_session_device_id, "DEVICE")
+        if identity.transport != "mqtt":
+            raise ValueError("Phiên tự động chỉ áp dụng cho thiết bị DEVICE qua MQTT")
     for identity in application.state.registry.entries:
         if identity.mqtt_username == settings.mqtt_username or identity.http_token in {settings.operator_token, settings.cookie_secret}:
             raise ValueError("Thiết bị phải có tài khoản/token riêng, không dùng credential backend/người vận hành")

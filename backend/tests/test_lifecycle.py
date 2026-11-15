@@ -1,17 +1,11 @@
 import copy
-import json
 from concurrent.futures import ThreadPoolExecutor
-import pytest
-from sqlalchemy import select, text
-from sqlalchemy.orm import sessionmaker
-from app.core.security import Registry
-from app.db.database import SessionLocal, engine
-from app.db.models import Device, DeviceCommand, Session
-from app.schemas.control import Ack, StateRequest
+from sqlalchemy import select
+from app.db.database import SessionLocal
+from app.db.models import DeviceCommand, Session
 from app.schemas.session import SessionStart
-from app.services.control_service import apply_ack
-from app.services.session_service import expire_sessions, now_ms, start_session
-from conftest import DEVICE_HEADERS, OP_HEADERS, start_recording, sync_payload
+from app.services.session_service import expire_sessions, start_session
+from conftest import OP_HEADERS, sync_payload
 
 
 def stop_ack(client, *, raw=False, cutoff=0, total=0):

@@ -1,4 +1,4 @@
-from pydantic import TypeAdapter
+
 from synthetic import GeneratorConfig, ParticipantProfile, Scenario, SyntheticGenerator
 from src.preprocessing import normalize_raw_batch
 

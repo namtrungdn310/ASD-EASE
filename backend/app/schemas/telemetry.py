@@ -24,16 +24,19 @@ class Prediction(BaseModel):
 
 class Telemetry(BaseModel):
     model_config = ConfigDict(extra="forbid")
+
     schema_version: str = Field(pattern=r"^1\.0$")
     device_id: str = Field(min_length=1, max_length=64)
     session_id: str | None = Field(default=None, max_length=64)
     timestamp_ms: int = Field(ge=0)
     data_origin: DataOrigin = DataOrigin.DEVICE
+
     hr_bpm: float | None = Field(default=None, ge=20.0, le=240.0)
     gsr: GSRReading
     movement: MovementReading
     signal_quality: SignalQuality
     prediction: Prediction
+
     firmware_version: str
     model_version: str
 

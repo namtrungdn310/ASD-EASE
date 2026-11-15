@@ -3,4 +3,5 @@ __pycache__
 tests
 test_*
 storage/*.db
+storage/local
 

@@ -1,9 +1,6 @@
 import asyncio
 import copy
 import json
-from pathlib import Path
-from tempfile import TemporaryDirectory
-from fastapi import HTTPException
 import pytest
 from sqlalchemy import select
 from app.db.database import SessionLocal
@@ -11,7 +8,7 @@ from app.db.models import DeviceCommand, Session
 from app.schemas.control import StateRequest
 from app.services.mqtt_runtime import MQTTRuntime, ReceiverLock
 from app.services.session_service import expire_sessions
-from conftest import OP_HEADERS, start_recording, sync_payload
+from conftest import OP_HEADERS, sync_payload
 from test_lifecycle import get_session, stop_ack
 from test_telemetry import payload
 

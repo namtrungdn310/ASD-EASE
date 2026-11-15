@@ -13,7 +13,11 @@ async def live(websocket: WebSocket) -> None:
     await manager.connect(websocket)
     try:
         while True:
-            await websocket.receive_text()
+            message = await websocket.receive_text()
+            if message == "ping" and not await manager.heartbeat(websocket):
+                break
     except WebSocketDisconnect:
+        pass
+    finally:
         manager.disconnect(websocket)
 

@@ -1,5 +1,5 @@
 from argparse import Namespace
-from simulator.mock_device import ALIASES, build_session
+from simulator.mock_device import build_session
 
 
 def args(scenario: str):
