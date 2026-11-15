@@ -79,6 +79,13 @@ async def verify(base, environment, directory, port, passwords, container, backe
             browser_cookie = {"Cookie": f"{COOKIE_NAME}={client.cookies.get(COOKIE_NAME)}"}
             async with websockets.connect(base.replace("http", "ws") + "/api/v1/ws/live",
                                           origin=browser_origin, additional_headers=browser_cookie) as ws:
+                await ws.send("ping")
+                deadline = time.monotonic() + 5
+                while True:
+                    reply = await asyncio.wait_for(ws.recv(), max(0.1, deadline - time.monotonic()))
+                    if reply == "pong":
+                        break
+                print("PASS authenticated WS heartbeat before Start, independent of sensor frames")
                 body = {"session_id": "SYN-BROKER-" + uuid4().hex, "device_id": "SIM-001"}
                 started = await client.post("/api/v1/sessions/start", json=body)
                 assert started.status_code == 202 and started.json()["state"] == "STARTING", started.text
@@ -88,6 +95,11 @@ async def verify(base, environment, directory, port, passwords, container, backe
                     if frame["session_id"] == body["session_id"]:
                         break
                 assert frame["data_origin"] == "SYNTHETIC"
+                if hasattr(device, "native"):
+                    assert frame["schema_version"] == "1.1"
+                    assert frame["movement"]["acceleration"] == {"x": -0.5, "y": 0, "z": 9.806}
+                    assert frame["movement"]["angular_velocity"] == {"x": -90, "y": 0, "z": 20.5}
+                    print("PASS native telemetry1.1: six signed IMU axes preserved through broker/backend/WS")
                 print("PASS real broker: HTTP Start -> MQTT command/ACK -> DB RECORDING -> WebSocket telemetry")
                 epoch = device.epoch
                 generation = device.generation

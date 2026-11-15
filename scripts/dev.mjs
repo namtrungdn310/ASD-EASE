@@ -73,9 +73,12 @@ async function main() {
   const environment = {
     ...process.env, ...local.compose, ASD_DEV_CREDENTIALS_DIR: local.credentialsDirectory,
     VITE_API_BASE_URL: "http://localhost:8000", VITE_WS_URL: "ws://localhost:8000/api/v1/ws/live",
+    VITE_DEFAULT_DEVICE_ID: local.deviceId,
   };
   console.log(`Thiết bị ${local.deviceId}; broker LAN ${local.brokerHost}:${local.brokerPort}.`);
-  if (local.firmwareChanged) console.log("Đã đồng bộ network_config.h local. Nạp lại ESP để dùng cấu hình này.");
+  if (local.brokerHostChanged) console.log("IP laptop đã đổi: đã đồng bộ IP LAN vào header và cấu hình broker.");
+  console.log("Phiên tự động phía backend vẫn mở khi ESP đồng bộ; xem dữ liệu trên Dashboard cần bấm Kết nối.");
+  if (local.firmwareChanged) console.log("Đã đồng bộ network_config.h local; nếu firmware cần cấu hình này, nạp lại bằng npm run device:flash.");
   if (!local.wifiConfigured) console.log("Điền WIFI_SSID/WIFI_PASSWORD trong network_config.h và nạp ESP lần đầu. Dashboard vẫn mở để chờ thiết bị.");
 
   const statePath = join(local.credentialsDirectory, "dev-state.json");
@@ -99,7 +102,8 @@ async function main() {
   command("docker", up, { env: environment, stdio: "inherit", failure: "Broker/backend chưa sẵn sàng. Xem lỗi Docker phía trên." });
   writeFileSync(statePath, JSON.stringify({ backendSource: digest, frontendLock: dependencies }, null, 2) + "\n");
   const url = "http://localhost:5173";
-  console.log(`Dashboard: ${url} — tự kết nối, không cần nhập token.`);
+  console.log(`Dashboard: ${url} — chọn thiết bị rồi bấm Kết nối để bắt đầu theo dõi.`);
+  console.log("npm run dev không build hoặc nạp firmware. Dùng npm run device:flash khi cần nạp ESP qua USB.");
   console.log("Ctrl+C dừng frontend. Dùng npm run dev:stop ở root để dừng broker/backend khi cần.");
   const args = [join(frontend, "node_modules/vite/bin/vite.js"), "--host", "localhost", "--port", "5173", "--strictPort"];
   if (!process.argv.includes("--no-open")) args.push("--open", url);

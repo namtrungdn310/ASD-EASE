@@ -95,7 +95,9 @@ class NativeDevice:
         self.flush(self.latest)
         if self.now() >= self.next_telemetry:
             self.latest = self.native.call("telemetry", self.now(), snapshot={"hr":78.0,"hr_valid":True,"hr_age":0,"ppg_age":0,
-                "gsr_adc":1800,"gsr_readable":True,"gsr_valid":True,"gsr_age":0,"imu_age":0,"gsr_percent":4,"gsr_baseline":2})
+                "gsr_adc":1800,"gsr_readable":True,"gsr_valid":True,"gsr_age":0,"imu_age":0,"gsr_percent":4,"gsr_baseline":2,
+                "imu_valid":True,"acceleration":{"x":-0.5,"y":0,"z":9.806},
+                "angular_velocity":{"x":-90,"y":0,"z":20.5}})
             if "telemetry" in self.latest:
                 self.client.publish(self.prefix+"telemetry", json.dumps(self.latest["telemetry"]), qos=0, retain=False)
             self.next_telemetry = self.now()+1000
