@@ -7,5 +7,7 @@
 // Chụp giá trị và tuổi mẫu trong task sensing; worker mạng chỉ nhận bản copy.
 asd::ReadingSnapshot captureTelemetrySnapshot(
     const MAX30102Data& ppg, const MPU6050Data& imu, const GSRData& gsr,
-    uint32_t millisNow, uint64_t monotonicNow);
+    uint32_t millisNow, uint64_t monotonicNow,
+    asd::MeasurementQuality ppgQuality = {}, asd::MeasurementQuality gsrQuality = {},
+    asd::MeasurementQuality accelerationQuality = {}, asd::MeasurementQuality rotationQuality = {});
 

@@ -84,7 +84,7 @@ std::string telemetryJson(const ReadingSnapshot& s, uint64_t now, uint64_t times
   if (!validId(device) || (!session.empty() && !validId(session)) || timestamp > kMaxInteger ||
       (origin != "DEVICE" && origin != "SYNTHETIC") || firmware.empty() || firmware.size() > 64) return {};
   JsonDocument d;
-  d["schema_version"] = "1.0";
+  d["schema_version"] = s.hasMetricQuality ? "1.2" : "1.1";
   d["device_id"] = device;
   optionalId(d.as<JsonObject>(), "session_id", session);
   d["timestamp_ms"] = timestamp;
@@ -99,10 +99,48 @@ std::string telemetryJson(const ReadingSnapshot& s, uint64_t now, uint64_t times
   if (s.gsrValid && gsrFresh && s.baselineConductance > 0.05f && std::isfinite(s.baselineConductance) && std::isfinite(s.gsrDeltaPercent))
     d["gsr"]["delta"] = s.gsrDeltaPercent / 100.0f;
   else d["gsr"]["delta"] = nullptr;
-  d["movement"]["score"] = nullptr;
-  d["signal_quality"]["ppg"] = 0;
-  d["signal_quality"]["gsr"] = 0;
-  d["signal_quality"]["imu"] = 0;
+  if (s.movementValid && fresh(s.imuAgeMs, s.capturedAtMs, now, 1000) &&
+      std::isfinite(s.movementScore) && s.movementScore >= 0 && s.movementScore <= 1)
+    d["movement"]["score"] = std::round(s.movementScore * 1000) / 1000;
+  else d["movement"]["score"] = nullptr;
+  const bool imuFresh = s.imuValid && fresh(s.imuAgeMs, s.capturedAtMs, now, 1000);
+  const bool accelerationValid = imuFresh && std::all_of(s.acceleration.begin(), s.acceleration.end(),
+      [](float axis) { return std::isfinite(axis) && std::fabs(axis) <= 20.0f; });
+  const bool rotationValid = imuFresh && std::all_of(s.angularVelocity.begin(), s.angularVelocity.end(),
+      [](float axis) { return std::isfinite(axis) && std::fabs(axis) <= 250.0f; });
+  const char* axes[] = {"x", "y", "z"};
+  if (accelerationValid) {
+    for (size_t i = 0; i < 3; ++i)
+      d["movement"]["acceleration"][axes[i]] = std::round(s.acceleration[i] * 1000) / 1000;
+  } else d["movement"]["acceleration"] = nullptr;
+  if (rotationValid) {
+    for (size_t i = 0; i < 3; ++i)
+      d["movement"]["angular_velocity"][axes[i]] = std::round(s.angularVelocity[i] * 1000) / 1000;
+  } else d["movement"]["angular_velocity"] = nullptr;
+  if (s.hasMetricQuality) {
+    d["signal_quality"]["method"] = "engineering-v2";
+    d["signal_quality"]["window_ms"] = 8000;
+    const auto appendQuality = [&](const char* key, MeasurementQuality q, bool sampleFresh) {
+      const int32_t sampleCount = q.sampleCount;
+      if (!sampleFresh) q = {-1, QualityReason::Stale};
+      auto item = d["signal_quality"][key].to<JsonObject>();
+      if (q.score >= 0 && q.score <= 1 && std::isfinite(q.score))
+        item["score"] = std::round(q.score * 1000) / 1000;
+      else item["score"] = nullptr;
+      item["reason"] = qualityReasonName(q.reason);
+      if (sampleFresh && sampleCount >= 0) item["sample_count"] = sampleCount;
+      else item["sample_count"] = nullptr;
+    };
+    appendQuality("hr", s.hrQuality, ppgFresh);
+    appendQuality("gsr", s.gsrQuality, gsrFresh);
+    const bool imuSampleFresh = fresh(s.imuAgeMs, s.capturedAtMs, now, 1000);
+    appendQuality("acceleration", s.accelerationQuality, imuSampleFresh);
+    appendQuality("rotation", s.rotationQuality, imuSampleFresh);
+  } else {
+    d["signal_quality"]["ppg"] = 0;
+    d["signal_quality"]["gsr"] = 0;
+    d["signal_quality"]["imu"] = 0;
+  }
   d["prediction"]["probability"] = nullptr;
   bool calibrating = (s.gsrCalibrating && gsrFresh) || (s.imuCalibrating && fresh(s.imuAgeMs, s.capturedAtMs, now, 1000));
   d["prediction"]["state"] = calibrating ? "CALIBRATING" : "UNCERTAIN";

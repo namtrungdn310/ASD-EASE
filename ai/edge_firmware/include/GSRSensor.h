@@ -1,6 +1,9 @@
 #pragma once
 #include "board_config.h"
+#include "processing/measurement_quality.h"
 #include "EMA.h"
+#include "processing/sensor_math.h"
+#include <esp_adc_cal.h>
 
 // =============================================================================
 // GSR — đọc ADC mô-đun điện da
@@ -10,6 +13,8 @@ struct GSRData {
   uint64_t sampleMonotonicMs = 0;
   uint32_t sampleUpdatedAtMs = 0;
   bool hasSampleTimestamp = false;
+  bool voltageCalibrated = false;
+  bool conductanceCalibrated = false;
   uint16_t  rawADC                 = 0;
   uint32_t  rawVoltage_mV          = 0;       // Điện áp thô quy đổi từ ADC (mV)
   float     rawVoltage             = 0.0f;    // Điện áp thô (V)
@@ -24,7 +29,7 @@ struct GSRData {
   float     deltaConductance_uS    = 0.0f;    // Độ lệch độ dẫn so với baseline (µS)
   float     percentChange          = 0.0f;    // % thay đổi so với baseline (%)
   GSRStatus status                 = GSRStatus::DISCONNECTED;
-  bool      thresholdExceeded      = false;   // Cờ phản ứng kích thích giao cảm (SCR / Arousal)
+  bool      thresholdExceeded      = false;   // Ngưỡng kỹ thuật, không phải xác nhận SCR
   bool      valid                  = false;
 };
 
@@ -35,19 +40,17 @@ class GSRSensor {
   bool isReady() const { return ready_; }
   GSRStatus getStatus() const { return status_; }
   void resetBaseline();
+  asd::MeasurementQuality signalQuality(uint64_t now) const { return quality_.evaluate(now, 20); }
 
  private:
+  asd::QualityWindow quality_;
   bool          ready_               = false;
   int           pin_                 = PIN_GSR_ADC;
   GSRStatus     status_              = GSRStatus::DISCONNECTED;
 
-  // Thiết lập mức nền cho lần đo
-  bool          isCalibrating_       = false;
-  unsigned long calibrationStartMs_  = 0;
-  uint64_t      calibMvSum_          = 0;
-  uint32_t      calibSampleCount_    = 0;
-  float         baselineMv_          = 0.0f;
-  float         baselineConductance_ = 0.0f;
+  asd::VoltageBaseline baseline_{GSR_CALIBRATION_TIME_MS};
+  esp_adc_cal_characteristics_t adcCalibration_{};
+  bool voltageCalibrated_ = false;
 
   // Bộ lọc EMA chống rung nhiễu ADC và độ dẫn
   EMA           voltageFilter_{GSR_EMA_ALPHA_VOLTAGE};
