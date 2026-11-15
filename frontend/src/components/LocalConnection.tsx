@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { openLocalSession } from "../utils/localSession";
 
 /** Chỉ dùng bởi Vite dev. Production không có endpoint tự mở phiên. */
 export function LocalConnection({ children }: { children: ReactNode }) {
@@ -18,13 +19,7 @@ export function LocalConnection({ children }: { children: ReactNode }) {
       setConnecting(true);
       if (timer !== undefined) window.clearTimeout(timer);
       try {
-        const response = await fetch("/__local/session", {
-          method: "POST", credentials: "include", signal: controller.signal,
-        });
-        const result = await response.json();
-        if (!response.ok || result.authenticated !== true) {
-          throw new Error(result.error === "OPEN_LOCALHOST" ? "LOCALHOST" : "SERVICE");
-        }
+        await openLocalSession(controller.signal);
         if (!active) return;
         setReady(true);
         setError("");
@@ -34,7 +29,7 @@ export function LocalConnection({ children }: { children: ReactNode }) {
         if (!active) return;
         setError(failure instanceof Error && failure.message === "LOCALHOST"
           ? "Mở Dashboard tại http://localhost:5173."
-          : "Chưa kết nối được dịch vụ local. Kiểm tra Docker Desktop đang chạy rồi thử lại.");
+          : "Mở Docker Desktop rồi thử lại.");
         timer = window.setTimeout(connect, 3000);
       } finally {
         pending = false;
@@ -54,15 +49,15 @@ export function LocalConnection({ children }: { children: ReactNode }) {
 
   if (ready) return children;
   return (
-    <main className="mx-auto max-w-lg px-4 py-12">
-      <section className="card" aria-busy={!error || connecting}>
-        <img src="/brand/asd-ease-logo.svg" alt="ASD-EASE" width={760} height={160} className="mb-6 h-auto w-60 max-w-full" />
-        <h1 className="text-xl font-bold text-slate-900">Đang kết nối dữ liệu thiết bị</h1>
-        <p className="mt-3 text-sm text-slate-600" role={error ? "alert" : "status"}>
-          {error || "Đang chuẩn bị kết nối. Dashboard sẽ tự hiển thị khi sẵn sàng."}
+    <main className="session-shell">
+      <section className="connection-card" aria-busy={!error || connecting}>
+        <img src="/brand/asd-ease-logo.svg" alt="ASD-EASE" width={760} height={160} />
+        <h1>{error ? "Chưa kết nối được" : "Đang mở bảng theo dõi"}</h1>
+        <p role={error ? "alert" : "status"}>
+          {error || "Vui lòng chờ trong giây lát."}
         </p>
         {error && <button type="button" disabled={connecting} onClick={() => setAttempt(value => value + 1)}
-          className="mt-5 min-h-11 rounded-lg bg-blue-700 px-4 py-2 font-semibold text-white hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60">
+          className="primary-button">
           {connecting ? "Đang kết nối..." : "Thử lại"}
         </button>}
       </section>
