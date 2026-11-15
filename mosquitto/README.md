@@ -1,6 +1,7 @@
 # Cấu hình broker
 
 Cấu hình thống nhất nằm ở `infra/mosquitto/` và service `broker` trong compose.yaml.
+Đã xóa `mosquitto.conf` cũ ở thư mục này vì không còn service hoặc script sử dụng. Giữ rule bỏ qua credential local cũ để tránh đưa nhầm secret vào Git.
 Đường thử `asd/v1/devices/.../sensors/*` của PR #14 đã bỏ vì khác contract và không có xác thực phiên.
 Không chạy broker/subscriber thứ hai để ghép sensor hoặc bỏ qua receiver04.
 

@@ -8,7 +8,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "backend"))
 from firmware_native import NativeFirmware
-from app.schemas.control import Ack, Command, Presence, StateRequest, StateResponse
+from app.schemas.control import Ack, Presence, StateRequest, StateResponse
 from app.schemas.ingestion import InboundTelemetry
 
 
@@ -277,6 +277,96 @@ class FirmwareProtocolTests(unittest.TestCase):
         result = self.command(now=2, generation=1)
         self.assertFalse(result["accepted"])
         self.assertEqual(result["starts"], 0)
+
+    def motion_window(self, start=0, count=50, **axes):
+        sample = {"ax": 0, "ay": 0, "az": 9.80665, "gx": 0, "gy": 0, "gz": 0, **axes}
+        frames = [self.call("motion", start + index * 20, sample=sample) for index in range(count)]
+        return frames
+
+    def test_motion_stationary_warms_up_then_zero_in_any_orientation(self):
+        for axes in ({}, {"ay": 9.80665, "az": 0}, {"az": -9.80665}):
+            self.call("motion_reset")
+            frames = self.motion_window(**axes)
+            self.assertTrue(all(frame["telemetry"]["movement"]["score"] is None for frame in frames[:-1]))
+            self.assertEqual(frames[-1]["telemetry"]["movement"]["score"], 0)
+
+    def test_motion_acceleration_rotation_and_intensity_reach_runtime_schema(self):
+        scores = []
+        for axes in ({"az": 11.80665}, {"gx": 45}, {"gx": 90}, {"gx": -90}, {"gx": 180}):
+            self.call("motion_reset")
+            frame = self.motion_window(**axes)[-1]
+            self.assertTrue(frame["motion"]["valid"])
+            score = frame["telemetry"]["movement"]["score"]
+            self.assertGreater(score, 0)
+            self.assertLess(score, 1)
+            scores.append(score)
+        self.assertGreater(scores[2], scores[1])
+        self.assertEqual(scores[2], scores[3])
+        self.assertGreater(scores[4], scores[2])
+
+    def test_motion_rotating_window_forgets_previous_activity(self):
+        self.motion_window(gx=90)
+        frames = self.motion_window(start=1000)
+        self.assertGreater(frames[0]["motion"]["score"], 0)
+        self.assertEqual(frames[-1]["motion"]["score"], 0)
+
+    def test_motion_sensor_error_saturation_missing_axis_reset_window(self):
+        for patch in ({"sensor_valid": False}, {"sample": {"ax": None}},
+                      {"sample": {"ax": 0, "ay": 0, "az": 19.61, "gx": 0, "gy": 0, "gz": 0}},
+                      {"sample": {"ax": 0, "ay": 0, "az": 9.80665, "gx": 250, "gy": 0, "gz": 0}}):
+            self.call("motion_reset")
+            self.motion_window()
+            self.assertIsNone(self.call("motion", 1000, **patch)["telemetry"]["movement"]["score"])
+            frames = self.motion_window(start=1020)
+            self.assertTrue(all(frame["motion"]["score"] is None for frame in frames[:-1]))
+            self.assertEqual(frames[-1]["motion"]["score"], 0)
+
+    def test_motion_cached_sample_not_counted_and_clock_gap_resets(self):
+        stationary = {"ax": 0, "ay": 0, "az": 9.80665, "gx": 0, "gy": 0, "gz": 0}
+        self.motion_window(count=49)
+        for _ in range(10):
+            self.assertFalse(self.call("motion", 960, sample=stationary)["motion"]["valid"])
+        self.assertTrue(self.call("motion", 980, sample=stationary)["motion"]["valid"])
+        self.assertFalse(self.call("motion", 1100, sample=stationary)["motion"]["valid"])
+        self.assertFalse(self.call("motion", 10, sample=stationary)["motion"]["valid"])
+
+    def test_motion_rejects_wrong_sampling_cadence(self):
+        stationary = {"ax": 0, "ay": 0, "az": 9.80665, "gx": 0, "gy": 0, "gz": 0}
+        for interval in (1, 40):
+            self.call("motion_reset")
+            frames = [self.call("motion", index * interval, sample=stationary) for index in range(55)]
+            self.assertTrue(all(frame["motion"]["score"] is None for frame in frames))
+
+    def test_motion_serializer_preserves_zero_rejects_invalid_and_stale(self):
+        for score in (0, 0.5, 1):
+            frame = self.call("telemetry", 10, snapshot=self.fresh_snapshot(movement_valid=True, movement_score=score))["telemetry"]
+            self.assertEqual(frame["movement"]["score"], score)
+        for patch in ({"movement_valid": False}, {"imu_age": 1001}, {"captured_at_ms": 0, "imu_age": 999},
+                      {"movement_score": -0.1}, {"movement_score": 1.1}):
+            frame = self.call("telemetry", 10, snapshot=self.fresh_snapshot(**{"movement_valid": True, "movement_score": 0.5, **patch}))["telemetry"]
+            self.assertIsNone(frame["movement"]["score"])
+
+    def imu_snapshot(self, **patch):
+        return self.fresh_snapshot(imu_valid=True,
+            acceleration={"x": -0.5, "y": 0, "z": 9.806},
+            angular_velocity={"x": -90, "y": 0, "z": 20.5}, **patch)
+
+    def test_imu_axes_keep_units_sign_zero_and_schema_version(self):
+        frame = self.call("telemetry", 10, snapshot=self.imu_snapshot())["telemetry"]
+        self.assertEqual(frame["schema_version"], "1.1")
+        self.assertEqual(frame["movement"]["acceleration"], {"x": -0.5, "y": 0, "z": 9.806})
+        self.assertEqual(frame["movement"]["angular_velocity"], {"x": -90, "y": 0, "z": 20.5})
+        self.assertEqual(InboundTelemetry.model_validate(frame).telemetry().movement.acceleration.z, 9.806)
+
+    def test_imu_axes_stale_failed_or_bad_vector_not_faked_as_zero(self):
+        for patch in ({"imu_valid": False}, {"imu_age": 1001}, {"captured_at_ms": 0, "imu_age": 999}):
+            snapshot = self.imu_snapshot() | patch
+            frame = self.call("telemetry", 10, snapshot=snapshot)["telemetry"]
+            self.assertIsNone(frame["movement"]["acceleration"])
+            self.assertIsNone(frame["movement"]["angular_velocity"])
+        frame = self.call("telemetry", 10, snapshot=self.imu_snapshot() | {"acceleration": {"x": None, "y": 0, "z": 9.8}})["telemetry"]
+        self.assertIsNone(frame["movement"]["acceleration"])
+        self.assertIsNotNone(frame["movement"]["angular_velocity"])
 
 
 if __name__ == "__main__":

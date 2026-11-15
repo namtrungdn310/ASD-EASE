@@ -70,6 +70,7 @@ def usable_ip(value):
 
 def lan_addresses():
     preferred = []
+    adapters = []
     if os.name == 'nt':
         query = ('@(Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | '
                  'ForEach-Object { $_.IPv4Address.IPAddress }) | ConvertTo-Json -Compress')
@@ -77,13 +78,44 @@ def lan_addresses():
         if run.returncode == 0 and run.stdout.strip():
             values = json.loads(run.stdout)
             preferred = values if isinstance(values, list) else [values]
+        # Hotspot không có gateway và có thể không đăng ký vào hostname/DNS.
+        run = subprocess.run(['powershell', '-NoProfile', '-Command',
+            '@(Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.AddressState -eq "Preferred" } | '
+            'ForEach-Object { $_.IPAddress }) | ConvertTo-Json -Compress'], capture_output=True, text=True)
+        if run.returncode == 0 and run.stdout.strip():
+            values = json.loads(run.stdout)
+            adapters = values if isinstance(values, list) else [values]
     all_ips = {entry[4][0] for entry in socket.getaddrinfo(socket.gethostname(), None, socket.AF_INET)}
-    return list(dict.fromkeys(value for value in [*preferred, *sorted(all_ips)] if usable_ip(value)))
+    return list(dict.fromkeys(value for value in [*preferred, *adapters, *sorted(all_ips)] if usable_ip(value)))
 
 
-def prepare(root=ROOT, *, addresses=None, provisioner=provision):
+def primary_lan_addresses():
+    """Chỉ tự chọn adapter vật lý đang có gateway; không đoán IP WSL/VMware/VPN."""
+    if os.name != 'nt':
+        return []  # Máy khác vẫn dùng IP hợp lệ đã điền trong header.
+    query = ('@(Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -and '
+             '$_.NetAdapter.HardwareInterface -and $_.NetAdapter.Status -eq "Up" } | '
+             'ForEach-Object { $_.IPv4Address.IPAddress }) | ConvertTo-Json -Compress')
+    run = subprocess.run(['powershell', '-NoProfile', '-Command', query],
+                         capture_output=True, text=True)
+    if run.returncode != 0 or not run.stdout.strip():
+        return []
+    try:
+        values = json.loads(run.stdout)
+    except ValueError:
+        return []
+    values = values if isinstance(values, list) else [values]
+    return list(dict.fromkeys(value for value in values if isinstance(value, str) and usable_ip(value)))
+
+
+def prepare(root=ROOT, *, addresses=None, primary_addresses=None, provisioner=provision):
     root = Path(root).resolve()
-    addresses = lan_addresses() if addresses is None else addresses
+    if addresses is None:
+        addresses = lan_addresses()
+        if primary_addresses is None:
+            primary_addresses = primary_lan_addresses()
+    elif primary_addresses is None:
+        primary_addresses = addresses  # Địa chỉ do caller/test cung cấp có chủ đích.
     if not addresses:
         raise ValueError('Chưa có IPv4 LAN. Kết nối laptop với Wi-Fi/router/hotspot trước.')
     header = root / HEADER
@@ -91,11 +123,17 @@ def prepare(root=ROOT, *, addresses=None, provisioner=provision):
     source = (header if exists else header.with_name('network_config.example.h')).read_text(encoding='utf-8-sig')
     config = definitions(source)
     host = str(config.get('MQTT_BROKER_HOST', ''))
-    if not host or host == '192.168.x.x':
-        host = addresses[0]
     if host not in addresses or not usable_ip(host):
-        raise ValueError('MQTT_BROKER_HOST trong network_config.h phải là IPv4 LAN hiện tại của laptop. '
-                         'IP đang có: ' + ', '.join(addresses) + '. Sửa header và nạp lại ESP sau khi đổi mạng.')
+        candidates = list(dict.fromkeys(ip for ip in primary_addresses
+                                       if usable_ip(ip) and ip in addresses))
+        if len(candidates) != 1:
+            raise ValueError('Chưa xác định được duy nhất một IPv4 LAN vật lý để tự cập nhật. '
+                             f'IP broker đã cấu hình ({host or "chưa có"}) hiện không khả dụng trên laptop. '
+                             'Nếu dùng Mobile hotspot: bật lại và tắt chế độ tự tắt/Power saving, rồi chạy lại lệnh. '
+                             'Điền MQTT_BROKER_HOST bằng IP laptop trên mạng ESP đang dùng. '
+                             'IP LAN vật lý: ' + (', '.join(candidates) or 'chưa tìm thấy') + '.')
+        host = candidates[0]
+    host_changed = host != str(config.get('MQTT_BROKER_HOST', ''))
     port = config.get('MQTT_BROKER_PORT', 1883)
     if type(port) is not int or not 1 <= port <= 65535:
         raise ValueError('MQTT_BROKER_PORT phải là số nguyên1..65535.')
@@ -141,13 +179,15 @@ def prepare(root=ROOT, *, addresses=None, provisioner=provision):
     if changed:
         header.write_text(updated, encoding='utf-8', newline='\n')
     origins = 'http://localhost:5173,http://127.0.0.1:5173'
-    write_env(directory / 'backend.env', {'CORS_ORIGINS': origins})
+    write_env(directory / 'backend.env', {'CORS_ORIGINS': origins,
+        'AUTO_SESSION_ENABLED': 'true', 'AUTO_SESSION_DEVICE_ID': device_id})
     relative = './' + directory.relative_to(root).as_posix()
     compose = {'COMPOSE_PROJECT_NAME': project, 'MQTT_LOCAL_DIR': relative,
                'MQTT_BIND_IP': host, 'MQTT_HOST_PORT': str(port), 'APP_BIND_IP': '127.0.0.1'}
     write_env(root / '.env', compose)
     return {'compose': compose, 'credentialsDirectory': str(directory), 'deviceId': device_id,
             'brokerHost': host, 'brokerPort': port, 'firmwareChanged': changed,
+            'brokerHostChanged': host_changed,
             'wifiConfigured': all(config.get(key) not in (None, '', 'CHANGE_ME') for key in ['WIFI_SSID', 'WIFI_PASSWORD'])}
 
 
