@@ -1,10 +1,12 @@
 # Ánh xạ driver sang dữ liệu gửi
 
+Cập nhật runtime0.3.2: xem [chuỗi đo hiện tại](SENSOR_ACQUISITION_0_3_2.md). MPU SDA thực là5/SCL11; đọc FIFO50Hz/DLPF10Hz, vector gyro bù bias nhưng raw giữ trước bù. GSR dùng ADC eFuse; `gsr.delta=null` khi mô hình điện dẫn chưa hiệu chuẩn, raw ADC vẫn truyền. Phần dưới là bản đối chiếu lịch sử dev d80cc0e, không dùng làm cấu hình nạp hiện tại.
+
 Đọc code tại dev d80cc0e, ngày2026-10-31. **Đã đối chiếu mã nguồn, chưa kiểm chứng board.** Không đổi chân hoặc driver từ tài liệu này.
 
 | Dữ liệu trong code | Cách dùng | Lưu ý |
 |---|---|---|
-| MAX30102Data.heartRate | hr_bpm khi valid, đúng dải, còn mới; còn lại null | Đã qua trung vị/EMA, không phải sóng PPG thô; 05 cần tuổi từ nhịp thật |
+| MAX30102Data.heartRate | hr_bpm khi valid, đúng dải, còn mới; còn lại null | Từ0.3.9 chọn IR/RED đủ điều kiện, cửa sổ8s/kiểm tra1s và xác nhận hai lượt; 0.3.10 sửa chọn nửa nhịp khi xung lớn nhỏ xen kẽ. Timestamp cuối cửa sổ được chấp nhận, không gia hạn từ cache; không phải sóng thô/RR/HRV |
 | redValue/irValue | Snapshot để chẩn đoán | read() lấy FIFO nhưng chỉ trả cặp cuối; 07 phải lấy từng cặp/timing, không nhân bản snapshot |
 | Cặp red/IR trong FIFO | ppg.red/ir | Sau trung bình trên chip2, trước bộ lọc phần mềm; chip100 → danh định50 Hz, cần đo số mẫu thật |
 | rawSpO2/spO2 | Chỉ debug | Không thêm vào telemetry1.0 |
@@ -15,6 +17,8 @@
 | rawGx_deg/rawGy_deg/rawGz_deg | Raw imu.g*, degrees/s | Đã đảo Y/Z, không dùng rawGx rad/s trực tiếp |
 | ax/ay/az và gx* sau lọc | Chẩn đoán/tóm tắt khi có định nghĩa | Không thay mảng raw bằng số EMA |
 | accelMagnitude | Không đưa thẳng vào movement.score | m/s² khác score0..1; chưa thuật toán thì null |
+| rawAx/rawAy/rawAz + rawGx_deg/rawGy_deg/rawGz_deg | movement.score qua motion-rms-v1 từ firmware0.2.1 | Cửa sổ50 mẫu, hợp lệ/còn mới; xem [công thức và giới hạn](MOVEMENT_SCORE.md) |
+| ax/ay/az và gx_deg/gy_deg/gz_deg | movement.acceleration/angular_velocity từ telemetry1.1 | Snapshot sau EMA, m/s²/degrees/s, giữ dấu trục và tuổi mẫu; [định nghĩa](IMU_TELEMETRY_V1_1.md) |
 | VALID/READY | Trạng thái driver | Chưa mô hình: probability=null, CALIBRATING/UNCERTAIN |
 
 ## Cấu hình và giới hạn

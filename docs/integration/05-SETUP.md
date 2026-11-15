@@ -4,7 +4,7 @@ Cập nhật 2026-11-05. Trung đang giữ ESP32-S3 Super Mini cùng MAX30102, M
 
 ## 1. Chuẩn bị
 
-**Cách chạy thường ngày trên cả Trung/Tân:** xem [một lệnh npm run dev](05-ONE-COMMAND-DEV.md). Launcher tự bật broker/backend/frontend và mở phiên local, không cần DevTools. Các mục cấu hình/chạy từng dịch vụ bên dưới là tài liệu tra cứu để chẩn đoán hoặc nạp lần đầu.
+**Cách chạy thường ngày trên cả Trung/Tân:** xem [một lệnh npm run dev](05-ONE-COMMAND-DEV.md). Launcher tự bật broker/backend/frontend và cấp cookie local; Dashboard chỉ mở WebSocket thiết bị sau khi bạn chọn thiết bị và bấm **Kết nối**. Phiên backend tự mở khi ESP đồng bộ vẫn là luồng riêng. Các mục cấu hình/chạy từng dịch vụ bên dưới là tài liệu tra cứu để chẩn đoán hoặc nạp lần đầu.
 
 - Python 3.12, môi trường .venv, Node/npm, Docker Desktop đang chạy và PlatformIO.
 - ESP32-S3, cảm biến và dây thật cần Tân xác nhận. Code giữ MAX30102 SDA8/SCL9, MPU6050 SDA5/SCL11, GSR ADC7 theo PR #14.

@@ -1,6 +1,21 @@
 # Đặc tả API và dữ liệu thiết bị
 
-Cập nhật: 2026-11-01. Đây là điểm tra cứu chung cho firmware, backend, simulator, frontend và bộ dữ liệu. Phần **dự kiến** là quy tắc phải triển khai ở nhánh sau, không phải chức năng đã chạy.
+**Cập nhật2026-11-09:** telemetry1.2 bổ sung điểm chất lượng kỹ thuật riêng cho HR/GSR/gia tốc/tốc độ xoay.
+Firmware0.3.27 giữ bộ HR0.3.26; điểm không phải phần trăm độ chính xác và không thay thuật toán HR.
+Đọc [công thức, cấu trúc và giới hạn](contracts/MEASUREMENT_QUALITY_V1_2.md).
+Backend/frontend vẫn nhận1.0/1.1; các mốc firmware bên dưới là lịch sử.
+
+Cập nhật: 2026-11-07. Đây là điểm tra cứu chung cho firmware, backend, simulator, frontend và bộ dữ liệu. Phần **dự kiến** là quy tắc phải triển khai ở nhánh sau, không phải chức năng đã chạy.
+
+**Firmware hiện tại0.3.13-led10 trên máy Trung:** đã quay về đối chiếu LED10mA/chip200Hz/avg4/FIFO50Hz sau khi bản0.3.15/400Hz/avg8 cũng chưa có HR cổ tay hợp lệ. Cả hai profile giữ schema1.1/topic/API, bộ HR/quality/guard; profile400Hz không xuất400 mẫu thô/giây. Sửa trôi clock0.3.15 chỉ bật cho PPG400Hz và vẫn có trong repo; timestamp ước lượng không phải bằng chứng HRV. Cần giữ nhãn firmware/profile khi so dữ liệu. **Chưa chọn profile tối ưu hoặc nghiệm thu HR cổ tay.** [Kết quả và giới hạn](integration/05-WRIST-SAMPLING-TRIAL.md). Các phiên bản dưới là lịch sử.
+
+**Firmware hiện tại trên máy Trung: 0.3.12.** Thử bộ hybrid: giữ HR baseline hợp lệ; khi baseline trống, chỉ dùng kết quả MSPTD đã qua kiểm chất lượng và hai lần xác nhận. Phân tích ở task riêng; kết quả bổ sung phải cùng lượt tiếp xúc/lấy mẫu và không quá 1.500 ms, timestamp vẫn là cuối cửa sổ đo. Schema 1.1/topic/đơn vị không đổi, không công bố chỉ số quality giả. Chưa nghiệm thu HR cổ tay; xem [bằng chứng bước 4](integration/05-PPG-FIRMWARE-TRIAL.md). Các phiên bản dưới là lịch sử.
+
+**Bản đang chạy0.3.10 trên máy Trung:** HR ước tính cửa sổ8s/kiểm tra1s, chọn IR/RED đủ điều kiện và cần hai lượt nhất quán; sửa lỗi chọn nửa nhịp khi biên độ xung xen kẽ. Timestamp cuối cửa sổ được chấp nhận, không phải từng nhịp/RR/HRV. Cửa sổ bị từ chối gửi HR=null ngay, không gia hạn số cũ; TTL3s giữ nguyên. PPG chip200Hz/averaging4, FIFO vẫn50Hz; lưu cấu hình firmware khi đối chiếu dữ liệu. Profile IMU6515, schema1.1, topic và đơn vị không đổi. Chưa nghiệm thu HR cổ tay. Xem [bằng chứng](integration/05-SENSOR-RECOVERY.md). Các phiên bản dưới là lịch sử.
+
+**Firmware0.3.2:** [chuỗi đo hiện tại](contracts/SENSOR_ACQUISITION_0_3_2.md) dùng FIFO PPG/IMU, ADC eFuse GSR, gyro bù offset sau đứng yên. Schema1.1/đơn vị/topic không đổi; µS/delta chưa hiệu chuẩn không được công bố hợp lệ. Chưa nạp/đo lại bản này; các mốc dưới là lịch sử.
+
+**Telemetry1.1, firmware0.3.0:** bổ sung gia tốc và tốc độ xoay ba trục cho Dashboard theo [đặc tả IMU](contracts/IMU_TELEMETRY_V1_1.md). Backend/frontend vẫn nhận1.0; bảng và ví dụ1.0 bên dưới được giữ làm tương thích. Control/raw/topic/API URL không đổi. Chờ nạp firmware mới và kiểm tra trên board.
 
 **Triển khai nhánh04, 2026-11-01:** đã có Mosquitto2.0.22/Paho2.1.0, xác thực, nhận telemetry chung HTTP/MQTT, Start/Stop202, lệnh bền/ACK/nonce/đồng bộ và migration SQLite1. Xem [cách chạy](integration/04-SETUP.md), [bàn giao](integration/04-HANDOFF.md). Bảng dưới mô tả mốc d80cc0e trước triển khai; raw lưu bền/JCS/đối chiếu đủ dữ liệu vẫn thuộc06.
 
@@ -18,7 +33,7 @@ Cập nhật: 2026-11-01. Đây là điểm tra cứu chung cho firmware, backen
 
 Quy tắc đích nằm trong [nhận dữ liệu](contracts/INGESTION_V1.md) và [điều khiển MQTT](contracts/MQTT_CONTROL.md). Xem thêm [ánh xạ driver](contracts/DRIVER_MAPPING.md), [mẫu JSON](contracts/examples.json), [hướng dẫn đọc](contracts/README.md), [bàn giao 03](integration/03-HANDOFF.md).
 
-Giữ URL /api/v1 và schema_version=1.0 cho telemetry/raw. Control có phiên bản riêng. Đổi giao thức không tự đổi phiên bản; thay đổi làm mất tương thích phải có kế hoạch cập nhật các bên.
+Giữ URL /api/v1. Telemetry nhận1.0/1.1; raw giữ1.0. Control có phiên bản riêng. Đổi giao thức không tự đổi phiên bản; thay đổi làm mất tương thích phải có kế hoạch cập nhật các bên.
 
 JSON dùng UTF-8. Hiện model chỉ cấm trường lạ ở cấp gốc telemetry/raw, chưa cấm đầy đủ ở cấp lồng nhau hoặc chặn mọi trường hợp ép kiểu/sai giới hạn mẫu.
 
@@ -53,7 +68,7 @@ Nhịp gửi phát triển mặc định 1 Hz, có thể cấu hình. Hiện HTT
 | hr_bpm | Số 20–240 bpm hoặc null | Chưa đo, lỗi hoặc cũ thì null |
 | gsr.raw | Số nguyên ADC 0–4095 hoặc null | Chưa có thì null; không phải độ dẫn |
 | gsr.delta | Tỷ lệ so với mức nền hoặc null | Null khi chưa có mức nền đáng tin |
-| movement.score | Số 0–1 hoặc null | Chưa có thuật toán thì null |
+| movement.score | Số 0–1 hoặc null | Firmware0.2.1 tính motion-rms-v1 từ MPU6050; thiếu/lỗi/cũ thì null, xem [định nghĩa](contracts/MOVEMENT_SCORE.md) |
 | signal_quality.ppg/gsr/imu | Số 0–1 | Chỉ số kỹ thuật, không mặc định là chất lượng đã đo |
 | prediction.probability | Số 0–1 hoặc null | Chưa có mô hình hoặc không đủ chất lượng thì null |
 | prediction.state | NORMAL/ATTENTION/UNCERTAIN/CALIBRATING | Chỉ trạng thái kỹ thuật |

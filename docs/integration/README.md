@@ -1,5 +1,7 @@
 # Kế hoạch chuẩn hoá và kết nối ESP32
 
+**Chốt HR 2026-11-08:** Trung giữ `0.3.23-tracker`; env mặc định và alias tracker cùng dùng bản này. Xem [kết quả HR](05-HR-TRACK-SWITCH.md), [phần đã dọn và kiểm chứng](05-CLEANUP-AUDIT.md), [cách chạy hằng ngày](05-ONE-COMMAND-DEV.md). GSR/IMU giữ nguyên; độ chính xác cổ tay chưa có đối chiếu đồng thời. Mục điểm xuất phát bên dưới mô tả thời điểm lập kế hoạch, không phải trạng thái runtime hiện tại.
+
 Lập2026-10-18, cập nhật2026-11-03, Asia/Saigon. Ban đầu trên dev332f249; nhánh03 từ d80cc0e sau PR #11.
 
 ## Mục tiêu
@@ -16,7 +18,7 @@ ESP32 -- HTTPraw -------------------------> file + chỉ mục SQLite
 
 ## Điểm xuất phát
 
-Có driver/EMA/Serial nhưng JSON khác API; mạng ESP32 chưa triển khai. Backend có HTTPtelemetry/raw/WS nhưng raw mới appendJSONL, chưa đủ chống trùng/phiên. Sessions/History còn giữ chỗ; frontend02 có trạng thái còn mới nhưng thiếu nghiệm thu browser.
+Có driver/EMA/Serial nhưng JSON khác API; mạng ESP32 chưa triển khai. Backend có HTTPtelemetry/raw/WS nhưng raw mới appendJSONL, chưa đủ chống trùng/phiên. Chưa triển khai nghiệp vụ trang Sessions/History; các file placeholder không được dùng đã dọn trong vòng 2026-11-07. Frontend02 ở mốc xuất phát có trạng thái còn mới nhưng thiếu nghiệm thu browser.
 
 Cleanup01 xử lý tài liệu/env; PR #11 có thêm lại file IDE và cập nhật driver. Không xoá file nhóm trong nhánh đặc tả. Mapping/rate phải đối chiếu lại; số đo phần cứng còn thiếu.
 
