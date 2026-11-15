@@ -1,0 +1,110 @@
+/* One type scale for both workspace pages. Layout breakpoints do not resize text. */
+@layer base {
+  :root {
+    --type-font-family: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    --type-caption-size: 12px;
+    --type-body-size: 13px;
+    --type-title-size: 14px;
+    --type-state-size: 20px;
+    --type-value-size: 32px;
+    --type-weight-regular: 400;
+    --type-weight-medium: 500;
+    --type-weight-emphasis: 600;
+    --type-leading-body: 1.5;
+    --type-leading-title: 1.4;
+    --type-leading-value: 1.2;
+    --text-body: #334155;
+  }
+}
+
+/* A dedicated layer prevents layout rules or responsive overrides from changing roles. */
+@layer typography {
+  body { font-size: var(--type-title-size); font-weight: var(--type-weight-regular); line-height: var(--type-leading-body); }
+  button, input, select, summary { font-family: inherit; }
+
+  /* Card titles, navigation, and explicit calls to action. */
+  .panel-title, .analysis-chart h3 {
+    font-size: var(--type-title-size); font-weight: var(--type-weight-emphasis);
+    line-height: var(--type-leading-title); letter-spacing: 0; color: var(--ink);
+  }
+  .panel-title { display: flex; align-items: center; gap: 8px; min-width: 0; margin: 0; }
+  .panel-title svg { flex: 0 0 16px; width: 16px; height: 16px; color: var(--brand); }
+  .sidebar-nav a, .sidebar-nav .sidebar-toggle { font-size: var(--type-title-size); font-weight: var(--type-weight-medium); line-height: var(--type-leading-title); }
+  .sidebar-nav a[aria-current="page"] { font-weight: var(--type-weight-emphasis); }
+  .device-connect-button, .secondary-button, .icon-button, .primary-button,
+  .prediction-details-button, .report-error button {
+    font-size: var(--type-body-size); font-weight: var(--type-weight-emphasis); line-height: var(--type-leading-title);
+  }
+
+  /* One body size for header controls, metadata values, status text and tables. */
+  .header-device, .device-control select, .connection-badge, .header-session,
+  .workspace-main .header-session, .connection-feedback, .sidebar-device-info dd,
+  .report-table-scroll table, .report-error, .report-pagination, .report-pagination button {
+    font-size: var(--type-body-size); line-height: var(--type-leading-body);
+  }
+  .header-device-name, .sidebar-device-info dd, .report-table-scroll td strong {
+    font-weight: var(--type-weight-medium);
+  }
+  .header-device .connection-badge[data-status], .header-session,
+  .report-table-scroll table, .report-pagination { font-weight: var(--type-weight-regular); }
+  .sidebar-device-info dd, .report-table-scroll td { color: var(--text-body); }
+  .report-pagination button { font-weight: var(--type-weight-medium); }
+  .header-session-value, .sidebar-device-info dd, .report-table-scroll td,
+  .report-pagination, .metric-quality, .sensor-value, .axis-readings dd, .prediction-probability {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  /* Secondary labels stay readable, including at smaller viewport widths. */
+  .sidebar-device-info dt, .sidebar-footnote, .sensor-unit, .device-workspace .sensor-unit,
+  .sensor-note, .device-workspace .sensor-note, .sensor-footer, .device-workspace .sensor-footer,
+  .axis-readings dt, .device-workspace .axis-readings dt, .prediction-readings dt,
+  .device-workspace .prediction-readings dt, .prediction-note, .device-workspace .prediction-note,
+  .prediction-model, .prediction-status, .device-workspace .prediction-status,
+  .report-section-heading > span, .report-table-scroll small, .chart-caption, .device-control label,
+  .metric-quality, .device-workspace .metric-quality {
+    font-size: var(--type-caption-size); font-weight: var(--type-weight-regular);
+    line-height: var(--type-leading-body);
+  }
+  .sidebar-device-info dt, .sidebar-footnote, .sensor-unit, .sensor-note, .sensor-footer,
+  .axis-readings dt, .prediction-readings dt, .prediction-note, .prediction-model,
+  .report-section-heading > span, .report-table-scroll small, .chart-caption { color: var(--muted); }
+  .metric-quality strong { font-weight: var(--type-weight-emphasis); }
+  .metric-quality [data-missing="true"] {
+    font-size: var(--type-caption-size); font-weight: var(--type-weight-regular);
+    line-height: var(--type-leading-body); color: var(--muted);
+  }
+  .axis-readings dd, .device-workspace .axis-readings dd {
+    font-size: var(--type-body-size); font-weight: var(--type-weight-medium); line-height: var(--type-leading-body);
+  }
+  .report-table-scroll th {
+    font-size: var(--type-body-size); font-weight: var(--type-weight-medium);
+    line-height: var(--type-leading-body); color: var(--text-body);
+  }
+
+  /* Empty-state messages are supporting text, not headings. */
+  .plot-empty, .sensor-grid .plot-empty, .imu-strip-empty, .report-empty strong, .report-table-empty {
+    font-size: var(--type-body-size); font-weight: var(--type-weight-regular);
+    line-height: var(--type-leading-body); color: var(--muted);
+  }
+
+  /* Measurements share a fixed scale; units and absence indicators have explicit roles. */
+  .sensor-value, .device-workspace .sensor-value, .prediction-probability, .device-workspace .prediction-probability {
+    font-size: var(--type-value-size); font-weight: var(--type-weight-emphasis);
+    line-height: var(--type-leading-value); letter-spacing: -.015em;
+  }
+  .sensor-value[data-missing="true"], .device-workspace .sensor-value[data-missing="true"],
+  .device-workspace .prediction-readings [data-missing="true"],
+  .device-workspace .prediction-readings [data-missing="true"] strong {
+    font-size: var(--type-value-size); font-weight: var(--type-weight-regular);
+    line-height: var(--type-leading-value); letter-spacing: 0; color: var(--muted);
+  }
+  .sensor-value .sensor-unit { font-size: var(--type-caption-size); font-weight: var(--type-weight-regular); letter-spacing: 0; }
+  .prediction-readings .analysis-state:not([data-missing="true"]), .device-workspace .prediction-readings .analysis-state:not([data-missing="true"]) {
+    font-size: var(--type-state-size); line-height: var(--type-leading-title);
+  }
+  .analysis-state strong { font-weight: var(--type-weight-emphasis); }
+
+  /* Authentication screen uses the same family and hierarchy. */
+  .connection-card h1 { font-size: var(--type-state-size); font-weight: var(--type-weight-emphasis); line-height: var(--type-leading-title); }
+  .connection-card p { font-size: var(--type-title-size); font-weight: var(--type-weight-regular); line-height: var(--type-leading-body); }
+}

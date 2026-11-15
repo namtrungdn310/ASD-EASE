@@ -92,6 +92,40 @@ test("StrictMode cleanup cancels old request; unmount removes timers", async () 
   assert.equal(signals[0].aborted, true);
   assert.ok(page.dom.window.document.querySelector("#dashboard"));
   await act(async () => page.root.unmount());
-  assert.equal(signals[1].aborted, true);
+  assert.equal(page.timers.size, 0);
+  await act(async () => page.dom.window.document.dispatchEvent(new page.dom.window.Event("visibilitychange")));
+  assert.equal(signals.length, 2); // Không gửi thêm request sau unmount.
+});
+
+test("first session request has a deadline and recovers without page refresh", async () => {
+  let count = 0;
+  let pendingSignal;
+  const page = await mount((url, options) => {
+    count++;
+    if (count > 1) return ok();
+    pendingSignal = options.signal;
+    return new Promise((resolve, reject) => options.signal.addEventListener("abort",
+      () => reject(new DOMException("aborted", "AbortError")), { once: true }));
+  });
+  const deadline = [...page.timers.values()].find(timer => timer.delay === 8000);
+  assert.ok(deadline);
+  await act(async () => deadline.callback());
+  assert.equal(pendingSignal.aborted, true);
+  assert.ok(page.dom.window.document.querySelector('[role="alert"]'));
+  const retry = [...page.timers.values()].find(timer => timer.delay === 3000);
+  await act(async () => retry.callback());
+  assert.ok(page.dom.window.document.querySelector("#dashboard"));
+  assert.equal(count, 2);
+});
+
+test("unmount aborts an in-flight session request and clears its deadline", async () => {
+  let signal;
+  const page = await mount((url, options) => {
+    signal = options.signal;
+    return new Promise((resolve, reject) => signal.addEventListener("abort",
+      () => reject(new DOMException("aborted", "AbortError")), { once: true }));
+  });
+  await act(async () => page.root.unmount());
+  assert.equal(signal.aborted, true);
   assert.equal(page.timers.size, 0);
 });
