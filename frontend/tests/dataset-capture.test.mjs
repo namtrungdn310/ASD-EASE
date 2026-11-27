@@ -76,6 +76,23 @@ test("stepDatasetCapture skips first 60s CALIBRATING and 5s no_contact tail, the
   assert.equal(acc.samples.length, 0);
 });
 
+test("stepDatasetCapture still emits capture when device drops to CALIBRATING after 5s grace before UNCERTAIN", () => {
+  const acc = createEmptyAccumulator();
+  for (let s = 61; s <= 75; s++) {
+    assert.equal(stepDatasetCapture(acc, makeTel(s, "ATTENTION"), true), null);
+  }
+  assert.equal(acc.samples.length, 15);
+
+  for (let s = 76; s <= 80; s++) {
+    assert.equal(stepDatasetCapture(acc, makeTel(s, "ATTENTION", "no_contact"), true), null);
+  }
+  // Even if firmware transiently emits CALIBRATING before UNCERTAIN after 5s grace, capture is preserved & emitted
+  const ready = stepDatasetCapture(acc, makeTel(81, "CALIBRATING", "no_contact"), true);
+  assert.ok(ready !== null);
+  assert.equal(ready.samples.length, 15);
+  assert.equal(acc.samples.length, 0);
+});
+
 test("DataLabelModal renders batch badge, previous batch, cumulative samples and clean Stress/No stress options", () => {
   const html = renderToStaticMarkup(
     React.createElement(DataLabelModal, {
