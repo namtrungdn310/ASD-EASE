@@ -16,13 +16,31 @@ export interface CaptureAccumulator {
   deviceId: string | null;
   sessionId: string | null;
   lastTimestampMs: number | null;
+  dropSeconds: number;
   samples: CaptureSamplePayload[];
 }
 
 export const MIN_CAPTURE_SAMPLES = 5;
 
 export function createEmptyAccumulator(): CaptureAccumulator {
-  return { deviceId: null, sessionId: null, lastTimestampMs: null, samples: [] };
+  return { deviceId: null, sessionId: null, lastTimestampMs: null, dropSeconds: 0, samples: [] };
+}
+
+function flushPendingCapture(acc: CaptureAccumulator, telemetry: Telemetry): PendingDatasetCapture {
+  const captured = [...acc.samples];
+  const startMs = captured[0].timestamp_ms;
+  const endMs = captured[captured.length - 1].timestamp_ms;
+  const durationSeconds = Math.max(1, Math.round((endMs - startMs) / 1000) + 1);
+  const result: PendingDatasetCapture = {
+    deviceId: acc.deviceId ?? telemetry.device_id,
+    sessionId: acc.sessionId ?? telemetry.session_id,
+    samples: captured,
+    durationSeconds,
+  };
+  acc.samples = [];
+  acc.lastTimestampMs = null;
+  acc.dropSeconds = 0;
+  return result;
 }
 
 export function stepDatasetCapture(
@@ -40,14 +58,37 @@ export function stepDatasetCapture(
   if (acc.deviceId && (acc.deviceId !== telemetry.device_id || acc.sessionId !== telemetry.session_id)) {
     acc.samples = [];
     acc.lastTimestampMs = null;
+    acc.dropSeconds = 0;
   }
 
-  // Bỏ qua 60 giây đầu đang hiệu chuẩn (CALIBRATING)
+  // Khi đang ở NORMAL / ATTENTION nhưng tháo tay (no_contact) -> đếm giây ân hạn, không ghi thêm mẫu hỏng
+  if ((state === "NORMAL" || state === "ATTENTION") && isNoContact) {
+    if (acc.lastTimestampMs !== telemetry.timestamp_ms) {
+      acc.lastTimestampMs = telemetry.timestamp_ms;
+      acc.dropSeconds += 1;
+    }
+    return null;
+  }
+
+  // Bỏ qua 60 giây đầu đang hiệu chuẩn (CALIBRATING).
+  // Tuy nhiên, nếu trước đó đã thu đủ mẫu sau hiệu chuẩn và vừa rớt sang CALIBRATING do tháo tay/hết 5s ân hạn,
+  // thì đóng gói để bật khung gán nhãn thay vì xóa mất dữ liệu vừa thu.
   if (state === "CALIBRATING") {
+    if (acc.samples.length >= MIN_CAPTURE_SAMPLES) {
+      if (acc.lastTimestampMs !== telemetry.timestamp_ms) {
+        acc.lastTimestampMs = telemetry.timestamp_ms;
+        acc.dropSeconds += 1;
+      }
+      if (acc.dropSeconds >= 5) {
+        return flushPendingCapture(acc, telemetry);
+      }
+      return null;
+    }
     acc.deviceId = telemetry.device_id;
     acc.sessionId = telemetry.session_id;
     acc.samples = [];
     acc.lastTimestampMs = null;
+    acc.dropSeconds = 0;
     return null;
   }
 
@@ -57,6 +98,7 @@ export function stepDatasetCapture(
     acc.deviceId = telemetry.device_id;
     acc.sessionId = telemetry.session_id;
     acc.lastTimestampMs = telemetry.timestamp_ms;
+    acc.dropSeconds = 0;
     acc.samples.push({
       timestamp_ms: telemetry.timestamp_ms,
       hr_bpm: telemetry.hr_bpm,
@@ -74,24 +116,13 @@ export function stepDatasetCapture(
 
   // Khi tháo tay và hết 5.2s đếm ngược -> ESP32 chuyển về UNCERTAIN -> đóng gói dữ liệu để gán nhãn
   if (state === "UNCERTAIN" && acc.samples.length >= MIN_CAPTURE_SAMPLES) {
-    const captured = [...acc.samples];
-    const startMs = captured[0].timestamp_ms;
-    const endMs = captured[captured.length - 1].timestamp_ms;
-    const durationSeconds = Math.max(1, Math.round((endMs - startMs) / 1000) + 1);
-    const result: PendingDatasetCapture = {
-      deviceId: acc.deviceId ?? telemetry.device_id,
-      sessionId: acc.sessionId ?? telemetry.session_id,
-      samples: captured,
-      durationSeconds,
-    };
-    acc.samples = [];
-    acc.lastTimestampMs = null;
-    return result;
+    return flushPendingCapture(acc, telemetry);
   }
 
   if (state === "UNCERTAIN") {
     acc.samples = [];
     acc.lastTimestampMs = null;
+    acc.dropSeconds = 0;
   }
   return null;
 }
