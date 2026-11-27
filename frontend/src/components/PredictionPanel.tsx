@@ -226,7 +226,7 @@ export function PredictionPanel({ telemetry, points, live, onViewDetails, onRese
     setResetFeedback(null);
     try {
       await onResetAi();
-      setResetFeedback({ message: "Đã đặt lại cửa sổ AI · đang hiệu chuẩn lại 60 giây.", error: false });
+      setResetFeedback({ message: "Đã đặt lại · hiệu chuẩn 60s.", error: false });
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
       const message = code === "MQTT_UNAVAILABLE"
