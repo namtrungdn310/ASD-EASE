@@ -103,6 +103,9 @@ export function computeCountdown(
     const graceCount = inGrace ? Math.max(1, rawGraceCount || 1) : 0;
 
     if (inGrace && graceCount > 5) {
+      if (isNoContact || (hasGracePoint && telemetry.hr_bpm == null)) {
+        return { countdown: null, graceCountdown: null, effectiveState: "UNCERTAIN" };
+      }
       return { countdown: 60, graceCountdown: null, effectiveState: "CALIBRATING" };
     }
 
@@ -159,6 +162,9 @@ export function computeCountdown(
       }
     }
     if (isNoContact && noContactCount === 0) noContactCount = 1;
+    if (isNoContact && noContactCount > 5) {
+      return { countdown: null, graceCountdown: null, effectiveState: "UNCERTAIN" };
+    }
 
     if (lastPoint?.calibValidSeconds !== undefined) {
       const validCalibCount = lastPoint.calibValidSeconds;
