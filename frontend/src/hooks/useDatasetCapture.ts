@@ -65,6 +65,9 @@ export function stepDatasetCapture(
       ax: telemetry.schema_version !== "1.0" ? telemetry.movement.acceleration?.x ?? null : null,
       ay: telemetry.schema_version !== "1.0" ? telemetry.movement.acceleration?.y ?? null : null,
       az: telemetry.schema_version !== "1.0" ? telemetry.movement.acceleration?.z ?? null : null,
+      gx: telemetry.schema_version !== "1.0" ? telemetry.movement.angular_velocity?.x ?? null : null,
+      gy: telemetry.schema_version !== "1.0" ? telemetry.movement.angular_velocity?.y ?? null : null,
+      gz: telemetry.schema_version !== "1.0" ? telemetry.movement.angular_velocity?.z ?? null : null,
     });
     return null;
   }

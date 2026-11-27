@@ -502,24 +502,54 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+.capture-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 10px;
+}
 .capture-modal-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .capture-modal-field label {
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   font-weight: 500;
 }
-.capture-modal-field select {
-  min-height: 38px;
+.capture-modal-field select,
+.capture-modal-field input {
+  min-height: 36px;
   padding: 0 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #ffffff;
   color: var(--ink);
   font: inherit;
+  font-size: 0.88rem;
+}
+.capture-subject-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+.capture-subject-chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #f8fafc;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.capture-subject-chip[data-active="true"] {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
 }
 .capture-modal-feedback {
   margin: 0 0 12px;

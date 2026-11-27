@@ -17,11 +17,16 @@ class CaptureSample(BaseModel):
     ax: float | None = None
     ay: float | None = None
     az: float | None = None
+    gx: float | None = None
+    gy: float | None = None
+    gz: float | None = None
 
 
 class CaptureCreateRequest(BaseModel):
     device_id: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
     session_id: str | None = Field(default=None, max_length=64)
+    subject_id: str | None = Field(default=None, min_length=1, max_length=64, pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
+    context: str | None = Field(default=None, max_length=32, pattern=r"^[a-z0-9_-]{1,32}$")
     label: Literal[0, 1]
     samples: list[CaptureSample] = Field(min_length=5, max_length=7200)
 
@@ -41,6 +46,8 @@ def create_dataset_capture(body: CaptureCreateRequest, request: Request):
         output_dir=output_dir,
         device_id=body.device_id,
         session_id=body.session_id,
+        subject_id=body.subject_id,
+        context=body.context,
         label=body.label,
         samples=[sample.model_dump() for sample in body.samples],
     )

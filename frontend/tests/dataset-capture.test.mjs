@@ -91,17 +91,24 @@ test("DataLabelModal renders batch badge, previous batch, cumulative samples and
           ax: 0,
           ay: 0,
           az: 9.8,
+          gx: 0.1,
+          gy: 0,
+          gz: -0.1,
         })),
       },
       initialSummary: {
         completed_batches: 2,
         next_batch_number: 3,
         total_samples_before: 120,
+        last_subject_id: "REAL_P02",
+        known_subject_ids: ["REAL_P02", "REAL_P01"],
         previous_batch: {
           batch_number: 2,
           duration_seconds: 65,
           sample_count: 65,
           label: 1,
+          subject_id: "REAL_P02",
+          context: "stress_mild",
         },
       },
       onClose: () => {},
@@ -116,6 +123,11 @@ test("DataLabelModal renders batch badge, previous batch, cumulative samples and
   assert.ok(html.includes("120 mẫu"));
   assert.ok(html.includes(">No stress</option>"));
   assert.ok(html.includes(">Stress</option>"));
+  assert.ok(html.includes("Ngữ cảnh"));
+  assert.ok(html.includes("Ngồi yên / thư giãn"));
+  assert.ok(html.includes("Vận động bình thường"));
+  assert.ok(html.includes("Người đeo (Subject ID)"));
+  assert.ok(html.includes('value="REAL_P02"'));
   assert.ok(!html.includes("Không stress"));
   assert.ok(html.includes("Lưu dữ liệu"));
   assert.ok(html.includes("Bỏ qua"));

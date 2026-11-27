@@ -258,8 +258,10 @@ def save_labeled_capture(
     session_id: str | None,
     label: int,
     samples: list[dict[str, Any]],
+    subject_id: str | None = None,
+    context: str | None = None,
 ) -> dict[str, Any]:
-    """Cắt cửa sổ 60s (bước 10s, hoặc 1 cửa sổ nếu < 60s) và ghi nối vào device_dataset.csv."""
+    """Cắt cửa sổ 60s (bước 10s, hoặc 1 cửa sổ nếu < 60s), ghi vào device_dataset.csv và lưu raw 1 Hz."""
     ordered = sorted(samples, key=lambda item: int(item["timestamp_ms"]))
     n = len(ordered)
     start_ms = int(ordered[0]["timestamp_ms"])
@@ -279,8 +281,12 @@ def save_labeled_capture(
     csv_path = output_dir / "device_dataset.csv"
     write_header = not csv_path.exists() or csv_path.stat().st_size == 0
 
-    subject_id = f"REAL_{device_id}"
+    resolved_subject_id = (subject_id or "").strip() or f"REAL_{device_id}"
+    resolved_context = (context or "").strip() or ("stress_mild" if int(label) == 1 else "rest")
     source_label_code = 2 if label == 1 else 1
+    existing_summary = get_capture_summary(output_dir)
+    batch_number = int(existing_summary["next_batch_number"])
+    saved_at = datetime.now(timezone.utc).isoformat()
 
     with csv_path.open("a", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=DATASET_COLUMNS)
@@ -289,7 +295,7 @@ def save_labeled_capture(
         for win in windows:
             feats = extract_window_features(win)
             row = {
-                "subject_id": subject_id,
+                "subject_id": resolved_subject_id,
                 "window_start_ms": int(win[0]["timestamp_ms"]),
                 "window_end_ms": int(win[-1]["timestamp_ms"]),
                 "source_label_code": source_label_code,
@@ -298,12 +304,34 @@ def save_labeled_capture(
             }
             writer.writerow(row)
 
-    log_path = output_dir / "captures_log.jsonl"
-    log_entry = {
-        "saved_at": datetime.now(timezone.utc).isoformat(),
+    raw_path = output_dir / "raw_captures.jsonl"
+    raw_entry = {
+        "batch_number": batch_number,
+        "saved_at": saved_at,
         "device_id": device_id,
+        "subject_id": resolved_subject_id,
         "session_id": session_id,
         "label": int(label),
+        "context": resolved_context,
+        "sample_count": n,
+        "window_count": len(windows),
+        "duration_seconds": duration_seconds,
+        "window_start_ms": start_ms,
+        "window_end_ms": end_ms,
+        "samples": ordered,
+    }
+    with raw_path.open("a", encoding="utf-8") as raw_handle:
+        raw_handle.write(json.dumps(raw_entry, ensure_ascii=False) + "\n")
+
+    log_path = output_dir / "captures_log.jsonl"
+    log_entry = {
+        "batch_number": batch_number,
+        "saved_at": saved_at,
+        "device_id": device_id,
+        "subject_id": resolved_subject_id,
+        "session_id": session_id,
+        "label": int(label),
+        "context": resolved_context,
         "sample_count": n,
         "window_count": len(windows),
         "duration_seconds": duration_seconds,
@@ -315,17 +343,21 @@ def save_labeled_capture(
 
     return {
         "saved": True,
+        "batch_number": batch_number,
         "device_id": device_id,
+        "subject_id": resolved_subject_id,
+        "context": resolved_context,
         "label": int(label),
         "sample_count": n,
         "window_count": len(windows),
         "duration_seconds": duration_seconds,
         "dataset_file": str(csv_path.name),
+        "raw_file": str(raw_path.name),
     }
 
 
 def get_capture_summary(output_dir: Path) -> dict[str, Any]:
-    """Đọc captures_log.jsonl để trả về số đợt đã lưu, đợt trước đó và tổng số mẫu tích lũy."""
+    """Đọc captures_log.jsonl để trả về số đợt đã lưu, đợt trước đó, subject_id gần nhất và tổng mẫu tích lũy."""
     log_path = output_dir / "captures_log.jsonl"
     entries: list[dict[str, Any]] = []
     if log_path.is_file():
@@ -343,7 +375,14 @@ def get_capture_summary(output_dir: Path) -> dict[str, Any]:
 
     completed = len(entries)
     total_samples = sum(int(item.get("sample_count", 0)) for item in entries)
+    known_subjects: list[str] = []
+    for item in reversed(entries):
+        sid = item.get("subject_id")
+        if isinstance(sid, str) and sid.strip() and sid not in known_subjects:
+            known_subjects.append(sid)
+
     previous_batch: dict[str, Any] | None = None
+    last_subject_id: str | None = known_subjects[0] if known_subjects else None
     if completed > 0:
         last = entries[-1]
         previous_batch = {
@@ -351,11 +390,15 @@ def get_capture_summary(output_dir: Path) -> dict[str, Any]:
             "duration_seconds": int(last.get("duration_seconds", 0)),
             "sample_count": int(last.get("sample_count", 0)),
             "label": int(last.get("label", 0)),
+            "subject_id": last.get("subject_id"),
+            "context": last.get("context"),
         }
 
     return {
         "completed_batches": completed,
         "next_batch_number": completed + 1,
         "total_samples_before": total_samples,
+        "last_subject_id": last_subject_id,
+        "known_subject_ids": known_subjects,
         "previous_batch": previous_batch,
     }
