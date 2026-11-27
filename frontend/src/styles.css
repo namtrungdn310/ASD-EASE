@@ -328,8 +328,8 @@
   .prediction-reset-button:hover:not(:disabled) { background: #eef3ff; border-color: #93c5fd; color: #052eb1; }
   .prediction-reset-button:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
   .prediction-reset-button:disabled { opacity: 0.55; cursor: not-allowed; }
-  .prediction-reset-feedback { margin: 10px 0 0; color: #186447; overflow-wrap: anywhere; }
-  .prediction-reset-feedback[data-error="true"] { color: #b91c1c; }
+  .prediction-reset-feedback { margin: 10px 0 0; font-size: 0.82rem; color: #186447; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prediction-reset-feedback[data-error="true"] { color: #b91c1c; white-space: normal; }
   .prediction-details-button { margin-top: 0; min-height: 40px; width: 100%; border: 0; border-radius: 7px; background: var(--brand); color: #fff; cursor: pointer; }
   .prediction-details-button:hover { background: #052eb1; }
   .report-history-card, .report-table-card { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: #fff; }
