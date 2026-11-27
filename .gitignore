@@ -24,7 +24,22 @@ ai/data/synthetic/manifests/*
 !ai/data/synthetic/raw/.gitkeep
 !ai/data/synthetic/processed/.gitkeep
 !ai/data/synthetic/manifests/.gitkeep
+ai/data/collected/*
+!ai/data/collected/.gitkeep
 ai/.generated/
+# Dataset bên ngoài: chỉ đưa tài liệu nguồn vào Git.
+/ai/data/external/*
+!/ai/data/external/README.md
+!/ai/data/external/empathicschool/
+/ai/data/external/empathicschool/*
+!/ai/data/external/empathicschool/README.md
+/ai/data/interim/empathicschool/
+/ai/data/processed/empathicschool/
+!/ai/data/external/wesad/
+/ai/data/external/wesad/*
+!/ai/data/external/wesad/README.md
+/ai/data/interim/wesad/
+/ai/data/processed/wesad/
 .pio/
 .vscode/
 mosquitto/config/password.txt

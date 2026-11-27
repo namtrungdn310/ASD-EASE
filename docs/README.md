@@ -4,6 +4,7 @@
 - [Đặc tả API và dữ liệu](API_CONTRACT.md)
 - [Dữ liệu giả lập](SYNTHETIC_DATA_SPEC.md)
 - [Quy trình bộ dữ liệu](DATASET_PROTOCOL.md)
+- [Chuẩn bị ML từng bước](ml/README.md)
 - [Phần cứng](HARDWARE_PROFILE.md)
 - [Phân công](RESPONSIBILITIES.md)
 - [Quy trình phát triển](DEVELOPMENT_WORKFLOW.md)
