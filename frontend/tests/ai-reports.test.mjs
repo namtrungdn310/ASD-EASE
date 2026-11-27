@@ -329,6 +329,48 @@ test("UNCERTAIN never morphs into CALIBRATING or triggers false 5s grace from ol
   assert.ok(!htmlStart.includes("|"), `fresh calibration after UNCERTAIN must not show grace countdown: ${htmlStart}`);
 });
 
+test("HR pulse lost > 15s with weak_signal still triggers 5s grace countdown during NORMAL", () => {
+  const makeTel = (sec, state, hr, reason = "ok") => ({
+    device_id: "ESP-001", session_id: "S-1", timestamp_ms: sec * 1000,
+    firmware_version: "0.4.7-rr-average-tracker", model_version: "wesad_lr_v1_folded", data_origin: "DEVICE",
+    schema_version: "1.2", hr_bpm: hr, gsr: { raw: 1700, delta: 0 },
+    movement: { score: 0.05, acceleration: { x: 0, y: 9.8, z: 0 }, angular_velocity: { x: 0, y: 0, z: 0 } },
+    signal_quality: {
+      method: "engineering-v2", window_ms: 8000,
+      hr: { status: hr != null ? "good" : "unavailable", score: hr != null ? 0.9 : 0, reason },
+      gsr: { status: "good", score: 0.9, reason: "ok" },
+      acceleration: { status: "good", score: 0.9, reason: "ok" },
+      rotation: { status: "good", score: 0.9, reason: "ok" },
+    },
+    prediction: { state, probability: state === "NORMAL" ? 0.25 : null },
+  });
+
+  let stream = null;
+  stream = updateTelemetryStream(stream, makeTel(60, "CALIBRATING", 78), 60000);
+  stream = updateTelemetryStream(stream, makeTel(61, "NORMAL", 78), 61000);
+  stream = updateTelemetryStream(stream, makeTel(62, "NORMAL", 78), 62000);
+
+  // 15 seconds of missing HR with weak_signal (yellow dashed forecast active -> no 5s grace yet)
+  for (let i = 1; i <= 15; i++) {
+    stream = updateTelemetryStream(stream, makeTel(62 + i, "NORMAL", null, "weak_signal"), (62 + i) * 1000);
+    const html = renderToStaticMarkup(React.createElement(PredictionPanel, {
+      telemetry: stream.telemetry, points: stream.points, live: true,
+    }));
+    assert.ok(!html.includes("|"), `second ${i} (<= 15s) should not show 5s grace yet: ${html}`);
+  }
+
+  // Seconds 16..20 (> 15s without HR pulse): MUST show 5s -> 1s grace countdown even though reason is weak_signal
+  for (let g = 1; g <= 5; g++) {
+    const sec = 62 + 15 + g;
+    stream = updateTelemetryStream(stream, makeTel(sec, "NORMAL", null, "weak_signal"), sec * 1000);
+    const html = renderToStaticMarkup(React.createElement(PredictionPanel, {
+      telemetry: stream.telemetry, points: stream.points, live: true,
+    }));
+    assert.ok(html.includes("Bình thường"), `grace ${g} should keep Bình thường`);
+    assert.ok(html.includes(`| ${6 - g}s)`), `grace ${g} should show | ${6 - g}s), got: ${html}`);
+  }
+});
+
 test("sidebar navigation retains monitoring, metadata and controls while reports use backend history", async () => {
   const { JSDOM } = await import("jsdom");
   const { createRoot } = await import("react-dom/client");

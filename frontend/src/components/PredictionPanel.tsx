@@ -53,6 +53,7 @@ export function computeCountdown(
   const isNoContact =
     (telemetry.schema_version === "1.2" && telemetry.signal_quality?.hr?.reason === "no_contact") ||
     Boolean(lastPoint?.hrNoContact);
+  const hasGracePoint = Boolean(lastPoint?.noContactSeconds && lastPoint.noContactSeconds > 0);
 
   // Nếu telemetryStream đã xác nhận hết ân hạn (hoặc đang hiệu chuẩn thực sự), xử lý nhánh CALIBRATING trực tiếp
   const explicitlyCalibrating = state === "CALIBRATING" && lastPoint?.calibValidSeconds !== undefined;
@@ -68,6 +69,7 @@ export function computeCountdown(
       if (pState === "UNCERTAIN") break;
       const isTrailingDrop =
         Boolean(p.hrNoContact) ||
+        Boolean(p.noContactSeconds && p.noContactSeconds > 0) ||
         (state === "CALIBRATING" && pState === "CALIBRATING");
       if (isTrailingDrop) {
         trailingLen++;
@@ -91,13 +93,13 @@ export function computeCountdown(
 
   const isGraceFromActive =
     !explicitlyCalibrating &&
-    (((state === "NORMAL" || state === "ATTENTION") && isNoContact && rawGraceCount <= 5) ||
+    (((state === "NORMAL" || state === "ATTENTION") && (isNoContact || hasGracePoint) && rawGraceCount <= 5) ||
       (state === "CALIBRATING" && hasPriorActive && rawGraceCount > 0));
 
   if (isGraceFromActive || state === "NORMAL" || state === "ATTENTION") {
     const inGrace =
       !explicitlyCalibrating &&
-      (isNoContact || (state === "CALIBRATING" && hasPriorActive));
+      (isNoContact || hasGracePoint || (state === "CALIBRATING" && hasPriorActive));
     const graceCount = inGrace ? Math.max(1, rawGraceCount || 1) : 0;
 
     if (inGrace && graceCount > 5) {

@@ -88,6 +88,23 @@ export function updateTelemetryStream(
       : [];
 
   const isNoContact = next.schema_version === "1.2" && next.signal_quality.hr.reason === "no_contact";
+  let isHrLostOver15s = false;
+  if (!isNoContact && next.hr_bpm === null && history.length > 0) {
+    const nextSec = next.timestamp_ms / 1000;
+    let lastValidHrSec: number | null = null;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (history[i].hr !== null && Number.isFinite(history[i].hr)) {
+        lastValidHrSec = history[i].time;
+        break;
+      }
+    }
+    if (lastValidHrSec !== null) {
+      isHrLostOver15s = nextSec - lastValidHrSec > 15;
+    } else {
+      isHrLostOver15s = nextSec - history[0].time > 15;
+    }
+  }
+  const isGraceTrigger = isNoContact || isHrLostOver15s;
   const hasActiveModel = next.model_version !== "none" || next.data_origin === "SYNTHETIC";
   const prevLast = history.length > 0 ? history[history.length - 1] : undefined;
   let calibValidSeconds: number | undefined;
@@ -140,7 +157,7 @@ export function updateTelemetryStream(
           noContactSeconds = 0;
         }
       }
-    } else if ((next.prediction.state === "NORMAL" || next.prediction.state === "ATTENTION") && isNoContact) {
+    } else if ((next.prediction.state === "NORMAL" || next.prediction.state === "ATTENTION") && isGraceTrigger) {
       noContactSeconds = (prevLast?.noContactSeconds ?? 0) + 1;
     }
   }
