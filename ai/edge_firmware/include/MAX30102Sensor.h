@@ -36,6 +36,8 @@ struct MAX30102Data {
   uint32_t  irValue        = 0;
   uint32_t  redValue       = 0;
   float     heartRate       = 0.0f; // Tracker chu kỳ ưu tiên; RR từng nhịp là nguồn dự phòng.
+  uint32_t  beatIntervalMs  = 0;    // Khoảng RR từng nhịp gần nhất (ms) để tính HRV (RMSSD)
+  float     beatPeakToPeak  = 0.0f; // Biên độ xung PPG (đánh giá co mạch ngoại biên)
   float     spO2            = NAN;                       // Không suy SpO2 từ HR hoặc kẹp về dải đẹp
   float     pulseAmplitude  = 0.0f;                      // Biên độ tương đương từ RMS, counts
   PPGStatus status          = PPGStatus::DISCONNECTED;   // Trạng thái tiếp xúc & đo đạc
@@ -119,6 +121,8 @@ class MAX30102Sensor {
   asd::QualityWindow quality_;
   asd::PpgBeatTracker beatTracker_;
   float latestHeartRateBpm_ = 0;
+  uint32_t latestBeatIntervalMs_ = 0;
+  float latestBeatPeakToPeak_ = 0.0f;
   uint8_t latestHeartRateSource_ = 0;
   uint32_t lastPollMs_ = 0;
   uint32_t configuredMs_ = 0;

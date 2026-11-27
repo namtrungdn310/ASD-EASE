@@ -15,7 +15,7 @@ MqttStats stats;
 QueueHandle_t snapshotQueue = nullptr, inbox = nullptr, published = nullptr, subscribed = nullptr;
 TaskHandle_t worker = nullptr;
 esp_mqtt_client_handle_t client = nullptr;
-std::atomic<bool> connected{false}, connectionFailed{false};
+std::atomic<bool> connected{false}, connectionFailed{false}, aiResetRequested{false};
 std::atomic<int> fatalReason{0}, lastTransportError{0};
 std::atomic<int> lastMqttErrorType{0}, lastTlsStackError{0}, lastSocketError{0};
 std::atomic<uint32_t> lastTransportErrorAtMs{0};
@@ -74,6 +74,7 @@ void event(void*, esp_event_base_t, int32_t type, void* pointer) {
     std::string topic(e->topic, e->topic_len);
     if (topic == prefix + "command") strcpy(packet.suffix, "command");
     else if (topic == prefix + "state/response") strcpy(packet.suffix, "state/response");
+    else if (topic == prefix + "ai/reset") strcpy(packet.suffix, "ai/reset");
     else { countDrop(); return; }
     memcpy(packet.payload, e->data, e->data_len);
     packet.payload[e->data_len] = 0;
@@ -173,8 +174,8 @@ void networkTask(void*) {
   std::string loggedState = "IDLE", loggedError;
   bool wifiAttempt = false, ready = false, subscribedOnce = false;
   int loggedFatal = 0;
-  int subscribeIds[2] = {-1,-1};
-  bool subAck[2] = {false,false};
+  int subscribeIds[3] = {-1,-1,-1};
+  bool subAck[3] = {false,false,false};
   asd::ReadingSnapshot snapshot{};
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
@@ -227,14 +228,15 @@ void networkTask(void*) {
       if (client && connected && !subscribedOnce) {
         subscribeIds[0] = esp_mqtt_client_subscribe(client, (prefix + "command").c_str(), 1);
         subscribeIds[1] = esp_mqtt_client_subscribe(client, (prefix + "state/response").c_str(), 1);
-        subAck[0] = subAck[1] = false;
+        subscribeIds[2] = esp_mqtt_client_subscribe(client, (prefix + "ai/reset").c_str(), 1);
+        subAck[0] = subAck[1] = subAck[2] = false;
         subscribedOnce = true;
-        if (subscribeIds[0] < 0 || subscribeIds[1] < 0) connectionFailed = true;
+        if (subscribeIds[0] < 0 || subscribeIds[1] < 0 || subscribeIds[2] < 0) connectionFailed = true;
       }
       int id = 0;
       while (xQueueReceive(subscribed, &id, 0) == pdTRUE)
-        for (int i=0; i<2; ++i) if (subscribeIds[i] == id) subAck[i] = true;
-      if (subscribedOnce && !ready && subAck[0] && subAck[1]) {
+        for (int i=0; i<3; ++i) if (subscribeIds[i] == id) subAck[i] = true;
+      if (subscribedOnce && !ready && subAck[0] && subAck[1] && subAck[2]) {
         ready = true;
         // Core connected() đã tạo nonce trước CONNECT. Tick chỉ sau cả hai SUBACK.
         asd::Outbound online{"presence", protocol.presence(true), 1, true};
@@ -248,8 +250,23 @@ void networkTask(void*) {
       if (ready && !connectionFailed) {
         protocol.transportPending(flightCount, esp_mqtt_client_get_outbox_size(client));
         Packet packet;
-        for (int i=0; i<8 && xQueueReceive(inbox, &packet, 0) == pdTRUE; ++i)
-          protocol.receive(packet.suffix, packet.payload, packet.retained, now);
+        for (int i=0; i<8 && xQueueReceive(inbox, &packet, 0) == pdTRUE; ++i) {
+          if (strcmp(packet.suffix, "ai/reset") == 0) {
+            JsonDocument doc;
+            if (asd::parseObject(packet.payload, doc) &&
+                doc["device_id"].is<const char*>() &&
+                strcmp(doc["device_id"].as<const char*>(), MQTT_DEVICE_ID) == 0 &&
+                doc["action"].is<const char*>() &&
+                strcmp(doc["action"].as<const char*>(), "AI_RESET") == 0) {
+              aiResetRequested.store(true, std::memory_order_release);
+              Serial.println("[CONTROL] Nhan lenh AI_RESET qua MQTT");
+            } else {
+              Serial.println("[CONTROL] Tu choi goi ai/reset khong hop le");
+            }
+          } else {
+            protocol.receive(packet.suffix, packet.payload, packet.retained, now);
+          }
+        }
         protocol.tick(now);
         if (protocol.generation() != loggedGeneration || protocol.state() != loggedState) {
           loggedGeneration = protocol.generation(); loggedState = protocol.state();
@@ -356,4 +373,7 @@ void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, uint32_t imuSamples, b
 }
 MqttStats mqttGetStats() {
   portENTER_CRITICAL(&statsMux); auto copy = stats; portEXIT_CRITICAL(&statsMux); return copy;
+}
+bool mqttConsumeAiResetRequest() {
+  return aiResetRequested.exchange(false, std::memory_order_acq_rel);
 }

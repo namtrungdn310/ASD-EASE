@@ -141,11 +141,27 @@ std::string telemetryJson(const ReadingSnapshot& s, uint64_t now, uint64_t times
     d["signal_quality"]["gsr"] = 0;
     d["signal_quality"]["imu"] = 0;
   }
-  d["prediction"]["probability"] = nullptr;
   bool calibrating = (s.gsrCalibrating && gsrFresh) || (s.imuCalibrating && fresh(s.imuAgeMs, s.capturedAtMs, now, 1000));
-  d["prediction"]["state"] = calibrating ? "CALIBRATING" : "UNCERTAIN";
+  if (s.hasModelPrediction && s.modelVersion && s.modelVersion[0] && std::string(s.modelVersion) != "none") {
+    d["model_version"] = s.modelVersion;
+    if (std::isfinite(s.predictionProbability) && s.predictionProbability >= 0.0f && s.predictionProbability <= 1.0f) {
+      const float prob = std::round(s.predictionProbability * 1000.0f) / 1000.0f;
+      d["prediction"]["probability"] = prob;
+      d["prediction"]["state"] = (s.predictionState && s.predictionState[0])
+          ? s.predictionState
+          : (prob >= 0.50f ? "ATTENTION" : "NORMAL");
+    } else {
+      d["prediction"]["probability"] = nullptr;
+      d["prediction"]["state"] = (s.predictionState && s.predictionState[0])
+          ? s.predictionState
+          : (calibrating ? "CALIBRATING" : "UNCERTAIN");
+    }
+  } else {
+    d["prediction"]["probability"] = nullptr;
+    d["prediction"]["state"] = calibrating ? "CALIBRATING" : "UNCERTAIN";
+    d["model_version"] = "none";
+  }
   d["firmware_version"] = firmware;
-  d["model_version"] = "none";
   std::string output;
   serializeJson(d, output);
   return output.size() <= kMaxPayload ? output : std::string();

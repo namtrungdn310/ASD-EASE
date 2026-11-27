@@ -7,6 +7,9 @@
 #include "MAX30102Sensor.h"
 #include "processing/ppg_wrist.h"
 #include "processing/ppg_wrist_motion.h"
+#include "processing/edge_ai_inference.h"
+#include "processing/hr_stability.h"
+#include "processing/impact_detector.h"
 #include "MPU6050Sensor.h"
 #include "GSRSensor.h"
 #include "EMA.h"
@@ -128,6 +131,7 @@ static const char* imuStatusStr(IMUStatus s) {
 static void emitPrettyText(const MAX30102Data& ppg,
                            const MPU6050Data&  imu,
                            const GSRData&      gsr,
+                           const asd::EdgeAiInference::Result& ai,
                            unsigned long       now) {
   Serial.println(F("\n================================================================"));
   Serial.printf(" ASD-EASE | %s | Uptime: %.1fs | I2C: %s\n",
@@ -191,6 +195,25 @@ static void emitPrettyText(const MAX30102Data& ppg,
   }
   Serial.println();
 
+  // ── [4] AI TinyML — Dự đoán trạng thái ────────────────────────────────────
+  Serial.printf(" [AI]   %s  |  Mô hình: %s",
+                ai.state ? ai.state : "UNCERTAIN",
+                ai.modelVersion ? ai.modelVersion : "none");
+  if (ai.hasProbability) {
+    Serial.printf("  |  XS=%.1f%% (thô=%.1f%%, logit=%+.2f) | EdaNền=%.2fµS | HRnghỉ=%.1f | HRV=%.1fms | Gyro=%.1f°/s | CoMạch=%.2fx | Đập30s=%u%s%s",
+                  ai.probability * 100.0f, ai.rawProbability * 100.0f, ai.logit,
+                  ai.edaBaselineUs, ai.restingHrBpm, ai.rmssdMs, ai.gyroRms, ai.vasoRatio,
+                  static_cast<unsigned>(ai.impacts30s),
+                  ai.quietHandGuarded ? " [TayTinh]" : "",
+                  ai.repeatedImpactTriggered ? " [DapLap]" : "");
+  } else if (ai.state && strcmp(ai.state, "CALIBRATING") == 0) {
+    Serial.printf("  |  Đang tích lũy cửa sổ 60s có nhịp tim (%u/60s)...",
+                  static_cast<unsigned>(ai.windowSeconds));
+  } else {
+    Serial.print("  |  Chưa đeo cổ tay / chờ tín hiệu nhịp tim...");
+  }
+  Serial.println();
+
   Serial.println(F("================================================================"));
 }
 
@@ -200,6 +223,7 @@ static void emitPrettyText(const MAX30102Data& ppg,
 static void emitPrettyJson(const MAX30102Data& ppg,
                            const MPU6050Data&  imu,
                            const GSRData&      gsr,
+                           const asd::EdgeAiInference::Result& ai,
                            unsigned long       now) {
   JsonDocument doc;
 
@@ -256,6 +280,16 @@ static void emitPrettyJson(const MAX30102Data& ppg,
     m["temp_c"] = roundf(imu.temperature * 10.0f) / 10.0f;
   }
 
+  // AI TinyML
+  doc["model_version"] = ai.modelVersion ? ai.modelVersion : "none";
+  JsonObject pred = doc["prediction"].to<JsonObject>();
+  if (ai.hasProbability) {
+    pred["probability"] = roundf(ai.probability * 1000.0f) / 1000.0f;
+  } else {
+    pred["probability"] = nullptr;
+  }
+  pred["state"] = ai.state ? ai.state : "UNCERTAIN";
+
   serializeJsonPretty(doc, Serial);
   Serial.println();
 }
@@ -263,11 +297,12 @@ static void emitPrettyJson(const MAX30102Data& ppg,
 static void emitOutput(const MAX30102Data& ppg,
                        const MPU6050Data&  imu,
                        const GSRData&      gsr,
+                       const asd::EdgeAiInference::Result& ai,
                        unsigned long       now, OutputFormat format) {
   if (format == OutputFormat::PRETTY_JSON) {
-    emitPrettyJson(ppg, imu, gsr, now);
+    emitPrettyJson(ppg, imu, gsr, ai, now);
   } else {
-    emitPrettyText(ppg, imu, gsr, now);
+    emitPrettyText(ppg, imu, gsr, ai, now);
   }
 }
 
@@ -282,6 +317,7 @@ struct DiagnosticSnapshot {
   uint32_t now;
   OutputFormat format;
   asd::PpgHybridStats hybrid;
+  asd::EdgeAiInference::Result ai;
 };
 static QueueHandle_t diagnosticQueue = nullptr;
 struct PpgTraceFrame {
@@ -313,7 +349,7 @@ static void diagnosticTask(void*) {
         frame.motion.axes[3],frame.motion.axes[4],frame.motion.axes[5],
         unsigned(frame.redLed),unsigned(frame.irLed),frame.exposureGeneration);
     if (!haveDiagnostic) continue;
-    emitOutput(d.ppg, d.imu, d.gsr, d.now, d.format);
+    emitOutput(d.ppg, d.imu, d.gsr, d.ai, d.now, d.format);
     const auto& s = d.net;
     Serial.printf("[NET] wifi=%u mqtt=%u sync=%u tx=%lu fail=%lu drop=%lu invalid=%lu heapMin=%lu stackWater=%lu loopGap=%lu samples=%lu/%lu/%lu controlDrop=%lu pending=%lu outbox=%lu error=%d fatal=%d\n",
       s.wifiConnected, s.mqttConnected, s.synchronized, s.publishOk, s.publishFail, s.dropped,
@@ -374,6 +410,12 @@ static void diagnosticTask(void*) {
       d.now, m.samples, m.ioErrors, m.overflowEvents, m.gaps, m.clipped,
       unsigned(d.imu.gyroCalibrated), d.gyroOffsets[0], d.gyroOffsets[1], d.gyroOffsets[2],
       unsigned(uxTaskGetStackHighWaterMark(nullptr)));
+    Serial.printf("[AI-EDGE] model=%s state=%s prob=%.1f%% logit=%.2f win=%u/60s\n",
+      d.ai.modelVersion ? d.ai.modelVersion : "none",
+      d.ai.state ? d.ai.state : "UNCERTAIN",
+      d.ai.hasProbability ? d.ai.probability * 100.0f : 0.0f,
+      d.ai.logit,
+      static_cast<unsigned>(d.ai.windowSeconds));
     if (traceStarted.load() != 0)
       Serial.printf("[PPG-TRACE] dropped=%lu\n", static_cast<unsigned long>(traceDropped.load()));
   }
@@ -389,7 +431,7 @@ void setup() {
   Serial.println(F("  ASD-EASE Edge Firmware v" FIRMWARE_VERSION));
   Serial.println(F("  Board: ESP32-S3 Super Mini"));
   Serial.println(F("========================================================"));
-  Serial.println(F("  Gõ 'j' -> JSON  |  't' -> Text\n"));
+  Serial.println(F("  Gõ 'j' -> JSON  |  't' -> Text  |  'r' -> Reset AI\n"));
 
   // ── Khởi tạo 2 Bus I2C phần cứng độc lập ──────────────────────────────────
   Serial.printf("[I2C0] MAX30102  SDA=GPIO%d  SCL=GPIO%d  %lu kHz\n",
@@ -454,13 +496,16 @@ void setup() {
 void loop() {
   const unsigned long now = millis();
 
-  // Xử lý lệnh phím đổi chế độ hiển thị
+  bool serialResetRequested = false;
+  // Xử lý lệnh phím đổi chế độ hiển thị & reset AI
   while (Serial.available()) {
     char c = static_cast<char>(Serial.read());
     if (c == 'j' || c == 'J') {
       outputFormat = OutputFormat::PRETTY_JSON;
     } else if (c == 't' || c == 'T') {
       outputFormat = OutputFormat::PRETTY_TEXT;
+    } else if (c == 'r' || c == 'R') {
+      serialResetRequested = true;
     } else if (c == 'p') {
       traceDropped.store(0); traceStarted.store(millis());
     } else if (c == 'q') {
@@ -472,6 +517,9 @@ void loop() {
   static MPU6050Data  latestImu;
   static GSRData      latestGsr;
   static asd::WristMotionGuard wristMotion;
+  static asd::HrStabilityFilter hrStability;
+  static asd::ImpactDetector impactDetector;
+  static asd::EdgeAiInference edgeAi;
   uint32_t ppgSamples = 0;
   uint32_t imuSamples = 0;
   bool gsrNew = false;
@@ -480,6 +528,9 @@ void loop() {
   if (asd::sampleDue(now, lastImuReadMs, kImuIntervalMs)) {
     latestImu = imuSensor.read();
     imuSamples = latestImu.newSamples;
+    impactDetector.update(latestImu.sampleMonotonicMs,
+                          latestImu.valid && latestImu.hasSampleTimestamp,
+                          latestImu.ax, latestImu.ay, latestImu.az);
   }
   if (asd::sampleDue(now, lastPpgReadMs, kPpgIntervalMs)) {
     latestPpg = ppgSensor.read();
@@ -512,17 +563,57 @@ void loop() {
     gsrNew = latestGsr.hasSampleTimestamp;
   }
 
+  const uint64_t qualityNow = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
+  if (mqttConsumeAiResetRequest() || serialResetRequested) {
+    edgeAi.reset();
+    impactDetector.clearHistory();
+    Serial.println(F("[AI] Da reset cua so du lieu AI (60s) tu dau; giu nguyen cam bien chay lien tuc"));
+  }
+
+  hrStability.update(qualityNow, latestPpg.fingerDetected,
+                     latestPpg.valid && latestPpg.hasHeartRateTimestamp,
+                     latestPpg.heartRate, latestPpg.heartRateMonotonicMs);
+
+  MAX30102Data filteredPpg = latestPpg;
+  if (latestPpg.fingerDetected) {
+    if (hrStability.isFreshStable(qualityNow)) {
+      filteredPpg.heartRate = hrStability.stableBpm();
+      filteredPpg.heartRateMonotonicMs = hrStability.lastStableAtMs();
+      filteredPpg.hasHeartRateTimestamp = true;
+      filteredPpg.valid = true;
+    } else {
+      filteredPpg.heartRate = 0.0f;
+      filteredPpg.beatIntervalMs = 0;
+      filteredPpg.beatPeakToPeak = 0.0f;
+      filteredPpg.valid = false;
+      filteredPpg.hasHeartRateTimestamp = false;
+      filteredPpg.heartRateMonotonicMs = hrStability.lastStableAtMs();
+      if (filteredPpg.status == PPGStatus::VALID) {
+        filteredPpg.status = PPGStatus::PULSE_ACQUIRING;
+      }
+    }
+  }
+
+  const bool suppressSingleImpact = impactDetector.inSingleImpactTransient(qualityNow);
+  const uint8_t impacts30s = impactDetector.countWithin(qualityNow, 30000ULL);
+  const auto& aiResult = edgeAi.update(qualityNow, filteredPpg, latestImu, latestGsr,
+                                       suppressSingleImpact, impacts30s);
+
   // Xuất gói dữ liệu định kỳ
   if (asd::sampleDue(now, lastOutputMs, kOutputIntervalMs) && diagnosticQueue) {
-    const DiagnosticSnapshot d{latestPpg, latestImu, latestGsr, mqttGetStats(),
-      ppgSensor.acquisitionStats(), imuSensor.acquisitionStats(), imuSensor.gyroOffsets(), now, outputFormat, asd::ppgHybridStats()};
+    const DiagnosticSnapshot d{filteredPpg, latestImu, latestGsr, mqttGetStats(),
+      ppgSensor.acquisitionStats(), imuSensor.acquisitionStats(), imuSensor.gyroOffsets(), now, outputFormat, asd::ppgHybridStats(), aiResult};
     xQueueOverwrite(diagnosticQueue, &d); // Latest-only, không đợi Serial.
   }
 
-  const uint64_t qualityNow = static_cast<uint64_t>(esp_timer_get_time()) / 1000;
-  mqttUpdateSnapshot(captureTelemetrySnapshot(latestPpg, latestImu, latestGsr,
+  auto snapshot = captureTelemetrySnapshot(filteredPpg, latestImu, latestGsr,
     millis(), qualityNow, ppgSensor.signalQuality(qualityNow), gsrSensor.signalQuality(qualityNow),
-    imuSensor.accelerationQuality(qualityNow), imuSensor.rotationQuality(qualityNow)));
+    imuSensor.accelerationQuality(qualityNow), imuSensor.rotationQuality(qualityNow));
+  snapshot.hasModelPrediction = aiResult.available;
+  snapshot.predictionProbability = aiResult.hasProbability ? aiResult.probability : -1.0f;
+  snapshot.predictionState = aiResult.state;
+  snapshot.modelVersion = aiResult.modelVersion;
+  mqttUpdateSnapshot(snapshot);
 
   mqttRecordSensing(now, ppgSamples, imuSamples, gsrNew);
 

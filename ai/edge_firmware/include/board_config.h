@@ -53,12 +53,12 @@ enum class IMUStatus {
 
 // ── Chân GPIO được cấu hình (ESP32-S3 Super Mini) ───────────────────────────────
 //   Bus 0 (Wire)  — MAX30102: SDA = GPIO8,  SCL = GPIO9
-//   Bus 1 (Wire1) — MPU6050:  SDA = GPIO5,  SCL = GPIO11 (Khởi tạo riêng biệt chống nghẽn)
+//   Bus 1 (Wire1) — MPU6050:  SDA = GPIO10, SCL = GPIO11 (Khởi tạo riêng biệt chống nghẽn)
 //   ADC1_CH6      — GSR:      ADC = GPIO7
 constexpr int PIN_MAX30102_SDA = 8;
 constexpr int PIN_MAX30102_SCL = 9;
 
-constexpr int PIN_MPU6050_SDA = 5;
+constexpr int PIN_MPU6050_SDA = 10;
 constexpr int PIN_MPU6050_SCL = 11;
 
 constexpr int PIN_GSR_ADC = 7;
@@ -92,12 +92,12 @@ constexpr uint16_t PPG_ADC_RANGE          = 4096; // Toàn thang, nA
 
 // Ngưỡng tín hiệu & sinh lý MAX30102
 constexpr uint32_t PPG_IR_FINGER_THRESHOLD =
-    2500UL; // Cổng vào nhạy hơn cho cổ tay; không tự xác nhận HR nếu chưa có chu kỳ PPG
-constexpr uint32_t PPG_IR_CONTACT_OFF = 1800UL; // Hysteresis dưới ngưỡng vào; nền hở đo được ~900..1400
+    4500UL; // Cao hơn nền hở thực tế (~2300..2550) để không báo nhầm contact=1 khi chưa đặt tay
+constexpr uint32_t PPG_IR_CONTACT_OFF = 3200UL; // Hysteresis ngắt tiếp xúc ngay khi nhấc tay khỏi cảm biến
 constexpr uint32_t PPG_CONTACT_SETTLE_MS = 1000UL; // Chờ DC ổn định trước bắt nhịp
-// Cổ tay: chỉ công nhận HR lúc nghỉ, cần IMU mới/đã lấy bias và cửa sổ sạch.
+// Cổ tay: khi thí nghiệm trên bàn/mạch rời, tắt guard cổ tay để MAX30102 bắt nhịp độc lập với IMU.
 #ifndef ASD_PPG_WRIST_MOTION_GUARD
-#define ASD_PPG_WRIST_MOTION_GUARD 1
+#define ASD_PPG_WRIST_MOTION_GUARD 0
 #endif
 // Bộ lọc ở processing/ppg_rate.h; HR chạy bằng processing/ppg_cycle_tracker.h.
 // Không khai báo thêm các núm chỉnh ở đây khi thuật toán không đọc chúng.

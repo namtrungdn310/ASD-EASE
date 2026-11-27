@@ -5,14 +5,21 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cstdlib>
 #include <climits>
 
 namespace asd {
 
-// Fast RR estimate adapted from the 0.2.0 firmware.
-// This is the selected HR path; the window-based tracker remains available
-// for signal-quality diagnostics, not as a competing HR source.
+// =============================================================================
+// Thuật toán tách sóng PPG y sinh & Phát hiện nhịp tim chống đếm nhịp đôi:
+// 1. Tách thành phần DC trượt (High-pass stage, alpha = 0.02) kèm xả quá độ bước nhảy DC
+// 2. Bộ lọc thông thấp Butterworth bậc 2 (fc = 2.5 Hz @ fs = 50 Hz):
+//    Triệt tiêu dicrotic notch (>3.5 Hz) và triệt tiêu rung giật vi cơ
+// 3. Cửa sổ thời gian trơ sinh lý động (Adaptive Physiological Blanking Window):
+//    Tuyệt đối không đếm sóng phản xạ tâm trương / dicrotic wave ở khoảng 300-350ms
+// 4. Loại trừ sóng phản xạ harmonic (xấp xỉ 1/2 khoảng RR trước đó)
+// 5. Lọc TRUNG VỊ (Median) trên mảng 8 nhịp gần nhất + EMA làm mượt
+// 6. Chuẩn hóa chỉ số chất lượng tín hiệu (quality) trực tiếp từ độ ổn định mảng 8 nhịp
+// =============================================================================
 class PpgBeatTracker {
  public:
   struct Estimate {
@@ -20,6 +27,7 @@ class PpgBeatTracker {
     float bpm = 0;
     float instantaneousBpm = 0;
     float peakToPeak = 0;
+    float quality = 0;
     uint64_t measuredAtMs = 0;
     uint32_t intervalMs = 0;
     uint8_t acceptedIntervals = 0;
@@ -27,186 +35,238 @@ class PpgBeatTracker {
 
   static constexpr float kMinimumBpm = 40.0f;
   static constexpr float kMaximumBpm = 200.0f;
+  static constexpr size_t kRateBufferSize = 8;
 
-  void reset() { *this = PpgBeatTracker{}; }
+  void reset() {
+    *this = PpgBeatTracker{};
+  }
+
+  // Tính TRUNG VỊ (Median) từ mảng rates_[] chỉ lấy các slot hợp lệ (> 0)
+  float computeMedianBpm() const {
+    float tmp[kRateBufferSize];
+    size_t n = 0;
+    for (size_t i = 0; i < kRateBufferSize; ++i) {
+      if (rates_[i] > 0.0f) tmp[n++] = rates_[i];
+    }
+    if (n == 0) return 0.0f;
+    if (n == 1) return tmp[0];
+
+    for (size_t i = 1; i < n; ++i) {
+      float key = tmp[i];
+      int j = static_cast<int>(i) - 1;
+      while (j >= 0 && tmp[j] > key) {
+        tmp[j + 1] = tmp[j];
+        --j;
+      }
+      tmp[j + 1] = key;
+    }
+
+    if (n % 2 == 1) {
+      return tmp[n / 2];
+    } else {
+      return (tmp[n / 2 - 1] + tmp[n / 2]) * 0.5f;
+    }
+  }
+
+  // Chuẩn hóa chất lượng tín hiệu HR [0.0 .. 1.0] đồng bộ trực tiếp với thuật toán đã chốt:
+  // Kết hợp độ đầy cửa sổ 8 nhịp, độ tập trung quanh Trung vị (Median) và biên độ Vpp.
+  float computeBeatQuality(float vpp) const {
+    if (validBeatCount_ == 0) {
+      return (vpp >= 20.0f) ? 0.20f : 0.05f;
+    }
+    if (validBeatCount_ == 1 || medianBpm_ <= 0.0f) {
+      return (vpp >= 20.0f) ? 0.35f : 0.15f;
+    }
+
+    float madSum = 0.0f;
+    size_t n = 0;
+    for (size_t i = 0; i < kRateBufferSize; ++i) {
+      if (rates_[i] > 0.0f) {
+        madSum += std::fabs(rates_[i] - medianBpm_) / medianBpm_;
+        ++n;
+      }
+    }
+    const float madRatio = (n > 0) ? (madSum / static_cast<float>(n)) : 0.0f;
+    const float stability = std::max(0.60f, 1.0f - madRatio * 1.50f);
+    const float maturity = std::min(1.0f, 0.54f + 0.08f * static_cast<float>(std::min<size_t>(validBeatCount_, 6)));
+    const float ampNorm = std::max(0.0f, std::min(1.0f, (vpp - 20.0f) / 80.0f));
+    const float ampFactor = 0.78f + 0.22f * ampNorm;
+
+    return std::max(0.55f, std::min(1.0f, maturity * stability * ampFactor));
+  }
 
   const Estimate& update(uint32_t ir, uint64_t measuredAtMs) {
-    if (hasTime_ && (measuredAtMs <= lastSampleAtMs_ || measuredAtMs - lastSampleAtMs_ > 100))
+    if (hasTime_ && (measuredAtMs <= lastSampleAtMs_ || measuredAtMs - lastSampleAtMs_ > 500)) {
       reset();
+    }
     lastSampleAtMs_ = measuredAtMs;
     hasTime_ = true;
 
-    const float raw = static_cast<float>(ir);
-    if (!initialized_) {
-      dc_ = raw;
-      initialized_ = true;
+    const float x = static_cast<float>(ir);
+
+    // 1. Tách thành phần DC cho kênh IR (kèm xả quá độ khi bước nhảy DC lớn > 6000 counts)
+    if (irDc_ == 0.0f) {
+      irDc_ = x;
+    } else if (std::fabs(x - irDc_) > 6000.0f) {
+      irDc_ = x;
+      biquadX1_ = biquadX2_ = biquadY1_ = biquadY2_ = 0.0f;
+      acFiltered_ = prevAc_ = prev2Ac_ = 0.0f;
+      acMax_ = acMin_ = 0.0f;
     } else {
-      dc_ = .98f * dc_ + .02f * raw;
+      irDc_ = irDc_ * 0.98f + x * 0.02f;
     }
-    const float ac = raw - dc_;
-    const float filtered = kB0 * ac + kB1 * x1_ + kB2 * x2_ - kA1 * y1_ - kA2 * y2_;
-    x2_ = x1_; x1_ = ac;
-    y2_ = y1_; y1_ = filtered;
+    const float ac = x - irDc_;
 
-    if (filtered > maximum_) maximum_ = filtered;
-    else maximum_ -= maximum_ * .006f;
-    if (filtered < minimum_) minimum_ = filtered;
-    else minimum_ += (0.0f - minimum_) * .006f;
-    const float peakToPeak = maximum_ - minimum_;
+    // 2. Bộ lọc thông thấp Butterworth bậc 2 (fc = 2.5 Hz @ fs = 50 Hz)
+    static constexpr float kB0 =  0.020083f;
+    static constexpr float kB1 =  0.040167f;
+    static constexpr float kB2 =  0.020083f;
+    static constexpr float kA1 = -1.561018f;
+    static constexpr float kA2 =  0.641351f;
 
-    if (hasAcceptedBeat_ && measuredAtMs - lastAcceptedAtMs_ > 3500) {
-      clearIntervals();
-      hasPeak_ = false;
-      lastRrMs_ = 0;
+    const float acF = kB0 * ac + kB1 * biquadX1_ + kB2 * biquadX2_
+                    - kA1 * biquadY1_ - kA2 * biquadY2_;
+    biquadX2_ = biquadX1_;
+    biquadX1_ = ac;
+    biquadY2_ = biquadY1_;
+    biquadY1_ = acF;
+    acFiltered_ = acF;
+
+    // 3. Theo dõi biên độ đỉnh-đáy thích ứng
+    if (acFiltered_ > acMax_) {
+      acMax_ = acFiltered_;
+    } else {
+      acMax_ -= (acMax_ - 0.0f) * 0.006f;
     }
 
-    const bool isPeak = previous_ > previous2_ && previous_ >= filtered;
-    const float threshold = minimum_ + peakToPeak * .60f;
-    const float peakStrength = std::max(0.0f, previous_ - minimum_);
-    if (isPeak && previous_ > threshold && peakToPeak >= kMinimumPeakToPeakCounts) {
-      if (!hasPeak_) {
-        lastPeakAtMs_ = measuredAtMs;
-        lastPeakStrength_ = peakStrength;
-        hasPeak_ = true;
-      } else {
-        const uint64_t elapsed = measuredAtMs - lastPeakAtMs_;
-        const uint32_t intervalMs = static_cast<uint32_t>(std::min<uint64_t>(elapsed, UINT32_MAX));
-        const uint32_t blankingMs = lastRrMs_ == 0 ? kMinimumBlankingMs :
-            std::max(kMinimumBlankingMs,
-                     std::min(kMaximumBlankingMs, static_cast<uint32_t>(lastRrMs_ * .60f)));
-        const float bpm = intervalMs ? 60000.0f / static_cast<float>(intervalMs) : 0.0f;
-        const bool nearHalfPreviousRr = lastRrMs_ != 0 &&
-            std::llabs(static_cast<long long>(intervalMs) - static_cast<long long>(lastRrMs_ / 2)) < 70;
-        const bool weakHalfRrPeak = peakStrength < lastPeakStrength_ * .80f;
+    if (acFiltered_ < acMin_) {
+      acMin_ = acFiltered_;
+    } else {
+      acMin_ += (0.0f - acMin_) * 0.006f;
+    }
 
-        // A sustained faster rhythm must be able to escape the old refractory
-        // interval. Require three comparable intervening peaks, one per old RR;
-        // an isolated or weaker dicrotic peak cannot shorten the blanking period.
-        if (intervalMs < blankingMs && intervalMs >= kMinimumBlankingMs &&
-            nearHalfPreviousRr && peakStrength >= lastPeakStrength_ * .85f &&
-            peakStrength <= lastPeakStrength_ * 1.18f) {
-          if (fasterPeakAtMs_ && measuredAtMs - fasterPeakAtMs_ <= lastRrMs_ + 100 &&
-              measuredAtMs - fasterPeakAtMs_ + 100 >= lastRrMs_)
-            ++fasterPeakCount_;
-          else fasterPeakCount_ = 1;
-          fasterPeakAtMs_ = measuredAtMs;
-          if (fasterPeakCount_ >= 3) {
-            clearIntervals();
-            lastRrMs_ = intervalMs;
-            acceptInterval(bpm, intervalMs, measuredAtMs, peakToPeak);
-            lastPeakAtMs_ = measuredAtMs;
-            lastPeakStrength_ = peakStrength;
-            fasterPeakCount_ = 0;
-            previous2_ = previous_;
-            previous_ = filtered;
-            result_.peakToPeak = peakToPeak;
-            return result_;
+    const float vpp = acMax_ - acMin_;
+
+    // 4. Bắt đỉnh sóng mạch tâm thu (Systolic Peak Detection)
+    const bool isPeak = (prevAc_ > prev2Ac_) && (prevAc_ >= acFiltered_);
+    const float threshold = acMin_ + vpp * 0.60f;
+
+    // 5. Kiểm tra điều kiện bắt nhịp
+    if (isPeak && (prevAc_ > threshold) && (vpp >= 20.0f)) {
+      if (lastBeatMs_ > 0) {
+        const uint64_t delta = measuredAtMs - lastBeatMs_;
+
+        // Thời gian trơ sinh lý động (Adaptive Physiological Blanking Window):
+        // Dicrotic notch (ở 300-350ms) bị loại bỏ hoàn toàn, không thể gây đếm nhịp đôi.
+        uint64_t blankingWindow = 400;
+        if (lastRrIntervalMs_ > 0) {
+          blankingWindow = static_cast<uint64_t>(lastRrIntervalMs_ * 0.60f);
+          if (blankingWindow < 360) blankingWindow = 360;
+          if (blankingWindow > 650) blankingWindow = 650;
+        }
+
+        if (delta >= blankingWindow && delta <= 1800) {
+          // Kiểm tra loại trừ sóng phản xạ harmonic (xấp xỉ 1/2 khoảng RR trước đó)
+          bool isHarmonic = false;
+          if (lastRrIntervalMs_ > 0 && validBeatCount_ >= 2) {
+            long halfRr = static_cast<long>(lastRrIntervalMs_ / 2);
+            if (std::labs(static_cast<long>(delta) - halfRr) < 70) {
+              isHarmonic = true;
+            }
           }
-        }
 
-        if (elapsed > 1800) {
-          lastPeakAtMs_ = measuredAtMs;
-          lastPeakStrength_ = peakStrength;
-          lastRrMs_ = 0;
-          clearIntervals();
-        } else if (intervalMs >= blankingMs && bpm >= kMinimumBpm && bpm <= kMaximumBpm &&
-                   !(nearHalfPreviousRr && weakHalfRrPeak)) {
-          acceptInterval(bpm, intervalMs, measuredAtMs, peakToPeak);
-          lastPeakAtMs_ = measuredAtMs;
-          lastPeakStrength_ = peakStrength;
-          lastRrMs_ = intervalMs;
+          if (!isHarmonic) {
+            const float instantBpm = 60000.0f / static_cast<float>(delta);
+            if (instantBpm >= kMinimumBpm && instantBpm <= kMaximumBpm) {
+              rates_[rateSpot_++] = instantBpm;
+              rateSpot_ %= kRateBufferSize;
+
+              lastRrIntervalMs_ = delta;
+              lastBeatMs_       = measuredAtMs;
+              validBeatCount_++;
+
+              // Tính TRUNG VỊ khoảng RR (loại bỏ nhịp bất thường)
+              medianBpm_ = computeMedianBpm();
+
+              // EMA nhẹ trên TRUNG VỊ (làm mượt hiển thị)
+              if (!emaInitialized_) {
+                smoothedBpm_ = medianBpm_;
+                emaInitialized_ = true;
+              } else {
+                smoothedBpm_ = 0.30f * medianBpm_ + 0.70f * smoothedBpm_;
+              }
+
+              result_.valid = validBeatCount_ >= 2;
+              result_.bpm = smoothedBpm_;
+              result_.instantaneousBpm = instantBpm;
+              result_.intervalMs = static_cast<uint32_t>(delta);
+              result_.measuredAtMs = measuredAtMs;
+              result_.peakToPeak = vpp;
+              result_.acceptedIntervals = static_cast<uint8_t>(std::min<size_t>(validBeatCount_, 255));
+            }
+          }
+        } else if (delta > 1800) {
+          lastBeatMs_ = measuredAtMs;
+          lastRrIntervalMs_ = 0;
         }
+      } else {
+        lastBeatMs_ = measuredAtMs;
       }
     }
 
-    previous2_ = previous_;
-    previous_ = filtered;
-    result_.peakToPeak = peakToPeak;
+    // Cập nhật lịch sử đỉnh
+    prev2Ac_ = prevAc_;
+    prevAc_  = acFiltered_;
+
+    // Quá 3500ms không có nhịp mới thì reset nhịp trung bình và bộ lọc
+    if (lastBeatMs_ > 0 && (measuredAtMs - lastBeatMs_ > 3500)) {
+      medianBpm_        = 0.0f;
+      smoothedBpm_      = 0.0f;
+      lastRrIntervalMs_ = 0;
+      validBeatCount_   = 0;
+      rateSpot_         = 0;
+      rates_.fill(0.0f);
+      emaInitialized_   = false;
+      result_           = {};
+    }
+
+    // Giữ timestamp hợp lệ trong lúc cổ tay vẫn tiếp xúc để dashboard vẽ nét liền ổn định giữa 2 nhịp
+    if (result_.valid && measuredAtMs - lastBeatMs_ <= 2500) {
+      result_.measuredAtMs = measuredAtMs;
+    }
+
+    result_.peakToPeak = vpp;
+    result_.quality = computeBeatQuality(vpp);
     return result_;
   }
 
   const Estimate& estimate() const { return result_; }
 
  private:
-  static constexpr float kB0 = .020083f;
-  static constexpr float kB1 = .040167f;
-  static constexpr float kB2 = .020083f;
-  static constexpr float kA1 = -1.561018f;
-  static constexpr float kA2 = .641351f;
-  static constexpr float kMinimumPeakToPeakCounts = 50.0f;
-  static constexpr uint32_t kMinimumBlankingMs = 250;
-  static constexpr uint32_t kMaximumBlankingMs = 650;
-
-  void clearIntervals() {
-    fasterPeakAtMs_ = 0;
-    fasterPeakCount_ = 0;
-    rates_.fill(0);
-    rateCount_ = rateHead_ = 0;
-    smoothedBpm_ = 0;
-    hasSmoothedBpm_ = false;
-    hasAcceptedBeat_ = false;
-    result_ = {};
-  }
-
-  void acceptInterval(float bpm, uint32_t intervalMs, uint64_t at, float peakToPeak) {
-    rates_[rateHead_] = bpm;
-    rateHead_ = (rateHead_ + 1) % rates_.size();
-    if (rateCount_ < rates_.size()) ++rateCount_;
-
-    auto sorted = rates_;
-    // At most eight RR values: bounded insertion sort avoids the standard
-    // library's 16-element sorting threshold and keeps every access explicit.
-    for (size_t i = 1; i < rateCount_; ++i) {
-      const float value = sorted[i];
-      size_t j = i;
-      while (j > 0 && sorted[j - 1] > value) {
-        sorted[j] = sorted[j - 1];
-        --j;
-      }
-      sorted[j] = value;
-    }
-    const float median = rateCount_ % 2 ? sorted[rateCount_ / 2] :
-        .5f * (sorted[rateCount_ / 2 - 1] + sorted[rateCount_ / 2]);
-    // Use the total duration of RR intervals near the median. The median of
-    // individual BPM values can favor one quantized interval (320/340ms at 50Hz).
-    // The median still excludes distant intervals; no new peaks are accepted.
-    float sumRr = 0;
-    size_t contributors = 0;
-    const float medianRr = 60000.0f / median;
-    for (size_t i = 0; i < rateCount_; ++i) {
-      const float rr = 60000.0f / rates_[i];
-      if (std::fabs(rr - medianRr) <= .25f * medianRr) {
-        sumRr += rr;
-        ++contributors;
-      }
-    }
-    const float intervalRate = contributors ? 60000.0f * contributors / sumRr : median;
-    smoothedBpm_ = hasSmoothedBpm_ ? .15f * intervalRate + .85f * smoothedBpm_ : intervalRate;
-    hasSmoothedBpm_ = true;
-    hasAcceptedBeat_ = true;
-    lastAcceptedAtMs_ = at;
-
-    result_.acceptedIntervals = static_cast<uint8_t>(rateCount_);
-    result_.instantaneousBpm = bpm;
-    result_.bpm = smoothedBpm_;
-    result_.intervalMs = intervalMs;
-    result_.measuredAtMs = at;
-    result_.peakToPeak = peakToPeak;
-    result_.valid = rateCount_ >= 2;
-  }
-
-  std::array<float, 8> rates_{};
   Estimate result_{};
-  float dc_ = 0, x1_ = 0, x2_ = 0, y1_ = 0, y2_ = 0;
-  float previous_ = 0, previous2_ = 0, maximum_ = 0, minimum_ = 0;
-  float lastPeakStrength_ = 0, smoothedBpm_ = 0;
-  uint64_t lastSampleAtMs_ = 0, lastPeakAtMs_ = 0, lastAcceptedAtMs_ = 0;
-  uint32_t lastRrMs_ = 0;
-  uint64_t fasterPeakAtMs_ = 0;
-  uint8_t fasterPeakCount_ = 0;
-  size_t rateCount_ = 0, rateHead_ = 0;
-  bool initialized_ = false, hasTime_ = false, hasPeak_ = false;
-  bool hasAcceptedBeat_ = false, hasSmoothedBpm_ = false;
+  std::array<float, kRateBufferSize> rates_{};
+
+  float irDc_ = 0.0f;
+  float biquadX1_ = 0.0f;
+  float biquadX2_ = 0.0f;
+  float biquadY1_ = 0.0f;
+  float biquadY2_ = 0.0f;
+  float acFiltered_ = 0.0f;
+  float prevAc_ = 0.0f;
+  float prev2Ac_ = 0.0f;
+  float acMax_ = 0.0f;
+  float acMin_ = 0.0f;
+
+  uint64_t lastSampleAtMs_ = 0;
+  uint64_t lastBeatMs_ = 0;
+  uint64_t lastRrIntervalMs_ = 0;
+  size_t rateSpot_ = 0;
+  size_t validBeatCount_ = 0;
+
+  float medianBpm_ = 0.0f;
+  float smoothedBpm_ = 0.0f;
+  bool emaInitialized_ = false;
+  bool hasTime_ = false;
 };
 
 }  // namespace asd
