@@ -9,23 +9,34 @@ export interface CaptureSamplePayload {
   ax: number | null;
   ay: number | null;
   az: number | null;
+  gx: number | null;
+  gy: number | null;
+  gz: number | null;
 }
+
+export type CaptureContext = "rest" | "active" | "stress_mild" | "stress_high";
 
 export interface DatasetCaptureRequest {
   device_id: string;
   session_id: string | null;
+  subject_id?: string | null;
+  context?: CaptureContext | null;
   label: 0 | 1;
   samples: CaptureSamplePayload[];
 }
 
 export interface DatasetCaptureResponse {
   saved: boolean;
+  batch_number: number;
   device_id: string;
+  subject_id: string;
+  context: string;
   label: 0 | 1;
   sample_count: number;
   window_count: number;
   duration_seconds: number;
   dataset_file: string;
+  raw_file: string;
 }
 
 export interface PreviousBatchSummary {
@@ -33,12 +44,16 @@ export interface PreviousBatchSummary {
   duration_seconds: number;
   sample_count: number;
   label: 0 | 1;
+  subject_id?: string | null;
+  context?: string | null;
 }
 
 export interface DatasetCaptureSummary {
   completed_batches: number;
   next_batch_number: number;
   total_samples_before: number;
+  last_subject_id: string | null;
+  known_subject_ids: string[];
   previous_batch: PreviousBatchSummary | null;
 }
 
