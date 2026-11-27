@@ -254,7 +254,7 @@ export function PredictionPanel({ telemetry, points, live, onViewDetails, onRese
             aria-busy={resettingAi} title={!canResetAi ? "Kết nối thiết bị đang chạy mô hình AI để đặt lại cửa sổ" : "Xóa bộ đệm 60 giây cũ và tính lại cửa sổ AI từ đầu"}
             onClick={handleResetAi}>
             <RotateCcw size={15} aria-hidden="true" />
-            <span>{resettingAi ? "Đang đặt lại..." : "Reset dữ liệu AI"}</span>
+            <span>{resettingAi ? "Đang đặt lại..." : "Đo lại cửa sổ 60s"}</span>
           </button>}
           {alert && <button className="prediction-details-button" type="button" onClick={onViewDetails}>Xem chi tiết</button>}
         </div>}

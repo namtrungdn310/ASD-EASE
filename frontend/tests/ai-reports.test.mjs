@@ -261,7 +261,7 @@ test("resetStreamAiWindow restarts 60s calibration without triggering 5s grace c
   }));
   assert.ok(htmlResetImmediate.includes("Đang hiệu chuẩn"));
   assert.ok(htmlResetImmediate.includes("(60s)"));
-  assert.ok(htmlResetImmediate.includes("Reset dữ liệu AI"));
+  assert.ok(htmlResetImmediate.includes("Đo lại cửa sổ 60s"));
   assert.ok(!htmlResetImmediate.includes("disabled=\"\""));
 
   // One lingering in-flight pre-reset packet stays cleanly in CALIBRATING
