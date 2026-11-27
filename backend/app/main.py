@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import annotations, auth, device_control, devices, events, health, raw_data, sessions, telemetry, websocket
+from app.api.v1 import annotations, auth, dataset_capture, device_control, devices, events, health, raw_data, sessions, telemetry, websocket
 from app.core.config import get_settings
 from app.db.database import SessionLocal, engine
 from app.db.migrations import upgrade
@@ -46,5 +46,5 @@ app.add_middleware(
     allow_methods=["*"] ,
     allow_headers=["*"] ,
 )
-for router in (health.router, auth.router, device_control.router, telemetry.router, raw_data.router, devices.router, sessions.router, annotations.router, events.router, websocket.router):
+for router in (health.router, auth.router, dataset_capture.router, device_control.router, telemetry.router, raw_data.router, devices.router, sessions.router, annotations.router, events.router, websocket.router):
     app.include_router(router, prefix="/api/v1")

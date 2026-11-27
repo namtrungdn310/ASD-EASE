@@ -154,11 +154,26 @@ test("tracker HR is labelled as an estimate and keeps the same expiry semantics"
   assert.ok(plain(html).includes("78.0 bpm"));
   const points = [{ time: 1, hr: 78 }, { time: 6, hr: null }];
   html = setup({ telemetry: { ...telemetry, hr_bpm: null, timestamp_ms: 6000 }, points });
-  assert.ok(plain(html).includes("Tạm tính · 5 giây chưa có HR mới"));
-  assert.ok(plain(html).includes("Nét đứt: tạm tính tối đa 15 giây"));
+  assert.ok(plain(html).includes("Đang duy trì · 5 giây chờ xung mới"));
+  assert.ok(plain(html).includes("Nét đứt: nhịp duy trì tối đa 15 giây"));
   assert.equal(heartRateDisplay({ ...telemetry, hr_bpm: null, timestamp_ms: 16000 }, points, true).predicted, true);
   assert.equal(heartRateDisplay({ ...telemetry, hr_bpm: null, timestamp_ms: 16001 }, points, true).value, null);
   assert.equal(heartRateDisplay({ ...telemetry, hr_bpm: null, timestamp_ms: 6000 }, points, false).value, null);
+  const noContactTelemetry = {
+    ...telemetry, schema_version: "1.2", hr_bpm: null, timestamp_ms: 2000,
+    movement: { score: 0.1, acceleration: { x: 0, y: 0, z: 9.8 }, angular_velocity: { x: 0, y: 0, z: 0 } },
+    signal_quality: {
+      method: "engineering-v2", window_ms: 8000,
+      hr: { score: 0, reason: "no_contact" }, gsr: { score: 1, reason: "ok" },
+      acceleration: { score: 1, reason: "ok" }, rotation: { score: 1, reason: "ok" },
+    },
+  };
+  const noContactDisplay = heartRateDisplay(noContactTelemetry, [{ time: 1, hr: 78 }, { time: 2, hr: null, hrNoContact: true }], true);
+  assert.equal(noContactDisplay.value, null);
+  assert.equal(noContactDisplay.predicted, false);
+  const noContactPlot = heartRatePlot([{ time: 1, hr: 78 }, { time: 2, hr: null, hrNoContact: true }, { time: 3, hr: null, hrNoContact: true }], true);
+  assert.equal(noContactPlot[1].hrForecast, null);
+  assert.equal(noContactPlot[2].hrForecast, null);
 });
 
 test("forecast bridges only short gaps in a separate series and never alters measurements", () => {
@@ -311,14 +326,14 @@ test("prediction panel waits for telemetry or model and never shows results from
   const invalidModel = render(payload({ model_version: "none", prediction: { probability: 0.8, state: "ATTENTION" } }), true,
     [{ time: 1, probability: 0.8 }]);
   assert.ok(invalidModel.includes("Chưa có mô hình"));
-  assert.ok(!invalidModel.includes("Cần chú ý"));
+  assert.ok(!invalidModel.includes("Cần theo dõi"));
   assert.ok(!plain(invalidModel).includes("80%"));
   assert.ok(!invalidModel.includes("prediction-history"));
 });
 
 test("prediction panel renders every supported state and preserves probability boundaries", () => {
   for (const [state, label, probability] of [
-    ["NORMAL", "Bình thường", 0], ["ATTENTION", "Cần chú ý", 1],
+    ["NORMAL", "Bình thường", 0], ["ATTENTION", "Cần theo dõi", 1],
     ["UNCERTAIN", "Chưa xác định", null], ["CALIBRATING", "Đang hiệu chuẩn", null],
   ]) {
     const html = renderToStaticMarkup(React.createElement(PredictionPanel, {
@@ -339,7 +354,7 @@ test("stale prediction hides current values and leaves history to the reports pa
   }));
   assert.ok(html.includes("Tạm ngưng"));
   assert.ok(!html.includes("prediction-history"));
-  assert.ok(!html.includes("Cần chú ý"));
+  assert.ok(!html.includes("Cần theo dõi"));
   assert.ok(!plain(html).includes("91%"));
   assert.ok(!html.includes('aria-label="Biểu đồ Xác suất'));
 });

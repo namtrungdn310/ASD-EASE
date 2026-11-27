@@ -17,7 +17,7 @@ export function chartTimeDomain(data: ChartPoint[]): [number, number] {
 }
 export function chartTimeTicks(data: ChartPoint[]): number[] {
   const [start, end] = chartTimeDomain(data);
-  const intervals = 4;
+  const intervals = 6;
   return Array.from({ length: intervals + 1 }, (_, i) => start + (end - start) * i / intervals);
 }
 export const axisStyle = {

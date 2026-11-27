@@ -1,11 +1,11 @@
 import type { EngineeringState } from "../types/telemetry";
 
 const labels: Record<EngineeringState, string> = {
-  NORMAL: "Bình thường", ATTENTION: "Cần chú ý",
+  NORMAL: "Bình thường", ATTENTION: "Cần theo dõi",
   UNCERTAIN: "Chưa xác định", CALIBRATING: "Đang hiệu chuẩn",
 };
-export function StateCard({ state, probability, modelVersion, live = true, synthetic = false }: {
-  state?: EngineeringState; probability?: number | null; modelVersion?: string; live?: boolean; synthetic?: boolean;
+export function StateCard({ state, probability, period, countdown, graceCountdown, modelVersion, live = true, synthetic = false }: {
+  state?: EngineeringState; probability?: number | null; period?: string | null; countdown?: number | null; graceCountdown?: number | null; modelVersion?: string; live?: boolean; synthetic?: boolean;
 }) {
   const available = live && state !== undefined && (synthetic || (modelVersion !== undefined && modelVersion !== "none"));
   return <dl className="prediction-readings">
@@ -13,11 +13,16 @@ export function StateCard({ state, probability, modelVersion, live = true, synth
       <dt>Trạng thái dự đoán</dt>
       <dd className="analysis-state" data-missing={!available} data-state={available ? state : undefined}>
         <strong>{available && state !== undefined ? labels[state] : "—"}</strong>
+        {available && (countdown != null || graceCountdown != null) && (
+          <span className="analysis-countdown">
+            ({countdown != null ? `${countdown}s` : ""}{countdown != null && graceCountdown != null ? " | " : ""}{graceCountdown != null ? `${graceCountdown}s` : ""})
+          </span>
+        )}
       </dd>
     </div>
     <div>
       <dt>Khoảng thời gian</dt>
-      <dd className="prediction-period" data-missing="true">—</dd>
+      <dd className="prediction-period" data-missing={!available || !period}>{available && period ? period : "—"}</dd>
     </div>
     <div>
       <dt>Xác suất</dt>

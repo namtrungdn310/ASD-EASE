@@ -32,7 +32,7 @@
   .sidebar-nav a, .sidebar-nav .sidebar-toggle { font-size: var(--type-title-size); font-weight: var(--type-weight-medium); line-height: var(--type-leading-title); }
   .sidebar-nav a[aria-current="page"] { font-weight: var(--type-weight-emphasis); }
   .device-connect-button, .secondary-button, .icon-button, .primary-button,
-  .prediction-details-button, .report-error button {
+  .prediction-reset-button, .prediction-details-button, .report-error button {
     font-size: var(--type-body-size); font-weight: var(--type-weight-emphasis); line-height: var(--type-leading-title);
   }
 
@@ -60,6 +60,7 @@
   .axis-readings dt, .device-workspace .axis-readings dt, .prediction-readings dt,
   .device-workspace .prediction-readings dt, .prediction-note, .device-workspace .prediction-note,
   .prediction-model, .prediction-status, .device-workspace .prediction-status,
+  .prediction-reset-feedback,
   .report-section-heading > span, .report-table-scroll small, .chart-caption, .device-control label,
   .metric-quality, .device-workspace .metric-quality {
     font-size: var(--type-caption-size); font-weight: var(--type-weight-regular);

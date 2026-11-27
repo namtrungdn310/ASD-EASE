@@ -176,6 +176,20 @@ class MQTTRuntime:
         # PUBACK không thay ACK nghiệp vụ; DB command vẫn PENDING.
         return True
 
+    def request_ai_reset(self, identity):
+        payload = {
+            "control_version": "1.0",
+            "message_type": "AI_RESET",
+            "device_id": identity.device_id,
+            "data_origin": identity.data_origin,
+            "action": "AI_RESET",
+            "requested_at_ms": int(time.time() * 1000),
+        }
+        if not self.publish(identity, "ai/reset", payload):
+            return False
+        self.counters["ai_reset_dispatched"] += 1
+        return True
+
     def is_live(self, device_id):
         live = self.live.get(device_id)
         if live and time.monotonic() - live.synced_at < 30:

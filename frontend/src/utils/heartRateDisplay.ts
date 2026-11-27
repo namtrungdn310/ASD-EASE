@@ -11,6 +11,7 @@ export function forecastHeartRate(history: readonly ChartPoint[], now: number) {
   const measured = history.filter(point => point.hr !== null && Number.isFinite(point.hr));
   const last = measured[measured.length - 1];
   if (!last || last.hr === null || last.time > now || history[history.length - 1].time > now) return null;
+  if (history.some(point => point.time >= last.time && point.time <= now && point.hrNoContact)) return null;
   const age = now - last.time;
   if (age <= 0 || age > HR_FORECAST_SECONDS) return null;
   const recent = measured.filter(point => point.time >= last.time - 8).slice(-3);
@@ -53,8 +54,9 @@ export function heartRateDisplay(telemetry: Telemetry | null, points: readonly C
   const tracked = telemetry?.firmware_version.endsWith("-tracker") ?? false;
   const estimated = tracked || (telemetry?.firmware_version.endsWith("-demo") ?? false);
   const value = telemetry?.hr_bpm ?? null;
+  const noContact = telemetry?.schema_version === "1.2" && telemetry.signal_quality.hr.reason === "no_contact";
   const fresh = { value, estimated, tracked, held: false, predicted: false, ageSeconds: null as number | null };
-  if (!telemetry || value !== null || !estimated || !live) return fresh;
+  if (!telemetry || value !== null || !estimated || !live || noContact) return fresh;
   const now = telemetry.timestamp_ms / 1000;
   // Clock lùi/đổi boot: không lấy một số ở "tương lai" làm nhịp hiện tại.
   if (points.length && points[points.length - 1].time > now) return fresh;

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Event
@@ -56,4 +56,11 @@ def ai_report(device_id: str, page: int = Query(1, ge=1), page_size: int = Query
         previous = row
     finish()
     return {"items": items, "page": page, "page_size": page_size, "total": total}
+
+
+@router.delete("/reports/ai")
+def clear_ai_reports(device_id: str, db: Session = Depends(get_db)):
+    db.execute(delete(Event).where(Event.device_id == device_id))
+    db.commit()
+    return {"ok": True}
 

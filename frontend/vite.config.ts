@@ -10,8 +10,9 @@ export default defineConfig(({ mode }) => {
   const environment = loadEnv(mode, root, "MQTT_");
   const directory = process.env.ASD_DEV_CREDENTIALS_DIR
     ?? resolve(root, environment.MQTT_LOCAL_DIR ?? "infra/mosquitto/local/dev");
+  const backendPort = process.env.BACKEND_HOST_PORT || "8002";
   return {
-    plugins: [react(), tailwindcss(), localSessionPlugin({ credentialsFile: resolve(directory, "backend.env") })],
+    plugins: [react(), tailwindcss(), localSessionPlugin({ credentialsFile: resolve(directory, "backend.env"), backendUrl: `http://127.0.0.1:${backendPort}` })],
     server: {
       host: "localhost", port: 5173, strictPort: true, allowedHosts: ["localhost"],
       fs: {
