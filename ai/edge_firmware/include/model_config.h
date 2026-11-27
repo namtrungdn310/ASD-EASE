@@ -1,5 +1,4 @@
 #pragma once
 
-#define MODEL_VERSION "none"
-constexpr bool EDGE_MODEL_AVAILABLE = false;
-
+#define MODEL_VERSION "wesad_lr_v1_folded"
+constexpr bool EDGE_MODEL_AVAILABLE = true;

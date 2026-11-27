@@ -33,6 +33,10 @@ struct ReadingSnapshot {
   bool movementValid = false;
   bool imuValid = false;
   bool gsrCalibrating = false, imuCalibrating = false;
+  bool hasModelPrediction = false;
+  float predictionProbability = -1.0f;
+  const char* predictionState = nullptr;
+  const char* modelVersion = nullptr;
 };
 bool validId(const std::string& value);
 bool parseObject(const std::string& wire, JsonDocument& document);

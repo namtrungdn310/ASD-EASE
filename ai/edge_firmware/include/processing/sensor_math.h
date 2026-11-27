@@ -72,17 +72,24 @@ struct Moments {
 };
 
 // Chỉ là kiểm tra đứng yên kỹ thuật, không chứng minh gyro tuyệt đối không quay.
-// Lấy offset một lần sau khi đủ 100 mẫu liên tục; không học lại khi đang chuyển động.
+// Lấy offset một lần sau khi đủ mẫu ổn định; có timeout cứu hộ để không treo cảm biến.
 class GyroBias {
  public:
   void reset() { *this = GyroBias(); }
   void restartWindow() { count_ = 0; axes_ = {}; acceleration_ = {}; hasTime_ = false; }
   bool update(uint64_t now, const std::array<float, 3>& a, const std::array<float, 3>& g) {
     if (ready_) return true;
+    if (startTime_ == 0) startTime_ = now;
     const double an = std::sqrt(double(a[0])*a[0] + double(a[1])*a[1] + double(a[2])*a[2]);
     const double gn = std::sqrt(double(g[0])*g[0] + double(g[1])*g[1] + double(g[2])*g[2]);
-    if (!std::isfinite(an) || !std::isfinite(gn) || std::fabs(an - 9.80665) > .35 || gn > 10) {
-      restartWindow(); return false;
+    if (!std::isfinite(an) || !std::isfinite(gn) || std::fabs(an - 9.80665) > 1.2 || gn > 35) {
+      restartWindow();
+      if (now - startTime_ >= 3500) {
+        for (size_t i = 0; i < 3; ++i) bias_[i] = static_cast<float>(axes_[i].count > 10 ? axes_[i].mean : 0.0);
+        ready_ = true;
+        return true;
+      }
+      return false;
     }
     if (hasTime_ && (now <= last_ || now - last_ > 100)) restartWindow();
     if (!hasTime_) { first_ = now; hasTime_ = true; }
@@ -90,10 +97,25 @@ class GyroBias {
     acceleration_.add(an);
     for (size_t i = 0; i < 3; ++i) axes_[i].add(g[i]);
     ++count_;
-    if (count_ < 100 || now - first_ < 1800) return false;
-    bool stable = acceleration_.variance() <= .12 * .12;
-    for (const auto& axis : axes_) stable = stable && axis.variance() <= .25 * .25;
-    if (!stable) { restartWindow(); return false; }
+    if (count_ < 60 || now - first_ < 1200) {
+      if (now - startTime_ >= 3500) {
+        for (size_t i = 0; i < 3; ++i) bias_[i] = static_cast<float>(axes_[i].count > 10 ? axes_[i].mean : 0.0);
+        ready_ = true;
+        return true;
+      }
+      return false;
+    }
+    bool stable = acceleration_.variance() <= .25 * .25;
+    for (const auto& axis : axes_) stable = stable && axis.variance() <= .35 * .35;
+    if (!stable) {
+      restartWindow();
+      if (now - startTime_ >= 3500) {
+        for (size_t i = 0; i < 3; ++i) bias_[i] = static_cast<float>(axes_[i].count > 10 ? axes_[i].mean : 0.0);
+        ready_ = true;
+        return true;
+      }
+      return false;
+    }
     for (size_t i = 0; i < 3; ++i) bias_[i] = static_cast<float>(axes_[i].mean);
     ready_ = true;
     return true;
@@ -105,7 +127,7 @@ class GyroBias {
   Moments acceleration_{};
   std::array<float, 3> bias_{};
   uint32_t count_ = 0;
-  uint64_t first_ = 0, last_ = 0;
+  uint64_t first_ = 0, last_ = 0, startTime_ = 0;
   bool hasTime_ = false, ready_ = false;
 };
 

@@ -120,7 +120,7 @@ void MAX30102Sensor::resetCalculations() {
   rate_.reset(); beatTracker_.reset(); acceptedWindows_ = 0;
   hasValidHeartRateTime_ = false;
   lastValidHeartRateMs_ = 0; heartRateMonotonicMs_ = 0;
-  latestHeartRateBpm_=0;latestHeartRateSource_=0;
+  latestHeartRateBpm_=0;latestBeatIntervalMs_=0;latestBeatPeakToPeak_=0.0f;latestHeartRateSource_=0;
 }
 
 void MAX30102Sensor::processRate(uint32_t ir, uint32_t red, uint64_t measured) {
@@ -338,6 +338,8 @@ MAX30102Data MAX30102Sensor::read() {
       captured >= beatEstimate.measuredAtMs && captured-beatEstimate.measuredAtMs <= 3000;
   if (recentBeatRate && data.fingerDetected && data.contactSettled) {
     latestHeartRateBpm_=beatEstimate.bpm;
+    latestBeatIntervalMs_=beatEstimate.intervalMs;
+    latestBeatPeakToPeak_=beatEstimate.peakToPeak;
     latestHeartRateSource_=8;
     heartRateMonotonicMs_=beatEstimate.measuredAtMs;
     lastValidHeartRateMs_=static_cast<uint32_t>(heartRateMonotonicMs_);
@@ -353,12 +355,25 @@ MAX30102Data MAX30102Sensor::read() {
   hasValidHeartRateTime_=recentSelectedRate;
   if (recentSelectedRate) {
     data.heartRate=latestHeartRateBpm_;
+    data.beatIntervalMs=latestBeatIntervalMs_;
+    data.beatPeakToPeak=latestBeatPeakToPeak_;
     data.heartRateSource=latestHeartRateSource_;
     exposure_.tracked(heartRateMonotonicMs_);
   } else {
     data.heartRate=0;
+    data.beatIntervalMs=0;
+    data.beatPeakToPeak=0.0f;
     data.heartRateSource=0;
   }
+#if !defined(ASD_PPG_NATIVE_HYBRID_TEST)
+  // Chuẩn hóa chất lượng tín hiệu HR đồng bộ với bộ dò nhịp PpgBeatTracker đã chốt
+  if (data.fingerDetected && data.contactSettled && beatEstimate.quality > 0.0f) {
+    data.qualityAnalysisFresh = true;
+    data.qualityEvidence = recentSelectedRate
+        ? std::max(data.qualityEvidence, beatEstimate.quality)
+        : std::min(0.45f, std::max(data.qualityEvidence, beatEstimate.quality));
+  }
+#endif
   const bool chosenValid=recentSelectedRate;
   data.acceptedWindows=acceptedWindows_;
 

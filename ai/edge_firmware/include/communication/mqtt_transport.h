@@ -19,3 +19,4 @@ bool mqttTransportSetup();
 void mqttUpdateSnapshot(const asd::ReadingSnapshot& snapshot);
 void mqttRecordSensing(uint32_t now, uint32_t ppgSamples, uint32_t imuSamples, bool gsrNew);
 MqttStats mqttGetStats();
+bool mqttConsumeAiResetRequest();
