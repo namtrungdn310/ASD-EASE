@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Request, status
 from pydantic import BaseModel, Field
 
 from app.core.security import operator_auth
-from app.services.dataset_capture_service import save_labeled_capture
+from app.services.dataset_capture_service import get_capture_summary, save_labeled_capture
 
 router = APIRouter(tags=["dataset capture"], dependencies=[Depends(operator_auth)])
 
@@ -24,6 +24,13 @@ class CaptureCreateRequest(BaseModel):
     session_id: str | None = Field(default=None, max_length=64)
     label: Literal[0, 1]
     samples: list[CaptureSample] = Field(min_length=5, max_length=7200)
+
+
+@router.get("/dataset/captures/summary")
+def read_dataset_capture_summary(request: Request):
+    settings = request.app.state.settings
+    output_dir = Path(settings.collected_dataset_dir)
+    return get_capture_summary(output_dir=output_dir)
 
 
 @router.post("/dataset/captures", status_code=status.HTTP_201_CREATED)

@@ -76,7 +76,7 @@ test("stepDatasetCapture skips first 60s CALIBRATING and 5s no_contact tail, the
   assert.equal(acc.samples.length, 0);
 });
 
-test("DataLabelModal renders duration, sample count and Stress/No stress dropdown", () => {
+test("DataLabelModal renders batch badge, previous batch, cumulative samples and clean Stress/No stress options", () => {
   const html = renderToStaticMarkup(
     React.createElement(DataLabelModal, {
       capture: {
@@ -93,14 +93,30 @@ test("DataLabelModal renders duration, sample count and Stress/No stress dropdow
           az: 9.8,
         })),
       },
+      initialSummary: {
+        completed_batches: 2,
+        next_batch_number: 3,
+        total_samples_before: 120,
+        previous_batch: {
+          batch_number: 2,
+          duration_seconds: 65,
+          sample_count: 65,
+          label: 1,
+        },
+      },
       onClose: () => {},
     }),
   );
   assert.ok(html.includes("Gán nhãn dữ liệu vừa thu"));
+  assert.ok(html.includes("Đợt 3"));
   assert.ok(html.includes("1 phút 15 giây"));
   assert.ok(html.includes("75 mẫu"));
-  assert.ok(html.includes("Không stress (No stress)"));
-  assert.ok(html.includes("Stress"));
+  assert.ok(html.includes("Đợt trước (Đợt 2)"));
+  assert.ok(html.includes("1 phút 5 giây · 65 mẫu"));
+  assert.ok(html.includes("120 mẫu"));
+  assert.ok(html.includes(">No stress</option>"));
+  assert.ok(html.includes(">Stress</option>"));
+  assert.ok(!html.includes("Không stress"));
   assert.ok(html.includes("Lưu dữ liệu"));
   assert.ok(html.includes("Bỏ qua"));
 });

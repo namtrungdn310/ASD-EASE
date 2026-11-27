@@ -322,3 +322,40 @@ def save_labeled_capture(
         "duration_seconds": duration_seconds,
         "dataset_file": str(csv_path.name),
     }
+
+
+def get_capture_summary(output_dir: Path) -> dict[str, Any]:
+    """Đọc captures_log.jsonl để trả về số đợt đã lưu, đợt trước đó và tổng số mẫu tích lũy."""
+    log_path = output_dir / "captures_log.jsonl"
+    entries: list[dict[str, Any]] = []
+    if log_path.is_file():
+        with log_path.open("r", encoding="utf-8") as handle:
+            for raw_line in handle:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    item = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(item, dict):
+                    entries.append(item)
+
+    completed = len(entries)
+    total_samples = sum(int(item.get("sample_count", 0)) for item in entries)
+    previous_batch: dict[str, Any] | None = None
+    if completed > 0:
+        last = entries[-1]
+        previous_batch = {
+            "batch_number": completed,
+            "duration_seconds": int(last.get("duration_seconds", 0)),
+            "sample_count": int(last.get("sample_count", 0)),
+            "label": int(last.get("label", 0)),
+        }
+
+    return {
+        "completed_batches": completed,
+        "next_batch_number": completed + 1,
+        "total_samples_before": total_samples,
+        "previous_batch": previous_batch,
+    }

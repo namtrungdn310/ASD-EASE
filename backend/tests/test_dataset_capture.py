@@ -68,3 +68,41 @@ def test_dataset_capture_handles_short_post_calibration_segment_and_requires_aut
     assert resp.status_code == 201
     assert resp.json()["window_count"] == 1
     assert resp.json()["label"] == 0
+
+
+def test_dataset_capture_summary_reports_batch_number_previous_and_cumulative_samples(client, tmp_path):
+    client.app.state.settings.collected_dataset_dir = str(tmp_path)
+
+    empty = client.get("/api/v1/dataset/captures/summary", headers=OP_HEADERS)
+    assert empty.status_code == 200
+    assert empty.json() == {
+        "completed_batches": 0,
+        "next_batch_number": 1,
+        "total_samples_before": 0,
+        "previous_batch": None,
+    }
+
+    client.post(
+        "/api/v1/dataset/captures",
+        headers=OP_HEADERS,
+        json={"device_id": "ESP32-001", "label": 0, "samples": _make_samples(75)},
+    )
+    client.post(
+        "/api/v1/dataset/captures",
+        headers=OP_HEADERS,
+        json={"device_id": "ESP32-001", "label": 1, "samples": _make_samples(20)},
+    )
+
+    summary = client.get("/api/v1/dataset/captures/summary", headers=OP_HEADERS)
+    assert summary.status_code == 200
+    assert summary.json() == {
+        "completed_batches": 2,
+        "next_batch_number": 3,
+        "total_samples_before": 95,
+        "previous_batch": {
+            "batch_number": 2,
+            "duration_seconds": 20,
+            "sample_count": 20,
+            "label": 1,
+        },
+    }
