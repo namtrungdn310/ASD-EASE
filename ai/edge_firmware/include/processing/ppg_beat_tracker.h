@@ -157,57 +157,107 @@ class PpgBeatTracker {
         const uint64_t delta = measuredAtMs - lastBeatMs_;
 
         // Thời gian trơ sinh lý động (Adaptive Physiological Blanking Window):
-        // Dicrotic notch (ở 300-350ms) bị loại bỏ hoàn toàn, không thể gây đếm nhịp đôi.
-        uint64_t blankingWindow = 400;
+        // Với nhịp nghỉ (60-110 bpm -> RR 545-1000ms), 0.60*RR = 327-600ms vẫn chặn hoàn toàn dicrotic notch,
+        // đồng thời sàn 280ms cho phép đo chính xác toàn dải khai báo 40..200 bpm (300ms @ 200 bpm).
+        uint64_t blankingWindow = 280;
         if (lastRrIntervalMs_ > 0) {
           blankingWindow = static_cast<uint64_t>(lastRrIntervalMs_ * 0.60f);
-          if (blankingWindow < 360) blankingWindow = 360;
+          if (blankingWindow < 280) blankingWindow = 280;
           if (blankingWindow > 650) blankingWindow = 650;
         }
 
-        if (delta >= blankingWindow && delta <= 1800) {
+        // Theo dõi chuỗi đỉnh đều đặn liên tiếp (trên mọi đỉnh vật lý) để phát hiện bước nhảy nhịp thực
+        // (vd 60 -> 120 bpm cho chuỗi 500, 500, 500, 500ms), phân biệt hẳn với dicrotic notch (luân phiên ngắn-dài).
+        bool unlockedFastStep = false;
+        if (lastRrIntervalMs_ > 0 && lastCandidatePeakMs_ > 0 && measuredAtMs > lastCandidatePeakMs_) {
+          const uint64_t peakDelta = measuredAtMs - lastCandidatePeakMs_;
+          const bool fasterThanCurrent = peakDelta >= 280 && peakDelta <= 750 &&
+                                         (peakDelta * 10ULL < lastRrIntervalMs_ * 7ULL);
+          if (fasterThanCurrent) {
+            if (lastCandidateDeltaMs_ > 0 &&
+                std::labs(static_cast<long>(peakDelta) - static_cast<long>(lastCandidateDeltaMs_)) <= 70) {
+              ++fastCandidateCount_;
+            } else {
+              fastCandidateCount_ = 1;
+            }
+            lastCandidateDeltaMs_ = peakDelta;
+            if (fastCandidateCount_ >= 4) {
+              unlockedFastStep = true;
+            }
+          } else {
+            fastCandidateCount_ = 0;
+            lastCandidateDeltaMs_ = 0;
+          }
+        }
+        lastCandidatePeakMs_ = measuredAtMs;
+
+        bool acceptBeat = (delta >= blankingWindow && delta <= 1800);
+        if (acceptBeat) {
           // Kiểm tra loại trừ sóng phản xạ harmonic (xấp xỉ 1/2 khoảng RR trước đó)
-          bool isHarmonic = false;
           if (lastRrIntervalMs_ > 0 && validBeatCount_ >= 2) {
             long halfRr = static_cast<long>(lastRrIntervalMs_ / 2);
             if (std::labs(static_cast<long>(delta) - halfRr) < 70) {
-              isHarmonic = true;
+              acceptBeat = false;
             }
           }
+        }
 
-          if (!isHarmonic) {
-            const float instantBpm = 60000.0f / static_cast<float>(delta);
-            if (instantBpm >= kMinimumBpm && instantBpm <= kMaximumBpm) {
-              rates_[rateSpot_++] = instantBpm;
-              rateSpot_ %= kRateBufferSize;
+        if (unlockedFastStep && lastCandidateDeltaMs_ >= 280) {
+          const float stepBpm = 60000.0f / static_cast<float>(lastCandidateDeltaMs_);
+          if (stepBpm >= kMinimumBpm && stepBpm <= kMaximumBpm) {
+            rates_.fill(0.0f);
+            rates_[0] = stepBpm;
+            rateSpot_ = 1;
+            lastRrIntervalMs_ = lastCandidateDeltaMs_;
+            lastBeatMs_ = measuredAtMs;
+            validBeatCount_ = std::max<size_t>(validBeatCount_, 2);
+            medianBpm_ = stepBpm;
+            smoothedBpm_ = stepBpm;
+            emaInitialized_ = true;
+            fastCandidateCount_ = 0;
+            lastCandidateDeltaMs_ = 0;
+            result_.valid = true;
+            result_.bpm = smoothedBpm_;
+            result_.instantaneousBpm = stepBpm;
+            result_.intervalMs = static_cast<uint32_t>(lastRrIntervalMs_);
+            result_.measuredAtMs = measuredAtMs;
+            result_.peakToPeak = vpp;
+            result_.acceptedIntervals = static_cast<uint8_t>(std::min<size_t>(validBeatCount_, 255));
+          }
+        } else if (acceptBeat) {
+          const float instantBpm = 60000.0f / static_cast<float>(delta);
+          if (instantBpm >= kMinimumBpm && instantBpm <= kMaximumBpm) {
+            rates_[rateSpot_++] = instantBpm;
+            rateSpot_ %= kRateBufferSize;
 
-              lastRrIntervalMs_ = delta;
-              lastBeatMs_       = measuredAtMs;
-              validBeatCount_++;
+            lastRrIntervalMs_ = delta;
+            lastBeatMs_       = measuredAtMs;
+            validBeatCount_++;
 
-              // Tính TRUNG VỊ khoảng RR (loại bỏ nhịp bất thường)
-              medianBpm_ = computeMedianBpm();
+            // Tính TRUNG VỊ khoảng RR (loại bỏ nhịp bất thường)
+            medianBpm_ = computeMedianBpm();
 
-              // EMA nhẹ trên TRUNG VỊ (làm mượt hiển thị)
-              if (!emaInitialized_) {
-                smoothedBpm_ = medianBpm_;
-                emaInitialized_ = true;
-              } else {
-                smoothedBpm_ = 0.30f * medianBpm_ + 0.70f * smoothedBpm_;
-              }
-
-              result_.valid = validBeatCount_ >= 2;
-              result_.bpm = smoothedBpm_;
-              result_.instantaneousBpm = instantBpm;
-              result_.intervalMs = static_cast<uint32_t>(delta);
-              result_.measuredAtMs = measuredAtMs;
-              result_.peakToPeak = vpp;
-              result_.acceptedIntervals = static_cast<uint8_t>(std::min<size_t>(validBeatCount_, 255));
+            // EMA nhẹ trên TRUNG VỊ (làm mượt hiển thị)
+            if (!emaInitialized_) {
+              smoothedBpm_ = medianBpm_;
+              emaInitialized_ = true;
+            } else {
+              smoothedBpm_ = 0.30f * medianBpm_ + 0.70f * smoothedBpm_;
             }
+
+            result_.valid = validBeatCount_ >= 2;
+            result_.bpm = smoothedBpm_;
+            result_.instantaneousBpm = instantBpm;
+            result_.intervalMs = static_cast<uint32_t>(delta);
+            result_.measuredAtMs = measuredAtMs;
+            result_.peakToPeak = vpp;
+            result_.acceptedIntervals = static_cast<uint8_t>(std::min<size_t>(validBeatCount_, 255));
           }
         } else if (delta > 1800) {
           lastBeatMs_ = measuredAtMs;
           lastRrIntervalMs_ = 0;
+          fastCandidateCount_ = 0;
+          lastCandidateDeltaMs_ = 0;
         }
       } else {
         lastBeatMs_ = measuredAtMs;
@@ -254,6 +304,9 @@ class PpgBeatTracker {
   float acFiltered_ = 0.0f;
   float prevAc_ = 0.0f;
   float prev2Ac_ = 0.0f;
+  uint64_t lastCandidatePeakMs_ = 0;
+  uint64_t lastCandidateDeltaMs_ = 0;
+  uint8_t fastCandidateCount_ = 0;
   float acMax_ = 0.0f;
   float acMin_ = 0.0f;
 
