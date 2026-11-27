@@ -154,3 +154,11 @@ Tài khoản gắn device/origin; MQTT ACL theo thiết bị, HTTP bearer theo d
 
 Ngày: 2026-10-31.
 
+## ADR-020 — Cơ chế trích xuất đặc trưng Stress và xử lý nhịp tim đa tầng
+
+Trạng thái: ACCEPTED.
+
+Dùng MSPTD Gated (*Peter H. Charlton et al.*) trên cửa sổ trượt BVP 10s lùi để trích xuất nhịp tim, nâng độ phủ stress từ 16,40% lên 61,73% so với thuật toán cũ. Biểu diễn HR đa tầng gồm giá trị nhịp tim ước lượng (nội suy tối đa 10s hoặc trung vị baseline) và cờ độ tin cậy `hr_is_valid`. Khóa tập 36 đặc trưng cửa sổ trượt 60s (14 EDA, 13 ACC, 9 HR & Validity). Mô hình học máy dựa trên EDA + ACC làm nền tảng có độ phủ 100%, kết hợp HR khi hợp lệ. Kiểm định bằng Leave-One-Subject-Out (LOSO) 15 fold; scaler chỉ fit trên tập train từng fold. Toàn bộ firmware ESP32 giữ nguyên. Xem [Quyết định chi tiết](ml/06-FEATURE-DECISION.md).
+
+Ngày: 2026-11-18.
+
