@@ -138,6 +138,8 @@ export function updateTelemetryStream(
         const graceCount = Math.max(dropLen + 1, Math.floor(nextTimeSec - startSec) + 1);
         if (graceCount <= 5) {
           noContactSeconds = graceCount;
+        } else if (isGraceTrigger) {
+          noContactSeconds = graceCount;
         } else {
           calibValidSeconds = 1;
           noContactSeconds = 0;

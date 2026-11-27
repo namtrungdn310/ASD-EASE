@@ -183,14 +183,15 @@ test("PredictionPanel displays countdown for CALIBRATING (60s) and NORMAL/ATTENT
   assert.ok(htmlAttentionLoose.includes("Cần theo dõi"));
   assert.ok(htmlAttentionLoose.includes("(8s | 5s)"));
 
-  // Contact lost > 5s from NORMAL -> grace expired, resets to CALIBRATING (60s)
+  // Contact lost > 5s from NORMAL/ATTENTION while still off wrist -> UNCERTAIN (never back to CALIBRATING 60s)
   const normalLoosePoints6 = [
     ...normalPoints3,
     ...Array.from({ length: 6 }, (_, i) => ({ time: 64 + i, predictionState: "NORMAL", probability: 0.3, hrNoContact: true, noContactSeconds: i + 1 }))
   ];
   const htmlNormalLooseExpired = renderToStaticMarkup(React.createElement(PredictionPanel, { telemetry: looseNormalTelemetry, points: normalLoosePoints6, live: true }));
-  assert.ok(htmlNormalLooseExpired.includes("Đang hiệu chuẩn"));
-  assert.ok(htmlNormalLooseExpired.includes("(60s)"));
+  assert.ok(htmlNormalLooseExpired.includes("Chưa xác định"));
+  assert.ok(!htmlNormalLooseExpired.includes("Đang hiệu chuẩn"));
+  assert.ok(!htmlNormalLooseExpired.includes("(60s)"));
 });
 
 test("updateTelemetryStream preserves 5s grace countdown when ATTENTION drops to CALIBRATING regardless of HR reason", () => {

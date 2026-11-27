@@ -60,6 +60,7 @@ class EdgeAiInference {
     adcFast_ = 0.0f;
     adcSlow_ = 0.0f;
     lastEdaUs_ = kWesadNeutralEdaUs;
+    waitForFreshHrAfterDrop_ = false;
     result_ = Result{};
   }
 
@@ -89,6 +90,7 @@ class EdgeAiInference {
     const bool hasWristContact =
         ppg.fingerDetected || ((hasStartedWithHr_ || hasCompletedCalibration_) && ppg.exposureSettling);
     if (!hasWristContact) {
+      waitForFreshHrAfterDrop_ = false;
       if (!hasStartedWithHr_ && !hasCompletedCalibration_) {
         resetWindow();
         result_.hasProbability = false;
@@ -153,8 +155,11 @@ class EdgeAiInference {
                              (hrAgeMs <= kFreshHrMaxAgeMs);
     const bool hasActiveHr = hasHrTimestamp && (hrAgeMs <= kActiveHrMaxAgeMs);
 
-    // Chỉ bắt đầu hiệu chuẩn 60s khi tiếp xúc cổ tay đã ổn định (contactSettled) hoặc có nhịp tim thực
-    if (!hasStartedWithHr_ && !hasCompletedCalibration_ && !ppg.contactSettled && !hasFreshHr) {
+    // Chỉ bắt đầu hiệu chuẩn 60s khi tiếp xúc cổ tay đã ổn định (contactSettled) hoặc có nhịp tim thực.
+    // Nếu vừa rớt khỏi NORMAL/ATTENTION vì mất xung HR quá 15s + 5.2s (vd đặt úp lên mặt bàn phản xạ IR),
+    // giữ nguyên UNCERTAIN cho tới khi có xung nhịp tim thực mới (hasFreshHr) hoặc nhấc vòng khỏi mặt bàn.
+    if (!hasStartedWithHr_ && !hasCompletedCalibration_ &&
+        ((waitForFreshHrAfterDrop_ && !hasFreshHr) || (!ppg.contactSettled && !hasFreshHr))) {
       result_.hasProbability = false;
       result_.probability = -1.0f;
       result_.rawProbability = -1.0f;
@@ -166,6 +171,9 @@ class EdgeAiInference {
       return result_;
     }
 
+    if (hasFreshHr) {
+      waitForFreshHrAfterDrop_ = false;
+    }
     hasStartedWithHr_ = true;
 
     // 3. Thu mẫu EDA ở tần số 4 Hz (mỗi 250 ms)
@@ -205,8 +213,22 @@ class EdgeAiInference {
             hrSamplesSinceLastStep_ = kStepHrSamples;
             return result_;
           }
-          // Hết 5.2s ân hạn nhưng vẫn còn đeo -> xóa sạch cửa sổ cũ để hiệu chuẩn lại 60s từ đầu
+          // Hết 5.2s ân hạn khi mất xung HR quá 15s (hoặc đặt vòng lên mặt bàn): xóa sạch cửa sổ về UNCERTAIN
+          // và chờ nhịp tim thực mới trước khi hiệu chuẩn lại 60s.
           resetWindow();
+          if (!hasActiveHr) {
+            waitForFreshHrAfterDrop_ = true;
+            result_.hasProbability = false;
+            result_.probability = -1.0f;
+            result_.rawProbability = -1.0f;
+            result_.logit = 0.0f;
+            result_.windowSeconds = 0;
+            result_.quietHandGuarded = false;
+            result_.repeatedImpactTriggered = false;
+            result_.state = "UNCERTAIN";
+            hrSamplesSinceLastStep_ = kStepHrSamples;
+            return result_;
+          }
           hasStartedWithHr_ = true;
           result_.windowSeconds = 0;
         }
@@ -1030,6 +1052,7 @@ class EdgeAiInference {
   bool hasStartedWithHr_ = false;
   bool hasCompletedCalibration_ = false;
   bool inAttentionState_ = false;
+  bool waitForFreshHrAfterDrop_ = false;
 };
 
 }  // namespace asd
