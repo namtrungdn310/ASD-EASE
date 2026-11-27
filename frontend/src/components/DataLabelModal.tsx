@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { saveDatasetCapture, type DatasetCaptureResponse } from "../api/datasetCapture";
+import { useEffect, useState } from "react";
+import {
+  fetchDatasetCaptureSummary,
+  saveDatasetCapture,
+  type DatasetCaptureResponse,
+  type DatasetCaptureSummary,
+} from "../api/datasetCapture";
 import type { PendingDatasetCapture } from "../hooks/useDatasetCapture";
 
 function formatCaptureDuration(seconds: number): string {
@@ -14,6 +19,8 @@ export function DataLabelModal({
   capture,
   onClose,
   onSave = saveDatasetCapture,
+  onLoadSummary = fetchDatasetCaptureSummary,
+  initialSummary = null,
 }: {
   capture: PendingDatasetCapture;
   onClose: () => void;
@@ -23,11 +30,32 @@ export function DataLabelModal({
     label: 0 | 1;
     samples: PendingDatasetCapture["samples"];
   }) => Promise<DatasetCaptureResponse>;
+  onLoadSummary?: () => Promise<DatasetCaptureSummary>;
+  initialSummary?: DatasetCaptureSummary | null;
 }) {
   const [label, setLabel] = useState<0 | 1>(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [savedResult, setSavedResult] = useState<DatasetCaptureResponse | null>(null);
+  const [summary, setSummary] = useState<DatasetCaptureSummary | null>(initialSummary);
+
+  useEffect(() => {
+    let active = true;
+    onLoadSummary()
+      .then(data => {
+        if (active) setSummary(data);
+      })
+      .catch(() => {
+        // Giữ nguyên trạng thái mặc định nếu chưa tải được lịch sử đợt
+      });
+    return () => {
+      active = false;
+    };
+  }, [onLoadSummary, capture]);
+
+  const currentBatch = summary ? summary.next_batch_number : 1;
+  const previousBatch = summary?.previous_batch ?? null;
+  const totalSamplesBefore = summary ? summary.total_samples_before : 0;
 
   const handleSubmit = async () => {
     if (saving) return;
@@ -52,19 +80,37 @@ export function DataLabelModal({
   return (
     <div className="capture-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="capture-modal-title">
       <div className="capture-modal-card">
-        <h2 id="capture-modal-title" className="capture-modal-title">Gán nhãn dữ liệu vừa thu</h2>
+        <div className="capture-modal-header">
+          <h2 id="capture-modal-title" className="capture-modal-title">Gán nhãn dữ liệu vừa thu</h2>
+          <span className="capture-batch-badge">Đợt {currentBatch}</span>
+        </div>
         <p className="capture-modal-subtitle">
           Đã tự động loại bỏ 60 giây hiệu chuẩn đầu tiên để đảm bảo tín hiệu ổn định.
         </p>
 
         <dl className="capture-modal-stats">
           <div>
-            <dt>Tổng thời gian thu</dt>
+            <dt>Thời gian đợt này</dt>
             <dd>{formatCaptureDuration(capture.durationSeconds)}</dd>
           </div>
           <div>
-            <dt>Tổng số mẫu</dt>
+            <dt>Số mẫu đợt này</dt>
             <dd>{capture.samples.length} mẫu</dd>
+          </div>
+        </dl>
+
+        <dl className="capture-modal-history">
+          <div>
+            <dt>{previousBatch ? `Đợt trước (Đợt ${previousBatch.batch_number})` : "Đợt trước"}</dt>
+            <dd>
+              {previousBatch
+                ? `${formatCaptureDuration(previousBatch.duration_seconds)} · ${previousBatch.sample_count} mẫu`
+                : "Chưa có"}
+            </dd>
+          </div>
+          <div>
+            <dt>Tổng mẫu đã lưu (trước đợt này)</dt>
+            <dd>{totalSamplesBefore} mẫu</dd>
           </div>
         </dl>
 
@@ -76,7 +122,7 @@ export function DataLabelModal({
             disabled={saving || savedResult !== null}
             onChange={event => setLabel(event.target.value === "1" ? 1 : 0)}
           >
-            <option value="0">Không stress (No stress)</option>
+            <option value="0">No stress</option>
             <option value="1">Stress</option>
           </select>
         </div>
@@ -84,7 +130,7 @@ export function DataLabelModal({
         {error && <p className="capture-modal-feedback" role="alert" data-error="true">{error}</p>}
         {savedResult && (
           <p className="capture-modal-feedback" role="status" data-error="false">
-            Đã lưu {savedResult.window_count} cửa sổ ({savedResult.sample_count} mẫu) vào {savedResult.dataset_file}.
+            Đã lưu Đợt {currentBatch}: {savedResult.window_count} cửa sổ ({savedResult.sample_count} mẫu).
           </p>
         )}
 

@@ -28,8 +28,42 @@ export interface DatasetCaptureResponse {
   dataset_file: string;
 }
 
+export interface PreviousBatchSummary {
+  batch_number: number;
+  duration_seconds: number;
+  sample_count: number;
+  label: 0 | 1;
+}
+
+export interface DatasetCaptureSummary {
+  completed_batches: number;
+  next_batch_number: number;
+  total_samples_before: number;
+  previous_batch: PreviousBatchSummary | null;
+}
+
 const base = API_BASE_URL.replace(/\/$/, "");
 const apiRoot = () => (base.endsWith("/api/v1") ? base : `${base}/api/v1`);
+
+export async function fetchDatasetCaptureSummary(): Promise<DatasetCaptureSummary> {
+  const url = `${apiRoot()}/dataset/captures/summary`;
+  const send = () =>
+    fetch(url, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+    });
+
+  let response = await send();
+  if (response.status === 401 && import.meta.env.DEV) {
+    await openLocalSession(new AbortController().signal);
+    response = await send();
+  }
+  if (!response.ok) {
+    throw new Error(`CAPTURE_SUMMARY_FAILED_${response.status}`);
+  }
+  return (await response.json()) as DatasetCaptureSummary;
+}
 
 export async function saveDatasetCapture(payload: DatasetCaptureRequest): Promise<DatasetCaptureResponse> {
   const url = `${apiRoot()}/dataset/captures`;
