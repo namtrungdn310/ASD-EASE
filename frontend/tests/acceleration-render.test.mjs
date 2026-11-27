@@ -72,7 +72,7 @@ test("actual Recharts SVG fits three strips into the measured 200px container", 
     assert.equal(container.querySelectorAll('.imu-strips .recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value').length, 3,
       'the entire acceleration panel must show exactly three Y values');
     const timeLabels = () => [...container.querySelectorAll('.recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value')].map(t => t.textContent);
-    assert.deepEqual(timeLabels(), ['00:00', '00:15', '00:30', '00:45', '01:00']);
+    assert.deepEqual(timeLabels(), ['00:00', '00:10', '00:20', '00:30', '00:40', '00:50', '01:00']);
     const resize = async width => {
       measuredWidth = width;
       await act(async () => {
@@ -80,7 +80,7 @@ test("actual Recharts SVG fits three strips into the measured 200px container", 
       });
     };
     await resize(320);
-    assert.deepEqual(timeLabels(), ['00:00', '00:15', '00:30', '00:45', '01:00']);
+    assert.deepEqual(timeLabels(), ['00:00', '00:10', '00:20', '00:30', '00:40', '00:50', '01:00']);
     await resize(480);
     const measured = data.map(point => ({ ...point, hr: 75, gsr: 1800 }));
     await act(async () => root.render(React.createElement(React.Fragment, null,
@@ -99,12 +99,12 @@ test("actual Recharts SVG fits three strips into the measured 200px container", 
       const bottomTick = Math.max(...ticks.map(tick => Number(tick.getAttribute('y'))));
       assert.ok(Number(firstTime.getAttribute('y')) - bottomTick >= 20);
       assert.deepEqual([...chart.querySelectorAll('.recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value')].map(t => t.textContent),
-        ['00:00', '00:15', '00:30', '00:45', '01:00']);
+        ['00:00', '00:10', '00:20', '00:30', '00:40', '00:50', '01:00']);
     }
     await resize(320);
     for (const chart of container.querySelectorAll('[data-normal-chart]')) {
       assert.deepEqual([...chart.querySelectorAll('.recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-value')].map(t => t.textContent),
-        ['00:00', '00:15', '00:30', '00:45', '01:00']);
+        ['00:00', '00:10', '00:20', '00:30', '00:40', '00:50', '01:00']);
     }
     assert.deepEqual(browserErrors, []);
   } finally {

@@ -8,6 +8,8 @@ import { GSRChart } from "../components/GSRChart";
 import { ImuReadings } from "../components/ImuReadings";
 import { SensorPanel } from "../components/SensorPanel";
 import { SessionControl } from "../components/SessionControl";
+import { DataLabelModal } from "../components/DataLabelModal";
+import { useDatasetCapture } from "../hooks/useDatasetCapture";
 import { useLiveTelemetry } from "../hooks/useLiveTelemetry";
 import { formatChartTime } from "../utils/chartFormat";
 import { heartRateDisplay } from "../utils/heartRateDisplay";
@@ -15,7 +17,7 @@ import { heartRateDisplay } from "../utils/heartRateDisplay";
 export function Dashboard() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { telemetry, points, connectionStatus, deviceIds, selectedDeviceId, setSelectedDeviceId,
-    monitoring, connectionTimedOut, connectDevice, disconnectDevice } = useLiveTelemetry();
+    monitoring, connectionTimedOut, connectDevice, disconnectDevice, resetAiWindow } = useLiveTelemetry();
   const [page, setPage] = useState<"devices" | "reports">(() =>
     typeof window !== "undefined" && window.location.hash === "#reports" ? "reports" : "devices");
   useEffect(() => {
@@ -30,6 +32,7 @@ export function Dashboard() {
     setPage(next);
   };
   const live = connectionStatus === "live";
+  const { pendingCapture, dismissCapture, clearActiveCapture } = useDatasetCapture(telemetry, live);
   const connecting = monitoring && !connectionTimedOut && !live && connectionStatus !== "stale";
   const current = live ? telemetry : null;
   const chartScope = JSON.stringify([selectedDeviceId, telemetry?.session_id, telemetry?.data_origin, telemetry?.schema_version]);
@@ -103,8 +106,8 @@ export function Dashboard() {
       {page === "devices" ? <>
       <div className="sensor-grid" data-live={live}>
         <SensorPanel title={hr.estimated ? "Nhịp tim ước tính" : "Nhịp tim"} icon={Activity} value={display(hr.value, 1)} unit="bpm" quality={current?.schema_version === "1.2" ? current.signal_quality.hr : undefined} live={live}
-          footer={hr.tracked ? <><CircleAlert size={14} aria-hidden="true" /><span>Nét đứt: tạm tính tối đa 15 giây.</span></> : undefined}
-          detail={hr.predicted ? <p className="sensor-note">Tạm tính · {hr.ageSeconds} giây chưa có HR mới.</p> :
+          footer={hr.tracked ? <><CircleAlert size={14} aria-hidden="true" /><span>Nét đứt: nhịp duy trì tối đa 15 giây.</span></> : undefined}
+          detail={hr.predicted ? <p className="sensor-note">Đang duy trì · {hr.ageSeconds} giây chờ xung mới.</p> :
             hr.held ? <p className="sensor-note">Nhận cách đây {hr.ageSeconds} giây · đang tìm lại nhịp.</p> :
             hr.estimated && !hr.tracked ? <p className="sensor-note">Bản demo · số đo tương đối.</p> : null}>
           <HeartRateChart key={chartScope} data={points} embedded tracked={hr.tracked} />
@@ -115,9 +118,12 @@ export function Dashboard() {
         <ImuReadings key={chartScope} telemetry={telemetry} points={points} live={live} />
       </div>
 
-      <PredictionPanel telemetry={telemetry} live={live} onViewDetails={() => { window.location.hash = "reports"; setPage("reports"); }} />
-      </> : <AiReports key={selectedDeviceId} deviceId={selectedDeviceId} />}
+      <PredictionPanel telemetry={telemetry} points={points} live={live}
+        onResetAi={selectedDeviceId ? async () => { clearActiveCapture(); await resetAiWindow(selectedDeviceId); } : undefined}
+        onViewDetails={() => { window.location.hash = "reports"; setPage("reports"); }} />
+      </> : <AiReports key={selectedDeviceId} deviceId={selectedDeviceId} points={points} />}
     </main>
+    {pendingCapture && <DataLabelModal capture={pendingCapture} onClose={dismissCapture} />}
     </div>
   </div>;
 }

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     app_name: str = "ASD Edge AI Local Receiver"
     database_url: str = "sqlite:///./storage/asd_edge_ai.db"
     raw_storage_dir: str = "./storage/raw"
+    collected_dataset_dir: str = "./storage/collected"
     cors_origins: str = "http://localhost:5173"
     device_registry_file: Path = Path("./storage/local/device-registry.json")
     operator_token: SecretStr = SecretStr("")

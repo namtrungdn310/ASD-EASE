@@ -21,13 +21,15 @@ services:
     environment:
       DATABASE_URL: sqlite:////app/storage/asd_edge_ai.db
       RAW_STORAGE_DIR: /app/storage/raw
+      COLLECTED_DATASET_DIR: /app/storage/collected
       DEVICE_REGISTRY_FILE: /app/local/device-registry.json
       MQTT_HOST: broker
       MQTT_LOCK_FILE: /app/storage/mqtt-receiver.lock
     ports:
-      - "${APP_BIND_IP:-127.0.0.1}:8000:8000"
+      - "${APP_BIND_IP:-127.0.0.1}:${BACKEND_HOST_PORT:-8002}:8000"
     volumes:
       - backend-storage:/app/storage
+      - ./ai/data/collected:/app/storage/collected
       - ${MQTT_LOCAL_DIR:-./infra/mosquitto/local}:/app/local:ro
     depends_on:
       broker:
@@ -42,8 +44,8 @@ services:
     build:
       context: ./frontend
       args:
-        VITE_API_BASE_URL: http://localhost:8000
-        VITE_WS_URL: ws://localhost:8000/api/v1/ws/live
+        VITE_API_BASE_URL: http://localhost:${BACKEND_HOST_PORT:-8002}
+        VITE_WS_URL: ws://localhost:${BACKEND_HOST_PORT:-8002}/api/v1/ws/live
     ports:
       - "${APP_BIND_IP:-127.0.0.1}:5173:5173"
     depends_on:

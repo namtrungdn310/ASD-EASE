@@ -48,7 +48,7 @@ def provision(destination, *, http_simulator=False, device_id=None):
             prefix = f"asd-ease/v1/{entry['data_origin']}/{entry['device_id']}/"
             for suffix in ("telemetry", "ack", "state/request", "presence"):
                 acl.append(f"topic {'read' if username == 'backend' else 'write'} {prefix}{suffix}")
-            for suffix in ("command", "state/response"):
+            for suffix in ("command", "state/response", "ai/reset"):
                 acl.append(f"topic {'write' if username == 'backend' else 'read'} {prefix}{suffix}")
         acl.append("")
     (destination / "acl").write_text("\n".join(acl), encoding="utf-8")

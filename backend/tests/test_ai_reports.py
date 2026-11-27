@@ -58,3 +58,18 @@ def test_ai_report_paginates_groups_beyond_100_raw_records(client):
     assert len(set(all_ids)) == 25
     assert client.get("/api/v1/reports/ai?device_id=ESP-001&page=0", headers=OP_HEADERS).status_code == 422
     assert client.get("/api/v1/reports/ai?device_id=ESP-001").status_code == 401
+
+
+def test_clear_ai_reports_removes_events_for_device(client):
+    with SessionLocal() as db:
+        db.add(Event(device_id="ESP-001", state="ATTENTION", probability=.8, timestamp_ms=1000))
+        db.add(Event(device_id="ESP-002", state="ATTENTION", probability=.8, timestamp_ms=1000))
+        db.commit()
+    res = client.delete("/api/v1/reports/ai?device_id=ESP-001", headers=OP_HEADERS)
+    assert res.status_code == 200
+    assert res.json() == {"ok": True}
+    res1 = client.get("/api/v1/reports/ai?device_id=ESP-001", headers=OP_HEADERS)
+    assert res1.json()["total"] == 0
+    res2 = client.get("/api/v1/reports/ai?device_id=ESP-002", headers=OP_HEADERS)
+    assert res2.json()["total"] == 1
+

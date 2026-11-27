@@ -70,9 +70,11 @@ async function main() {
   const prepared = spawnSync(executable, [...prefix, join(root, "scripts/local_dev.py")], { cwd: root, encoding: "utf8" });
   if (prepared.error || prepared.status !== 0) fail(prepared.stderr?.trim() || "Chưa chuẩn bị được cấu hình local.");
   const local = JSON.parse(prepared.stdout);
+  const backendPort = process.env.BACKEND_HOST_PORT || "8002";
   const environment = {
     ...process.env, ...local.compose, ASD_DEV_CREDENTIALS_DIR: local.credentialsDirectory,
-    VITE_API_BASE_URL: "http://localhost:8000", VITE_WS_URL: "ws://localhost:8000/api/v1/ws/live",
+    BACKEND_HOST_PORT: backendPort,
+    VITE_API_BASE_URL: `http://localhost:${backendPort}`, VITE_WS_URL: `ws://localhost:${backendPort}/api/v1/ws/live`,
     VITE_DEFAULT_DEVICE_ID: local.deviceId,
   };
   console.log(`Thiết bị ${local.deviceId}; broker LAN ${local.brokerHost}:${local.brokerPort}.`);

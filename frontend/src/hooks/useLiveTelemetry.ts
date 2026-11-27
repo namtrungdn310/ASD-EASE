@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { parseTelemetry } from "../utils/parseTelemetry";
-import { getConnectionStatus, updateTelemetryStream } from "../utils/telemetryStream";
+import { getConnectionStatus, resetStreamAiWindow, updateTelemetryStream } from "../utils/telemetryStream";
 import type { TelemetryStream } from "../utils/telemetryStream";
 import { openLocalSession } from "../utils/localSession";
-import { listDevices } from "../api/devices";
+import { listDevices, resetDeviceAi } from "../api/devices";
 import { readDevicePreference, rememberDevice } from "../utils/devicePreference";
 
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8000/api/v1/ws/live";
@@ -238,11 +238,22 @@ export function useLiveTelemetry(staleTimeoutMs = 5000) {
     setConnectionTimedOut(false);
     setMonitoringDeviceId(null);
   };
+  const resetAiWindow = async (deviceId: string | null = currentDeviceId) => {
+    if (!deviceId) throw new Error("NO_DEVICE");
+    await resetDeviceAi(deviceId);
+    const existing = streamsRef.current.get(deviceId);
+    if (existing) {
+      const updated = new Map(streamsRef.current);
+      updated.set(deviceId, resetStreamAiWindow(existing));
+      streamsRef.current = updated;
+      setStreams(updated);
+    }
+  };
   return {
     telemetry: stream?.telemetry ?? null, points: stream?.points ?? [],
     historySeconds: stream ? (stream.telemetry.timestamp_ms - stream.firstTimestampMs) / 1000 : 0,
     connected: connectionStatus === "live", backendConnected, connectionStatus,
     deviceIds, selectedDeviceId: currentDeviceId, setSelectedDeviceId: chooseDevice,
-    monitoring, connectionTimedOut, connectDevice, disconnectDevice,
+    monitoring, connectionTimedOut, connectDevice, disconnectDevice, resetAiWindow,
   };
 }

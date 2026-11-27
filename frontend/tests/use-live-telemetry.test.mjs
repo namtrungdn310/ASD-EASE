@@ -354,7 +354,7 @@ test("real hook caps history and preserves nullable measurements", async () => {
   assert.equal(h.view().historySeconds, 74);
   await h.mutate(() => socket.sendPayload(payload({ timestamp_ms: 76000, hr_bpm: null, gsr: { raw: null, delta: null }, movement: { score: null }, prediction: { probability: null, state: "UNCERTAIN" } })));
   assert.deepEqual(h.view().points.at(-1), { time: 76, hr: null, gsr: null, movement: null,
-    ax: null, ay: null, az: null, gx: null, gy: null, gz: null, probability: null });
+    ax: null, ay: null, az: null, gx: null, gy: null, gz: null, probability: null, predictionState: "UNCERTAIN" });
 });
 
 test("reconnect waits for a new selected-device sample, not old data or duplicates", async () => {
@@ -499,12 +499,12 @@ test("Dashboard 1.1 shows four sensor groups, magnitudes and signed axes from th
   await h.mutate(() => socket.sendPayload(payload({ timestamp_ms: 2000, data_origin: "DEVICE",
     model_version: "edge-model-v1", prediction: { probability: 0.83, state: "ATTENTION" },
   })));
-  assert.ok(prediction.textContent.includes("Cần chú ý"));
+  assert.ok(prediction.textContent.includes("Cần theo dõi"));
   assert.equal(prediction.querySelector(".prediction-probability").textContent, "83%");
   assert.ok(prediction.textContent.includes("edge-model-v1"));
   await h.advance(5000);
   assert.equal(prediction.querySelector(".prediction-probability").textContent, "—");
-  assert.ok(!prediction.textContent.includes("Cần chú ý"));
+  assert.ok(!prediction.textContent.includes("Cần theo dõi"));
   assert.ok(prediction.textContent.includes("Tạm ngưng"));
   assert.ok(h.container.querySelector('.connection-badge').textContent.includes("Dữ liệu cũ"));
   assert.equal(prediction.querySelector('.prediction-details-button'), null);

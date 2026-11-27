@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.db.database import get_db
@@ -18,4 +18,14 @@ def devices(request: Request, db: Session = Depends(get_db)) -> list[dict]:
         by_id.setdefault(identity.device_id, {"device_id": identity.device_id, "last_seen_at": None,
                           "firmware_version": None, "data_origin": identity.data_origin})
     return sorted(by_id.values(), key=lambda row: row["device_id"])
+
+
+@router.post("/devices/{device_id}/ai-reset")
+def reset_device_ai(device_id: str, request: Request) -> dict:
+    identity = request.app.state.registry.identity(device_id, "DEVICE")
+    if identity.transport != "mqtt":
+        raise HTTPException(409, "TRANSPORT_UNSUPPORTED")
+    if not request.app.state.mqtt.request_ai_reset(identity):
+        raise HTTPException(503, "MQTT_UNAVAILABLE")
+    return {"accepted": True, "device_id": identity.device_id, "action": "AI_RESET"}
 

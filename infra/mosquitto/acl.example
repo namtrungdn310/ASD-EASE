@@ -6,6 +6,7 @@ topic read asd-ease/v1/SYNTHETIC/SIM-001/state/request
 topic read asd-ease/v1/SYNTHETIC/SIM-001/presence
 topic write asd-ease/v1/SYNTHETIC/SIM-001/command
 topic write asd-ease/v1/SYNTHETIC/SIM-001/state/response
+topic write asd-ease/v1/SYNTHETIC/SIM-001/ai/reset
 
 user simulator
 topic write asd-ease/v1/SYNTHETIC/SIM-001/telemetry
@@ -14,3 +15,4 @@ topic write asd-ease/v1/SYNTHETIC/SIM-001/state/request
 topic write asd-ease/v1/SYNTHETIC/SIM-001/presence
 topic read asd-ease/v1/SYNTHETIC/SIM-001/command
 topic read asd-ease/v1/SYNTHETIC/SIM-001/state/response
+topic read asd-ease/v1/SYNTHETIC/SIM-001/ai/reset

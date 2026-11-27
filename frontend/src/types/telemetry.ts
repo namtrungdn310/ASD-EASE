@@ -49,6 +49,7 @@ export type Telemetry = TelemetryBase & (
 export interface ChartPoint {
   time: number;
   hr: number | null;
+  hrNoContact?: boolean;
   gsr: number | null;
   movement: number | null;
   ax: number | null;
@@ -58,5 +59,8 @@ export interface ChartPoint {
   gy: number | null;
   gz: number | null;
   probability: number | null;
+  predictionState?: EngineeringState;
+  calibValidSeconds?: number;
+  noContactSeconds?: number;
 }
 

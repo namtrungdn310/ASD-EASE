@@ -118,3 +118,36 @@ def test_browser_cookie_authenticates_websocket_without_token_in_url(client):
     with client.websocket_connect("/api/v1/ws/live", headers=headers) as socket:
         assert client.post("/api/v1/telemetry", json=payload()).status_code == 202
         assert socket.receive_json() == payload()
+
+
+def test_ai_reset_publishes_mqtt_command_and_checks_availability(client, monkeypatch):
+    runtime = app.state.mqtt
+    auth_headers = {"Authorization": f"Bearer {OPERATOR}"}
+    # Unauthenticated request returns 401
+    assert client.post("/api/v1/devices/ESP-001/ai-reset").status_code == 401
+    # Unknown or non-DEVICE ID returns 403 IDENTITY_MISMATCH
+    assert client.post("/api/v1/devices/UNKNOWN-DEV/ai-reset", headers=auth_headers).status_code == 403
+
+    # Disconnected MQTT returns 503 MQTT_UNAVAILABLE
+    monkeypatch.setattr(runtime, "connected", False)
+    disconnected = client.post("/api/v1/devices/ESP-001/ai-reset", headers=auth_headers)
+    assert disconnected.status_code == 503
+    assert disconnected.json()["detail"] == "MQTT_UNAVAILABLE"
+
+    # Connected MQTT publishes QoS 1 non-retained AI_RESET to ai/reset topic
+    transport = Mock()
+    transport.publish.return_value = SimpleNamespace(rc=0)
+    monkeypatch.setattr(runtime, "connected", True)
+    monkeypatch.setattr(runtime, "client", transport)
+    ok = client.post("/api/v1/devices/ESP-001/ai-reset", headers=auth_headers)
+    assert ok.status_code == 200
+    assert ok.json() == {"accepted": True, "device_id": "ESP-001", "action": "AI_RESET"}
+    transport.publish.assert_called_once()
+    topic, wire = transport.publish.call_args.args[:2]
+    kwargs = transport.publish.call_args.kwargs
+    assert topic == PREFIX + "ai/reset"
+    assert kwargs == {"qos": 1, "retain": False}
+    body = json.loads(wire.decode("utf-8"))
+    assert body["action"] == "AI_RESET"
+    assert body["device_id"] == "ESP-001"
+    assert body["data_origin"] == "DEVICE"

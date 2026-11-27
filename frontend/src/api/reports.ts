@@ -29,7 +29,7 @@ export async function listAiReportPage(deviceId: string, page: number, signal: A
   const send = () => fetch(url, { credentials: "include", cache: "no-store", signal });
   let response = await send();
   if (response.status === 401 && import.meta.env.DEV) {
-    await openLocalSession(signal);
+    await openLocalSession(signal ?? new AbortController().signal);
     response = await send();
   }
   if (!response.ok) throw new Error("Không tải được báo cáo. Kiểm tra kết nối backend.");
@@ -50,3 +50,17 @@ export async function listAiReportPage(deviceId: string, page: number, signal: A
     (item.reason === null || typeof item.reason === "string"));
   return { items, total: Number(data.total), page, page_size: 10 };
 }
+
+export async function clearAiReports(deviceId: string, signal?: AbortSignal): Promise<void> {
+  const base = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000";
+  const url = new URL(`${base}/api/v1/reports/ai`);
+  url.searchParams.set("device_id", deviceId);
+  const send = () => fetch(url, { method: "DELETE", credentials: "include", signal });
+  let response = await send();
+  if (response.status === 401 && import.meta.env.DEV) {
+    await openLocalSession(signal ?? new AbortController().signal);
+    response = await send();
+  }
+  if (!response.ok) throw new Error("Không xóa được báo cáo.");
+}
+

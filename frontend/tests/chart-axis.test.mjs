@@ -41,9 +41,9 @@ const step = (state, kind, data) => axes.advanceAxis(state, kind, axes.observeAx
 test("shared 60-second domain and evenly spaced time ticks ignore arrival density", () => {
   const data = [point(40), point(61), point(99.25), point(100)];
   assert.deepEqual(chartFormat.chartTimeDomain(data), [40, 100]);
-  assert.deepEqual(chartFormat.chartTimeTicks(data), [40, 55, 70, 85, 100]);
+  assert.deepEqual(chartFormat.chartTimeTicks(data), [40, 50, 60, 70, 80, 90, 100]);
   assert.deepEqual(chartFormat.chartTimeDomain([point(1)]), [0, 60]);
-  assert.deepEqual(chartFormat.chartTimeTicks([]), [0, 15, 30, 45, 60]);
+  assert.deepEqual(chartFormat.chartTimeTicks([]), [0, 10, 20, 30, 40, 50, 60]);
 });
 test("drawing inserts null breaks after missing packets without mutating raw history or forecast", () => {
   const data = [point(1, { hr: 70, hrForecast: null }), point(2, { hr: 71, hrForecast: null }),
@@ -167,7 +167,7 @@ test("real hook and chart bindings survive StrictMode, duplicate arrays and stre
     await act(async () => root.render(React.createElement(React.StrictMode, null,
       React.createElement(Probe, { data, key }),
       React.createElement(MetricChart, { key: key + "-hr", title: "HR", data, dataKey: "hr", unit: "bpm", color: "blue",
-        forecast: { dataKey: "hrForecast", name: "Tạm tính", color: "orange" } }),
+        forecast: { dataKey: "hrForecast", name: "Nhịp duy trì", color: "orange" } }),
       React.createElement(ImuChart, { key: key + "-imu", data, kind: "angular_velocity" }))));
   };
   try {
